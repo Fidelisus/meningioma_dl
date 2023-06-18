@@ -1,2 +1,8 @@
-pandas==2.0.1
 torch
+nibabel
+scipy
+numpy
+pandas
+fire
+# https://learn.microsoft.com/en-us/windows/ai/directml/gpu-pytorch-windows
+torch-directml
