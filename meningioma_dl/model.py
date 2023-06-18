@@ -1,21 +1,18 @@
 import logging
-from pathlib import Path
-from typing import List, Tuple, Optional
-import torch
-import torch_directml
 import os
+from pathlib import Path
+from typing import Optional
+
 import torch
 from torch import nn
 from torch.nn import Parameter
 
-from meningioma_dl.config import TaskType
 from meningioma_dl.models.resnet import ResNet, RESNET_MODELS_MAP
 
 
 def create_resnet_model(
     model_depth: int,
     resnet_shortcut_type: str,
-    no_cuda: bool,
     number_of_classes: int,
     gpus_ids: tuple[int],
     pretrained_model_path: Optional[Path],
@@ -24,12 +21,15 @@ def create_resnet_model(
     assert model_depth in RESNET_MODELS_MAP
     assert resnet_shortcut_type in ["A", "B"]
 
+    no_cuda = False if device == torch.device("cuda") else True
+
     model = RESNET_MODELS_MAP[model_depth](
         shortcut_type=resnet_shortcut_type,
         no_cuda=no_cuda,
         num_classes=number_of_classes,
     )
 
+    # TODO figure out if no_cuda is needed
     if no_cuda:
         model = model.to(device)
         # model = nn.DataParallel(model)

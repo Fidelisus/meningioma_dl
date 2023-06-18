@@ -1,4 +1,5 @@
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 
 import monai
 import torch
@@ -13,8 +14,33 @@ from monai.transforms import (
     Compose,
 )
 
+from meningioma_dl.config import Config
+from meningioma_dl.data_loading.labels_loading import get_images_with_labels
+
 
 def get_data_loader(
+    labels_file_path: Path,
+    data_root_directory: Path,
+    num_workers: int,
+    add_augmentation: bool,
+    batch_size: Optional[int] = None,
+) -> tuple[DataLoader, list[int]]:
+    images, labels = get_images_with_labels(data_root_directory, labels_file_path)
+
+    if batch_size is None:
+        batch_size = len(labels)
+
+    data_loader = init_data_loader(
+        images,
+        labels,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        add_augmentation=add_augmentation,
+    )
+    return data_loader, labels
+
+
+def init_data_loader(
     images: List[str],
     labels: List[int],
     batch_size: int,

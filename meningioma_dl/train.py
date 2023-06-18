@@ -3,17 +3,14 @@ from pathlib import Path
 from typing import Tuple, Optional
 
 import fire
-
-from meningioma_dl.config import Config
-from meningioma_dl.data_loading.labels_loading import (
-    get_images_with_labels,
-)
-from meningioma_dl.training_utils import training_loop
-from meningioma_dl.data_loading.data_loader import get_data_loader
-from meningioma_dl.utils import select_device, get_loss_function_class_weights
-from model import create_resnet_model
 import torch
 from torch import optim
+
+from meningioma_dl.config import Config
+from meningioma_dl.data_loading.data_loader import get_data_loader
+from meningioma_dl.training_utils import training_loop
+from meningioma_dl.utils import select_device, get_loss_function_class_weights
+from model import create_resnet_model
 
 
 def train(
@@ -35,6 +32,9 @@ def train(
     device_name: str = "cpu",
     ci_run: bool = True,
 ):
+    device = select_device(device_name)
+    torch.manual_seed(manual_seed)
+
     if ci_run:
         labels_file_path_train = Config.ci_run_labels_file_path
         labels_file_path_validation = Config.ci_run_labels_file_path
@@ -43,37 +43,29 @@ def train(
         labels_file_path_train = Config.train_labels_file_path
         labels_file_path_validation = Config.validation_labels_file_path
         data_root_directory = Config.data_root_directory
-    images_train, labels_train = get_images_with_labels(
-        data_root_directory, labels_file_path_train
-    )
-    images_validation, labels_validation = get_images_with_labels(
-        data_root_directory, labels_file_path_validation
-    )
 
-    training_data_loader = get_data_loader(
-        images_train, labels_train, batch_size, num_workers, add_augmentation=True
+    training_data_loader, labels_train = get_data_loader(
+        labels_file_path_train,
+        data_root_directory,
+        num_workers,
+        add_augmentation=True,
+        batch_size=batch_size,
     )
-    validation_data_loader = get_data_loader(
-        images_validation,
-        labels_validation,
-        batch_size,
+    validation_data_loader, labels_validation = get_data_loader(
+        labels_file_path_validation,
+        data_root_directory,
         num_workers,
         add_augmentation=False,
+        batch_size=batch_size,
     )
 
     loss_function_class_weights = get_loss_function_class_weights(
         labels_train + labels_validation
     )
 
-    device = select_device(device_name)
-    no_cuda = False if device_name == "cuda" else True
-
-    torch.manual_seed(manual_seed)
-
     model, pretrained_model_parameters, parameters_to_fine_tune = create_resnet_model(
         model_depth,
         resnet_shortcut_type,
-        no_cuda,
         number_of_classes,
         gpus_ids,
         pretrained_model_path,
