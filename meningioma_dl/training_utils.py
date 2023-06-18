@@ -27,14 +27,10 @@ def training_loop(
     device: torch.device,
     ci_run: bool,
 ):
-    best_loss_validation = np.inf
+    best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
     batches_per_epoch = len(training_data_loader)
-    logging.info(
-        "{} epochs in total, {} batches per epoch".format(
-            total_epochs, batches_per_epoch
-        )
-    )
+    logging.info(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
     loss_function = nn.CrossEntropyLoss(
         ignore_index=-1, weight=torch.tensor(loss_function_class_weights)
     )
@@ -82,15 +78,15 @@ def training_loop(
                 )
                 if f_score > best_f_score:
                     best_f_score = f_score
-                loss_validation = loss_function(predictions, labels)
+                loss_validation: torch.Tensor = loss_function(predictions, labels)
 
                 if not ci_run and loss_validation > best_loss_validation:
                     _save_model(model, model_save_folder, optimizer, epoch)
                 logging.info(f"F1 score: {f_score}")
-                logging.info(f"Validation loss: {loss_validation}")
+                logging.info(f"Validation loss: {loss_validation.data}")
 
     logging.info(
-        f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation}"
+        f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation.data}"
     )
 
 

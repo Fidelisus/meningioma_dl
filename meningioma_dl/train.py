@@ -1,7 +1,3 @@
-"""
-Training code for MRBrainS18 datasets segmentation
-Written by Whalechen
-"""
 import logging
 from pathlib import Path
 from typing import Tuple, Optional
@@ -39,22 +35,6 @@ def train(
     device_name: str = "cpu",
     ci_run: bool = True,
 ):
-    device = select_device(device_name)
-    no_cuda = False if device_name == "cuda" else True
-
-    torch.manual_seed(manual_seed)
-
-    model, pretrained_model_parameters, parameters_to_fine_tune = create_resnet_model(
-        model_depth,
-        resnet_shortcut_type,
-        no_cuda,
-        number_of_classes,
-        gpus_ids,
-        pretrained_model_path,
-        device,
-    )
-    logging.info(model)
-
     if ci_run:
         labels_file_path_train = Config.ci_run_labels_file_path
         labels_file_path_validation = Config.ci_run_labels_file_path
@@ -83,6 +63,21 @@ def train(
 
     loss_function_class_weights = get_loss_function_class_weights(
         labels_train + labels_validation
+    )
+
+    device = select_device(device_name)
+    no_cuda = False if device_name == "cuda" else True
+
+    torch.manual_seed(manual_seed)
+
+    model, pretrained_model_parameters, parameters_to_fine_tune = create_resnet_model(
+        model_depth,
+        resnet_shortcut_type,
+        no_cuda,
+        number_of_classes,
+        gpus_ids,
+        pretrained_model_path,
+        device,
     )
 
     params = [
