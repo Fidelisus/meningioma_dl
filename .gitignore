@@ -160,3 +160,7 @@ cython_debug/
 .idea/
 
 data/
+trails/
+pretrain/
+toy_data/
+viz/

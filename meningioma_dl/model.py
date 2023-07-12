@@ -54,15 +54,13 @@ def create_resnet_model(
         # map_location=torch.device(device),
         map_location="cpu",
     )
-    pretrain_dict = {
-        k: v
-        for k, v in pretrain["state_dict"].items()
-        if k in initialized_model_state_dict
+    pretrained_model_state_dict = {
+        k.replace("module.", ""): v for k, v in pretrain["state_dict"].items()
     }
 
-    initialized_model_state_dict.update(pretrain_dict)
+    initialized_model_state_dict.update(pretrained_model_state_dict)
     logging.info(
-        f"Loaded the following layers from the pretrained model: {pretrain_dict.keys()}"
+        f"Loaded the following layers from the pretrained model: {pretrained_model_state_dict.keys()}"
     )
     model.load_state_dict(initialized_model_state_dict)
 
@@ -70,7 +68,7 @@ def create_resnet_model(
     parameters_to_fine_tune = []
 
     for pname, p in model.named_parameters():
-        if pname in pretrain_dict:
+        if pname in pretrained_model_state_dict:
             pretrained_model_parameters.append(p)
         else:
             parameters_to_fine_tune.append(p)

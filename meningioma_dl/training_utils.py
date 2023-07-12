@@ -80,7 +80,7 @@ def training_loop(
                     best_f_score = f_score
                 loss_validation: torch.Tensor = loss_function(predictions, labels)
 
-                if not ci_run and loss_validation > best_loss_validation:
+                if not ci_run and loss_validation < best_loss_validation:
                     _save_model(model, model_save_folder, optimizer, epoch)
                 logging.info(f"F1 score: {f_score}")
                 logging.info(f"Validation loss: {loss_validation.data}")
@@ -111,7 +111,6 @@ def _save_model(
     epoch: int,
 ):
     # TODO rewrite nicer
-    # if batch_id_sp != 0 and batch_id_sp % save_interval == 0:
     model_save_path = "{}_epoch_{}.pth.tar".format(model_save_folder, epoch)
     model_save_dir = os.path.dirname(model_save_path)
     if not os.path.exists(model_save_dir):

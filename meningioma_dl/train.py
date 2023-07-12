@@ -9,7 +9,11 @@ from torch import optim
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import get_data_loader
 from meningioma_dl.training_utils import training_loop
-from meningioma_dl.utils import select_device, get_loss_function_class_weights
+from meningioma_dl.utils import (
+    select_device,
+    get_loss_function_class_weights,
+    setup_logging,
+)
 from model import create_resnet_model
 
 
@@ -32,6 +36,8 @@ def train(
     device_name: str = "cpu",
     ci_run: bool = True,
 ):
+    setup_logging()
+
     device = select_device(device_name)
     torch.manual_seed(manual_seed)
 
@@ -43,6 +49,8 @@ def train(
         labels_file_path_train = Config.train_labels_file_path
         labels_file_path_validation = Config.validation_labels_file_path
         data_root_directory = Config.data_root_directory
+
+    logging.info("Start training")
 
     training_data_loader, labels_train = get_data_loader(
         labels_file_path_train,
@@ -80,6 +88,8 @@ def train(
         params, momentum=sgd_momentum, weight_decay=weight_decay
     )
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=lr_scheduler_gamma)
+
+    logging.info("Model initialized succesfully")
 
     # TODO train from resume
     # if sets.resume_path:
@@ -131,3 +141,4 @@ if __name__ == "__main__":
         fire.Fire(train)
     except Exception as e:
         logging.error(f"An unexpected error occured {e}", exc_info=True)
+        raise

@@ -14,7 +14,6 @@ from monai.transforms import (
     Compose,
 )
 
-from meningioma_dl.config import Config
 from meningioma_dl.data_loading.labels_loading import get_images_with_labels
 
 
@@ -52,7 +51,7 @@ def init_data_loader(
     ]
 
     base_transforms: list[Transform] = [
-        LoadImaged(keys=["img"], ensure_channel_first=True),
+        LoadImaged(keys=["img"], ensure_channel_first=True, image_only=True),
         ScaleIntensityd(keys=["img"]),
         Resized(keys=["img"], spatial_size=(224, 224, 224)),
     ]

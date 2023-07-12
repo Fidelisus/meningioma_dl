@@ -6,3 +6,5 @@ pandas
 fire
 # https://learn.microsoft.com/en-us/windows/ai/directml/gpu-pytorch-windows
 torch-directml
+plotly
+monai

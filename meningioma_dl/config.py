@@ -10,7 +10,6 @@ class TaskType(Enum):
 
 @dataclass
 class Config:
-    # TODO different classes
     # model
     test_size: float = 0.2
     validation_size: float = 0.1
@@ -25,6 +24,10 @@ class Config:
     validation_labels_file_path: Path = labels_dir.joinpath("validation_labels.tsv")
     test_labels_file_path: Path = labels_dir.joinpath("test_labels.tsv")
     ci_run_labels_file_path: Path = labels_dir.joinpath("ci_run_labels.tsv")
+
+    # visualizations
+    visualizations_directory: Path = Path(__file__).parents[1].joinpath("viz")
+    visualizations_directory.mkdir(parents=True, exist_ok=True)
 
     # optuna
     results_storage_directory: Path = Path(__file__).parents[1].joinpath("optuna")
