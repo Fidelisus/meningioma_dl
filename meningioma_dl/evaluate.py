@@ -7,7 +7,7 @@ import torch
 from sklearn.metrics import f1_score, recall_score, precision_score
 
 from meningioma_dl.config import Config
-from meningioma_dl.data_loading.data_loader import get_data_loader
+from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
 from meningioma_dl.models.resnet import RESNET_MODELS_MAP
 from meningioma_dl.training_utils import get_model_predictions
 from meningioma_dl.utils import select_device, get_loss_function_class_weights
@@ -41,7 +41,7 @@ def evaluate(
         labels_file_path,
         data_root_directory,
         num_workers,
-        add_augmentation=False,
+        transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
     )
 
     loss_function_class_weights = get_loss_function_class_weights(labels)

@@ -7,7 +7,7 @@ import torch
 from torch import optim
 
 from meningioma_dl.config import Config
-from meningioma_dl.data_loading.data_loader import get_data_loader
+from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
     select_device,
@@ -56,14 +56,14 @@ def train(
         labels_file_path_train,
         data_root_directory,
         num_workers,
-        add_augmentation=True,
+        transformations_mode=TransformationsMode.AUGMENT,
         batch_size=batch_size,
     )
     validation_data_loader, labels_validation = get_data_loader(
         labels_file_path_validation,
         data_root_directory,
         num_workers,
-        add_augmentation=False,
+        transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
     )
 
