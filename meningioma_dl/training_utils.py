@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import torch
@@ -26,7 +27,7 @@ def training_loop(
     model_save_folder: Path,
     device: torch.device,
     ci_run: bool,
-):
+) -> tuple[float, Optional[str]]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
     batches_per_epoch = len(training_data_loader)
@@ -37,6 +38,7 @@ def training_loop(
 
     loss_function = loss_function.to(device)
 
+    trained_model_path: Optional[str] = None
     for epoch in range(total_epochs):
         logging.info("Start epoch {}".format(epoch))
         epoch_start_time = time.time()
@@ -80,14 +82,18 @@ def training_loop(
                     best_f_score = f_score
                 loss_validation: torch.Tensor = loss_function(predictions, labels)
 
-                if not ci_run and loss_validation < best_loss_validation:
-                    _save_model(model, model_save_folder, optimizer, epoch)
+                if loss_validation < best_loss_validation:  # and not ci_run
+                    trained_model_path = _save_model(
+                        model, model_save_folder, optimizer, epoch
+                    )
+                    logging.info(f"Model saved at {trained_model_path}")
                 logging.info(f"F1 score: {f_score}")
                 logging.info(f"Validation loss: {loss_validation.data}")
 
     logging.info(
         f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation.data}"
     )
+    return best_f_score, trained_model_path
 
 
 def get_model_predictions(
@@ -109,7 +115,7 @@ def _save_model(
     model_save_folder: Path,
     optimizer: Optimizer,
     epoch: int,
-):
+) -> str:
     # TODO rewrite nicer
     model_save_path = "{}_epoch_{}.pth.tar".format(model_save_folder, epoch)
     model_save_dir = os.path.dirname(model_save_path)
@@ -118,9 +124,10 @@ def _save_model(
     logging.info("Save checkpoints: epoch = {}".format(epoch))
     torch.save(
         {
-            "ecpoch": epoch,
+            "epoch": epoch,
             "state_dict": model.state_dict(),
             "optimizer": optimizer.state_dict(),
         },
         model_save_path,
     )
+    return model_save_path

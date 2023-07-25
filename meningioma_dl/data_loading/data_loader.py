@@ -96,6 +96,12 @@ def init_data_loader(
         )
 
     if transformations_mode == TransformationsMode.AUGMENT:
+        # augmentation_transforms: list[transforms.Transform] = [
+        #     transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=0.5),
+        #     transforms.RandRotated(keys=["img"], prob=0.8),
+        #     # gaussian noise
+        #     # elastic deforamtions
+        # ]
         if augmentation_settings is None:
             raise ValueError("No augmentation settings provided")
         transformations.extend(augmentation_settings)

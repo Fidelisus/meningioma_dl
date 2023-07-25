@@ -37,7 +37,7 @@ def train(
     save_folder: Path = Path("trails/models/current_model"),  # TODO make it nicer
     device_name: str = "cpu",
     ci_run: bool = True,
-):
+) -> tuple[float, Optional[str]]:
     setup_logging()
 
     device = select_device(device_name)
@@ -106,25 +106,8 @@ def train(
     #                 sets.resume_path, checkpoint["epoch"]
     #             )
     #         )
-    # sets = {}
-    # sets["input_D"] = 56
-    # sets["input_H"] = 448
-    # sets["input_W"] = 448
-    # sets["phase"] = "train"
-    # sets = type("Sets", (object,), sets)()
-    # training_dataset = BrainS18Dataset("data", "./data/train.txt", sets)
-    #
-    # data_loader = DataLoader(
-    #     training_dataset,
-    #     batch_size=batch_size,
-    #     shuffle=True,
-    #     num_workers=num_workers,
-    #     pin_memory=pin_memory,
-    # )
 
-    # training
-
-    training_loop(
+    best_f_score, trained_model_path = training_loop(
         training_data_loader,
         validation_data_loader,
         model,
@@ -137,6 +120,7 @@ def train(
         device=device,
         ci_run=ci_run,
     )
+    return best_f_score, trained_model_path
 
 
 if __name__ == "__main__":

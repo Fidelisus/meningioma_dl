@@ -24,7 +24,7 @@ def evaluate(
     trained_model_path: Path = Path("trails/models/current_model_epoch_0.pth.tar"),
     device_name: str = "cpu",
     ci_run: bool = True,
-):
+) -> float:
     logging.info("Starting model evaluation")
 
     device = select_device(device_name)
@@ -86,6 +86,8 @@ def evaluate(
     plot_confusion_matrix(
         labels_flat, predictions_flat, Config.visualizations_directory
     )
+
+    return f_score
 
 
 if __name__ == "__main__":
