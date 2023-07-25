@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import monai
+import numpy as np
 import torch
 from monai.data import DataLoader
 from monai import transforms
@@ -81,7 +82,6 @@ def init_data_loader(
         TransformationsMode.ONLY_PREPROCESSING.value,
         TransformationsMode.AUGMENT.value,
     }:
-        print("yes")
         transformations.extend(
             [
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
@@ -91,21 +91,34 @@ def init_data_loader(
                 transforms.Zoomd(keys=["mask"], zoom=1.2),
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
                 transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0),
-                transforms.Resized(keys=["img", "mask"], spatial_size=(224, 224, 224)),
             ]
         )
 
-    if transformations_mode == TransformationsMode.AUGMENT:
+    if transformations_mode.value == TransformationsMode.AUGMENT.value:
         # augmentation_transforms: list[transforms.Transform] = [
         #     transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=0.5),
         #     transforms.RandRotated(keys=["img"], prob=0.8),
-        #     # gaussian noise
-        #     # elastic deforamtions
+        #     transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=0.5),
+        #     transforms.RandGaussianNoised(keys=["img"], prob=1.0),
+        #     transforms.Rand3DElasticd(
+        #         keys=["img"],
+        #         sigma_range=(0, 1),
+        #         magnitude_range=(3, 6),
+        #         prob=1.0,
+        #         rotate_range=(np.pi / 4),
+        #         padding_mode="zeros",
+        #     ),
+        #     transforms.RandAffined(keys=["img"], prob=1.0),
         # ]
+        # transformations.extend(augmentation_transforms)
         if augmentation_settings is None:
             raise ValueError("No augmentation settings provided")
         transformations.extend(augmentation_settings)
 
+    transformations.append(
+        transforms.Resized(keys=["img", "mask"], spatial_size=(224, 224, 224))
+    )
+    print(transformations)
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)
     )
