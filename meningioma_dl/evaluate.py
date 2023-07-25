@@ -33,10 +33,10 @@ def evaluate(
 
     if ci_run:
         labels_file_path = Config.ci_run_labels_file_path
-        data_root_directory = Config.ci_run_data_root_directory
+        data_root_directory = Config.ci_images_directory
     else:
         labels_file_path = Config.validation_labels_file_path
-        data_root_directory = Config.data_root_directory
+        data_root_directory = Config.images_directory
     data_loader, labels = get_data_loader(
         labels_file_path,
         data_root_directory,

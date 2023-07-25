@@ -4,21 +4,23 @@ from typing import Tuple, Optional
 
 import fire
 import torch
+from monai import transforms
 from torch import optim
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
+from meningioma_dl.models.resnet import create_resnet_model
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
     select_device,
     get_loss_function_class_weights,
     setup_logging,
 )
-from model import create_resnet_model
 
 
 def train(
     manual_seed: int = Config.random_seed,
+    augmentation_settings: Optional[list[transforms.Transform]] = None,
     learning_rate: float = 0.001,
     sgd_momentum: float = 0.9,
     weight_decay: float = 0.001,
@@ -44,11 +46,11 @@ def train(
     if ci_run:
         labels_file_path_train = Config.ci_run_labels_file_path
         labels_file_path_validation = Config.ci_run_labels_file_path
-        data_root_directory = Config.ci_run_data_root_directory
+        data_root_directory = Config.ci_images_directory
     else:
         labels_file_path_train = Config.train_labels_file_path
         labels_file_path_validation = Config.validation_labels_file_path
-        data_root_directory = Config.data_root_directory
+        data_root_directory = Config.images_directory
 
     logging.info("Start training")
 
@@ -58,6 +60,7 @@ def train(
         num_workers,
         transformations_mode=TransformationsMode.AUGMENT,
         batch_size=batch_size,
+        augmentation_settings=augmentation_settings,
     )
     validation_data_loader, labels_validation = get_data_loader(
         labels_file_path_validation,

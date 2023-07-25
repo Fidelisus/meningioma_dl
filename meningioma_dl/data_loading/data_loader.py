@@ -22,6 +22,7 @@ def get_data_loader(
     num_workers: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     batch_size: Optional[int] = None,
+    augmentation_settings: Optional[list[transforms.Transform]] = None,
 ) -> tuple[DataLoader, list[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path
@@ -37,6 +38,7 @@ def get_data_loader(
         batch_size=batch_size,
         num_workers=num_workers,
         transformations_mode=transformations_mode,
+        augmentation_settings=augmentation_settings,
     )
     return data_loader, labels
 
@@ -53,6 +55,7 @@ def init_data_loader(
     batch_size: int,
     num_workers: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
+    augmentation_settings: Optional[list[transforms.Transform]] = None,
 ) -> DataLoader:
     file_label_map = [
         {"img": img, "mask": mask, "label": label}
@@ -93,11 +96,9 @@ def init_data_loader(
         )
 
     if transformations_mode == TransformationsMode.AUGMENT:
-        augmentation_transforms: list[transforms.Transform] = [
-            transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=0.5),
-            transforms.RandRotate90d(keys=["img"], prob=0.8, spatial_axes=(0, 2)),
-        ]
-        transformations.extend(augmentation_transforms)
+        if augmentation_settings is None:
+            raise ValueError("No augmentation settings provided")
+        transformations.extend(augmentation_settings)
 
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)
