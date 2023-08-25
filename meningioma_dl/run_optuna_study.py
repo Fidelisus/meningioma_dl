@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import optuna
 import fire
@@ -47,7 +47,9 @@ def run_study(
     env_file_path: str,
     n_trials: int = 10,
     n_epochs: int = 10,
-    trial_name: str = "more_augmentations",
+    study_name: str = "more_augmentations",
+    run_id: Optional[str] = None,
+    device_name: str = "cpu",
 ):
     augmentation_settings = test_run_augment
 
@@ -58,15 +60,21 @@ def run_study(
             run_id=run_id,
             augmentation_settings=transforms,
             n_epochs=n_epochs,
+            device_name=device_name,
             **suggest_parameters_values(trial, test_run_params),
         )
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")
 
-        best_f_score = evaluate(trained_model_path=Path(trained_model_path))
+        best_f_score = evaluate(
+            trained_model_path=trained_model_path, device_name=device_name
+        )
         return best_f_score
 
-    run_id = f"{trial_name}_{generate_run_id()}"
+    if run_id is not None:
+        run_id = f"{study_name}_{generate_run_id()}"
+    else:
+        run_id = f"{study_name}_{run_id}"
     Config.load_env_variables(env_file_path, run_id)
     setup_logging(Config.log_file_path)
 

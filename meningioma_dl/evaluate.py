@@ -39,7 +39,6 @@ def evaluate(
     logging.info("Starting model evaluation")
 
     device = select_device(device_name)
-
     torch.manual_seed(manual_seed)
 
     data_loader, labels = get_data_loader(

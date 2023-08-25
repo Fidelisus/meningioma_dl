@@ -1,7 +1,5 @@
 #!/bin/sh
 
-base_dir=/home/cir/lsobocinski
-
 #SBATCH --nodes=1
 
 # GPU
@@ -16,8 +14,16 @@ base_dir=/home/cir/lsobocinski
 #SBATCH --time=2:00:00
 #SBATCH --job-name=gputest_lukasz
 
+base_dir=/home/cir/lsobocinski
+venv_path=${base_dir}/meningioma_dl/venv
+
 #just add Tensorflow, as Tensorflow includes the other requirements (CUDA, cuDNN...)
-module add Tensorflow
+# module add Torch/20170724-goolf-1.4.10
+module add Python/3.6.2-goolf-1.4.10
+virtualenv --system-site-packages ${base_dir}/meningioma_dl/venv
+source ${venv_path}/bin/activate
 
 #lddpython is needed to load a newer glibc
-lddpython cifar10_train.py --train_dir /tmp/cifar10_train_$SLURM_JOBID
+lddpython_ ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
+  --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=2 \
+  --n_trials=2 --study_name=playground_1 --run_id=$SLURM_JOBID
