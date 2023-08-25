@@ -19,7 +19,7 @@ from meningioma_dl.utils import (
 
 
 def train(
-    env_file_path: str,
+    env_file_path: Optional[str] = None,
     run_id: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     augmentation_settings: Optional[list[transforms.Transform]] = None,
