@@ -17,8 +17,13 @@ from meningioma_dl.evaluate import evaluate
 from meningioma_dl.train import train
 
 test_run_augment: dict[str, dict[str, tuple]] = {
-    "rand_flip": {"spatial_axis": (0, 1), "prob": 0.5},
+    "rand_flip": {"spatial_axis": (0, 1), "prob": (0, 1)},
     "rand_rotate": {"prob": (0, 1)},
+    "rand_zoom": {
+        "min_zoom": (0.6, 1.0),
+        "max_zoom": (1.0, 1.6),
+        "prob": (0, 1),
+    },
 }
 
 test_run_params: dict[str, Any] = {"learning_rate": (0.01, 0.1)}
@@ -38,7 +43,7 @@ def suggest_parameters_values(
 
 
 def run_study(
-    n_trials: int = 2, n_epochs: int = 1, trial_name: str = "more_augmentations"
+    n_trials: int = 10, n_epochs: int = 10, trial_name: str = "more_augmentations"
 ):
     def objective(trial):
         transforms = create_augmentation(trial, augmentation_settings)

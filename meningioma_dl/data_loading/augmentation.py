@@ -41,6 +41,17 @@ AUGMENTATIONS: dict[str, Augmentation] = {
             "prob": HyperparameterSpecs(data_type=float),
         },
     ),
+    "rand_zoom": Augmentation(
+        transforms.RandZoomd,
+        {
+            "keys": ["img"],
+        },
+        {
+            "min_zoom": HyperparameterSpecs(data_type=float),
+            "max_zoom": HyperparameterSpecs(data_type=float),
+            "prob": HyperparameterSpecs(data_type=float),
+        },
+    ),
 }
 
 sample_augmentation_transforms: list[transforms.Transform] = [
