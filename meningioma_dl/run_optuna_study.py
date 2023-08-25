@@ -54,7 +54,7 @@ def run_study(
     def objective(trial):
         transforms = propose_augmentation(trial, augmentation_settings)
         _, trained_model_path = train(
-            env_file_path=env_file_path,
+            env_file_path=None,
             run_id=run_id,
             augmentation_settings=transforms,
             n_epochs=n_epochs,
