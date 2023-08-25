@@ -67,15 +67,10 @@ def init_data_loader(
         transforms.LoadImaged(
             keys=["img", "mask"], ensure_channel_first=True, image_only=True
         ),
-        # transforms.EnsureChannelFirstd(keys=["img", "mask"]),
-        # transforms.SqueezeDimd(keys=["img", "mask"]),
         transforms.Orientationd(keys=["img", "mask"], axcodes="PLI"),
         transforms.Spacingd(
             keys=["img", "mask"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "nearest")
         ),
-        # transforms.SpatialCropd(
-        #     keys=["img"], roi_center=[57, 59, 31], roi_size=[114, 119, 62]
-        # ),
     ]
 
     if transformations_mode.value in {
@@ -95,25 +90,26 @@ def init_data_loader(
         )
 
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
-        # augmentation_transforms: list[transforms.Transform] = [
-        #     transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=0.5),
-        #     transforms.RandRotated(keys=["img"], prob=0.8),
-        #     transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=0.5),
-        #     transforms.RandGaussianNoised(keys=["img"], prob=1.0),
-        #     transforms.Rand3DElasticd(
-        #         keys=["img"],
-        #         sigma_range=(0, 1),
-        #         magnitude_range=(3, 6),
-        #         prob=1.0,
-        #         rotate_range=(np.pi / 4),
-        #         padding_mode="zeros",
-        #     ),
-        #     transforms.RandAffined(keys=["img"], prob=1.0),
-        # ]
-        # transformations.extend(augmentation_transforms)
-        if augmentation_settings is None:
-            raise ValueError("No augmentation settings provided")
-        transformations.extend(augmentation_settings)
+        augmentation_transforms: list[transforms.Transform] = [
+            transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
+            transforms.RandRotated(keys=["img"], prob=1),
+            transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=1),
+            transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.2),
+            # We need to mask after gaussian to avoid adding noise to the empty parts
+            transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
+            transforms.Rand3DElasticd(
+                keys=["img"],
+                sigma_range=(0, 1),
+                magnitude_range=(3, 6),
+                prob=1.0,
+                rotate_range=(np.pi / 4),
+                padding_mode="zeros",
+            ),
+        ]
+        transformations.extend(augmentation_transforms)
+        # if augmentation_settings is None:
+        #     raise ValueError("No augmentation settings provided")
+        # transformations.extend(augmentation_settings)
 
     transformations.append(
         transforms.Resized(keys=["img", "mask"], spatial_size=(224, 224, 224))
