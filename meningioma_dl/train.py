@@ -40,9 +40,9 @@ def train(
     if run_id is None:
         run_id = generate_run_id()
 
-    Config.load_env_variables(env_file_path)
-    setup_logging()
-
+    if env_file_path is not None:
+        Config.load_env_variables(env_file_path, run_id)
+        setup_logging(Config.log_file_path)
     device = select_device(device_name)
     torch.manual_seed(manual_seed)
 

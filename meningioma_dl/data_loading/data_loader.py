@@ -114,8 +114,7 @@ def init_data_loader(
     transformations.append(
         transforms.Resized(keys=["img", "mask"], spatial_size=(224, 224, 224))
     )
-    logging.info("The following augmentation settings will be used:")
-    logging.info(transformations)
+
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)
     )

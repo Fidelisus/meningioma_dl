@@ -10,11 +10,12 @@ from optuna import Trial
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.augmentation import (
-    create_augmentation,
+    propose_augmentation,
     _suggest_hyperparameter_value,
 )
 from meningioma_dl.evaluate import evaluate
 from meningioma_dl.train import train
+from meningioma_dl.utils import generate_run_id, setup_logging
 
 test_run_augment: dict[str, dict[str, tuple]] = {
     "rand_flip": {"spatial_axis": (0, 1), "prob": (0, 1)},
@@ -48,12 +49,13 @@ def run_study(
     n_epochs: int = 10,
     trial_name: str = "more_augmentations",
 ):
-    Config.load_env_variables(env_file_path)
+    augmentation_settings = test_run_augment
 
     def objective(trial):
-        transforms = create_augmentation(trial, augmentation_settings)
+        transforms = propose_augmentation(trial, augmentation_settings)
         _, trained_model_path = train(
             env_file_path=env_file_path,
+            run_id=run_id,
             augmentation_settings=transforms,
             n_epochs=n_epochs,
             **suggest_parameters_values(trial, test_run_params),
@@ -64,12 +66,16 @@ def run_study(
         best_f_score = evaluate(trained_model_path=Path(trained_model_path))
         return best_f_score
 
-    study_id = f"{trial_name}_{datetime.now().isoformat()}_{shortuuid.uuid()}"
-    augmentation_settings = test_run_augment
+    run_id = f"{trial_name}_{generate_run_id()}"
+    Config.load_env_variables(env_file_path, run_id)
+    setup_logging(Config.log_file_path)
+
+    logging.info("The following augmentation settings will be used:")
+    logging.info(augmentation_settings)
+
     study = optuna.create_study(
-        storage=Config.optuna_database_directory, study_name=study_id
+        storage=Config.optuna_database_directory, study_name=run_id
     )
-    print(augmentation_settings)
     study.optimize(objective, n_trials=n_trials)
 
 

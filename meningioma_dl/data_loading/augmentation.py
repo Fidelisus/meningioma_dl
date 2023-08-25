@@ -77,7 +77,7 @@ def _suggest_hyperparameter_value(
     return value
 
 
-def create_augmentation(
+def propose_augmentation(
     trial: Trial, augmentation_settings: dict[str, dict[str, tuple]]
 ) -> list[transforms.Transform]:
     augmentation_transforms: list[transforms.Transform] = []

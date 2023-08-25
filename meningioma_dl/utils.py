@@ -1,6 +1,8 @@
 import logging
 from collections import Counter
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import shortuuid
@@ -32,7 +34,7 @@ def one_hot_encode_labels(labels: np.array) -> torch.Tensor:
     return labels_onehot
 
 
-def setup_logging() -> None:
+def setup_logging(log_file_path: Optional[Path]) -> None:
     root_logger = logging.getLogger()
     log_formatter = logging.Formatter(
         "[%(asctime)s] %(levelname)s | %(filename)s %(funcName)s:%(lineno)d | %(message)s",
@@ -41,6 +43,12 @@ def setup_logging() -> None:
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(log_formatter)
     root_logger.addHandler(console_handler)
+
+    if log_file_path is not None:
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setFormatter(log_formatter)
+        root_logger.addHandler(file_handler)
+
     root_logger.setLevel(logging.INFO)
 
 

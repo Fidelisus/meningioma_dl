@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -34,8 +35,11 @@ class Config:
     validation_size: float = 0.1
     random_seed: int = 123
 
+    # logging
+    log_file_path: Optional[Path] = None
+
     @classmethod
-    def load_env_variables(cls, env_file_path: str):
+    def load_env_variables(cls, env_file_path: str, run_id: str):
         load_dotenv(env_file_path)
 
         cls.data_directory = Path(os.environ["DATA_DIR"])
@@ -64,3 +68,8 @@ class Config:
             "viz"
         )
         cls.visualizations_directory.mkdir(parents=True, exist_ok=True)
+
+        logs_directory = Path(os.environ.get("LOGS_DIR", None))
+        if logs_directory:
+            cls.log_file_path = logs_directory.joinpath(run_id, "logs.log")
+            cls.log_file_path.parent.mkdir(parents=True, exist_ok=True)

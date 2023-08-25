@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
 
 import fire
 import torch
@@ -20,18 +20,21 @@ from meningioma_dl.visualizations.results_visualizations import plot_confusion_m
 
 
 def evaluate(
-    env_file_path: str,
+    trained_model_path: str,
+    env_file_path: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     model_depth: int = 10,
     resnet_shortcut_type: str = "B",
     num_workers: int = 1,
     number_of_classes: int = 3,
     gpus_ids: Tuple[int] = (),
-    trained_model_path: Path = Path("trails/models/current_model_epoch_0.pth.tar"),
     device_name: str = "cpu",
 ) -> float:
-    Config.load_env_variables(env_file_path)
-    setup_logging()
+    if env_file_path is not None:
+        Config.load_env_variables(
+            env_file_path, f"evaluation_{Path(trained_model_path).parent}"
+        )
+        setup_logging(Config.log_file_path)
 
     logging.info("Starting model evaluation")
 
