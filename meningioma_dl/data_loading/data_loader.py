@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
@@ -90,31 +91,31 @@ def init_data_loader(
         )
 
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
-        augmentation_transforms: list[transforms.Transform] = [
-            transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
-            transforms.RandRotated(keys=["img"], prob=1),
-            transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=1),
-            transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.2),
-            # We need to mask after gaussian to avoid adding noise to the empty parts
-            transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
-            transforms.Rand3DElasticd(
-                keys=["img"],
-                sigma_range=(0, 1),
-                magnitude_range=(3, 6),
-                prob=1.0,
-                rotate_range=(np.pi / 4),
-                padding_mode="zeros",
-            ),
-        ]
-        transformations.extend(augmentation_transforms)
-        # if augmentation_settings is None:
-        #     raise ValueError("No augmentation settings provided")
-        # transformations.extend(augmentation_settings)
+        if augmentation_settings is None:
+            logging.warning("No augmentation settings provided, using default ones")
+            augmentation_settings: list[transforms.Transform] = [
+                transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
+                transforms.RandRotated(keys=["img"], prob=1),
+                transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=1),
+                transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.2),
+                # We need to mask after gaussian to avoid adding noise to the empty parts
+                transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
+                transforms.Rand3DElasticd(
+                    keys=["img"],
+                    sigma_range=(0, 1),
+                    magnitude_range=(3, 6),
+                    prob=1.0,
+                    rotate_range=(np.pi / 4),
+                    padding_mode="zeros",
+                ),
+            ]
+        transformations.extend(augmentation_settings)
 
     transformations.append(
         transforms.Resized(keys=["img", "mask"], spatial_size=(224, 224, 224))
     )
-    print(transformations)
+    logging.info("The following augmentation settings will be used:")
+    logging.info(transformations)
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)
     )
