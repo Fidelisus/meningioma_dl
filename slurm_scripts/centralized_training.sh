@@ -1,5 +1,7 @@
 #!/bin/sh
 
+base_dir=/home/cir/lsobocinski
+
 #SBATCH --nodes=1
 
 # GPU

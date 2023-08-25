@@ -26,8 +26,8 @@ def training_loop(
     validation_interval: int,
     model_save_folder: Path,
     device: torch.device,
-    ci_run: bool,
-) -> tuple[float, Optional[str]]:
+    run_id: str,
+) -> tuple[float, Optional[Path]]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
     batches_per_epoch = len(training_data_loader)
@@ -38,7 +38,7 @@ def training_loop(
 
     loss_function = loss_function.to(device)
 
-    trained_model_path: Optional[str] = None
+    trained_model_path: Optional[Path] = None
     for epoch in range(total_epochs):
         logging.info("Start epoch {}".format(epoch))
         epoch_start_time = time.time()
@@ -82,9 +82,9 @@ def training_loop(
                     best_f_score = f_score
                 loss_validation: torch.Tensor = loss_function(predictions, labels)
 
-                if loss_validation < best_loss_validation:  # and not ci_run
+                if loss_validation < best_loss_validation:
                     trained_model_path = _save_model(
-                        model, model_save_folder, optimizer, epoch
+                        model, model_save_folder, optimizer, epoch, run_id
                     )
                     logging.info(f"Model saved at {trained_model_path}")
                 logging.info(f"F1 score: {f_score}")
@@ -115,19 +115,17 @@ def _save_model(
     model_save_folder: Path,
     optimizer: Optimizer,
     epoch: int,
-) -> str:
-    # TODO rewrite nicer
-    model_save_path = "{}_epoch_{}.pth.tar".format(model_save_folder, epoch)
-    model_save_dir = os.path.dirname(model_save_path)
-    if not os.path.exists(model_save_dir):
-        os.makedirs(model_save_dir)
-    logging.info("Save checkpoints: epoch = {}".format(epoch))
+    run_id: str,
+) -> Path:
+    model_save_path = model_save_folder.joinpath(run_id, f"epoch_{epoch}.pth.tar")
+    model_save_path.parent.mkdir()
+    logging.info(f"Saving model with run id {run_id} at epoch: {epoch}")
     torch.save(
         {
             "epoch": epoch,
             "state_dict": model.state_dict(),
             "optimizer": optimizer.state_dict(),
         },
-        model_save_path,
+        str(model_save_path),
     )
     return model_save_path

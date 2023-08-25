@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import Tuple, Optional
 
 import fire
@@ -15,10 +14,13 @@ from meningioma_dl.utils import (
     select_device,
     get_loss_function_class_weights,
     setup_logging,
+    generate_run_id,
 )
 
 
 def train(
+    env_file_path: str,
+    run_id: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     augmentation_settings: Optional[list[transforms.Transform]] = None,
     learning_rate: float = 0.001,
@@ -33,38 +35,30 @@ def train(
     num_workers: int = 1,
     number_of_classes: int = 3,
     gpus_ids: Tuple[int] = (),
-    pretrained_model_path: Optional[Path] = Path("pretrain/resnet_10.pth"),
-    save_folder: Path = Path("trails/models/current_model"),  # TODO make it nicer
     device_name: str = "cpu",
-    ci_run: bool = True,
 ) -> tuple[float, Optional[str]]:
+    if run_id is None:
+        run_id = generate_run_id()
+
+    Config.load_env_variables(env_file_path)
     setup_logging()
 
     device = select_device(device_name)
     torch.manual_seed(manual_seed)
 
-    if ci_run:
-        labels_file_path_train = Config.ci_run_labels_file_path
-        labels_file_path_validation = Config.ci_run_labels_file_path
-        data_root_directory = Config.ci_images_directory
-    else:
-        labels_file_path_train = Config.train_labels_file_path
-        labels_file_path_validation = Config.validation_labels_file_path
-        data_root_directory = Config.images_directory
-
     logging.info("Start training")
 
     training_data_loader, labels_train = get_data_loader(
-        labels_file_path_train,
-        data_root_directory,
+        Config.train_labels_file_path,
+        Config.data_directory,
         num_workers,
         transformations_mode=TransformationsMode.AUGMENT,
         batch_size=batch_size,
         augmentation_settings=augmentation_settings,
     )
     validation_data_loader, labels_validation = get_data_loader(
-        labels_file_path_validation,
-        data_root_directory,
+        Config.validation_labels_file_path,
+        Config.data_directory,
         num_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
@@ -79,7 +73,7 @@ def train(
         resnet_shortcut_type,
         number_of_classes,
         gpus_ids,
-        pretrained_model_path,
+        Config.pretrained_models_directory,
         device,
     )
 
@@ -116,9 +110,9 @@ def train(
         loss_function_class_weights,
         total_epochs=n_epochs,
         validation_interval=validation_interval,
-        model_save_folder=save_folder,
+        model_save_folder=Config.saved_models_directory,
         device=device,
-        ci_run=ci_run,
+        run_id=run_id,
     )
     return best_f_score, trained_model_path
 

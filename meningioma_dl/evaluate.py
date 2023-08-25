@@ -4,17 +4,23 @@ from typing import Tuple
 
 import fire
 import torch
+from dotenv import load_dotenv
 from sklearn.metrics import f1_score, recall_score, precision_score
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
 from meningioma_dl.models.resnet import RESNET_MODELS_MAP
 from meningioma_dl.training_utils import get_model_predictions
-from meningioma_dl.utils import select_device, get_loss_function_class_weights
+from meningioma_dl.utils import (
+    select_device,
+    get_loss_function_class_weights,
+    setup_logging,
+)
 from meningioma_dl.visualizations.results_visualizations import plot_confusion_matrix
 
 
 def evaluate(
+    env_file_path: str,
     manual_seed: int = Config.random_seed,
     model_depth: int = 10,
     resnet_shortcut_type: str = "B",
@@ -23,23 +29,19 @@ def evaluate(
     gpus_ids: Tuple[int] = (),
     trained_model_path: Path = Path("trails/models/current_model_epoch_0.pth.tar"),
     device_name: str = "cpu",
-    ci_run: bool = True,
 ) -> float:
+    Config.load_env_variables(env_file_path)
+    setup_logging()
+
     logging.info("Starting model evaluation")
 
     device = select_device(device_name)
 
     torch.manual_seed(manual_seed)
 
-    if ci_run:
-        labels_file_path = Config.ci_run_labels_file_path
-        data_root_directory = Config.ci_images_directory
-    else:
-        labels_file_path = Config.validation_labels_file_path
-        data_root_directory = Config.images_directory
     data_loader, labels = get_data_loader(
-        labels_file_path,
-        data_root_directory,
+        Config.test_labels_file_path,
+        Config.data_directory,
         num_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
     )

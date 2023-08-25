@@ -1,7 +1,9 @@
 import logging
 from collections import Counter
+from datetime import datetime
 
 import numpy as np
+import shortuuid
 import torch
 import torch_directml
 from torch import nn
@@ -40,3 +42,7 @@ def setup_logging() -> None:
     console_handler.setFormatter(log_formatter)
     root_logger.addHandler(console_handler)
     root_logger.setLevel(logging.INFO)
+
+
+def generate_run_id() -> str:
+    return f"{datetime.now().strftime('%d-%m-%y_%H-%M-%S')}_{shortuuid.uuid()}"

@@ -1,6 +1,9 @@
+import os
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 
 class TaskType(Enum):
@@ -10,32 +13,54 @@ class TaskType(Enum):
 
 @dataclass
 class Config:
+    # directories
+    train_labels_file_path: Path
+    validation_labels_file_path: Path
+    test_labels_file_path: Path
+    labels_directory: Path
+    data_directory: Path
+    pretrained_models_directory: Path
+    saved_models_directory: Path
+
+    # visualizations
+    visualizations_directory: Path
+
+    # optuna
+    results_storage_directory: Path
+    optuna_database_directory: str
+
     # model
     test_size: float = 0.2
     validation_size: float = 0.1
     random_seed: int = 123
 
-    # directories
-    images_directory: Path = Path("Z:/data/meningioma/nifti")
-    # TODO TODO change everything to absolute paths using env var
-    local_data_root: Path = Path(
-        "C:/Users/Lenovo/Desktop/meningioma_project/meningioma_dl/data/"
-    )
-    ci_images_directory: Path = local_data_root.joinpath("scans")
-    labels_dir: Path = local_data_root.joinpath("labels")
-    labels_file_path: Path = labels_dir.joinpath("labels.tsv")
-    train_labels_file_path: Path = labels_dir.joinpath("train_labels.tsv")
-    validation_labels_file_path: Path = labels_dir.joinpath("validation_labels.tsv")
-    test_labels_file_path: Path = labels_dir.joinpath("test_labels.tsv")
-    ci_run_labels_file_path: Path = labels_dir.joinpath("ci_run_labels.tsv")
+    @classmethod
+    def load_env_variables(cls, env_file_path: str):
+        load_dotenv(env_file_path)
 
-    # visualizations
-    visualizations_directory: Path = local_data_root.joinpath("viz")
-    visualizations_directory.mkdir(parents=True, exist_ok=True)
+        cls.data_directory = Path(os.environ["DATA_DIR"])
+        cls.labels_directory = Path(os.environ["LABELS_DIR"])
+        cls.results_storage_directory = Path(os.environ["RESULTS_STORAGE_DIR"])
+        cls.pretrained_models_directory = Path(os.environ["PRETRAINED_MODELS_DIR"])
+        cls.saved_models_directory = Path(os.environ["SAVED_MODELS_DIR"])
 
-    # optuna
-    results_storage_directory: Path = local_data_root.joinpath("optuna")
-    results_storage_directory.mkdir(parents=True, exist_ok=True)
-    optuna_database_directory: str = (
-        f"sqlite:///{results_storage_directory.joinpath('optuna_store.db')}"
-    )
+        cls.train_labels_file_path: Path = cls.labels_directory.joinpath(
+            "train_labels.tsv"
+        )
+        cls.validation_labels_file_path: Path = cls.labels_directory.joinpath(
+            "validation_labels.tsv"
+        )
+        cls.test_labels_file_path: Path = cls.labels_directory.joinpath(
+            "test_labels.tsv"
+        )
+
+        cls.results_storage_directory.mkdir(parents=True, exist_ok=True)
+        cls.pretrained_models_directory.mkdir(parents=True, exist_ok=True)
+        cls.saved_models_directory.mkdir(parents=True, exist_ok=True)
+        cls.optuna_database_directory: str = (
+            f"sqlite:///{cls.results_storage_directory.joinpath('optuna_store.db')}"
+        )
+        cls.visualizations_directory: Path = cls.results_storage_directory.joinpath(
+            "viz"
+        )
+        cls.visualizations_directory.mkdir(parents=True, exist_ok=True)

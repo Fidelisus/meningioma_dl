@@ -279,8 +279,9 @@ def create_resnet_model(
     resnet_shortcut_type: str,
     number_of_classes: int,
     gpus_ids: tuple[int],
-    pretrained_model_path: Optional[Path],
+    pretrained_model_path: Path,
     device: torch.device,
+    use_23_dataset_pretrained_model: bool = False,
 ) -> tuple[ResNet, list[Parameter], list[Parameter]]:
     assert model_depth in RESNET_MODELS_MAP
     assert resnet_shortcut_type in ["A", "B"]
@@ -313,10 +314,11 @@ def create_resnet_model(
     # load pretrained model
     logging.info(f"Loading pretrained model {pretrained_model_path}")
     pretrain: ResNet = torch.load(
-        pretrained_model_path,
-        # TODO change to gpu
-        # map_location=torch.device(device),
-        map_location="cpu",
+        pretrained_model_path.joinpath(
+            f"resnet_{model_depth}"
+            f"{'' if not use_23_dataset_pretrained_model else '23dataset'}.pth"
+        ),
+        map_location=device,
     )
     pretrained_model_state_dict = {
         k.replace("module.", ""): v for k, v in pretrain["state_dict"].items()

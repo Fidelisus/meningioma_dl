@@ -43,17 +43,23 @@ def suggest_parameters_values(
 
 
 def run_study(
-    n_trials: int = 10, n_epochs: int = 10, trial_name: str = "more_augmentations"
+    env_file_path: str,
+    n_trials: int = 10,
+    n_epochs: int = 10,
+    trial_name: str = "more_augmentations",
 ):
+    Config.load_env_variables(env_file_path)
+
     def objective(trial):
         transforms = create_augmentation(trial, augmentation_settings)
         _, trained_model_path = train(
+            env_file_path=env_file_path,
             augmentation_settings=transforms,
             n_epochs=n_epochs,
             **suggest_parameters_values(trial, test_run_params),
         )
         if trained_model_path is None:
-            raise ValueError("No model was created by training, aborting.")
+            raise ValueError("No model was created during training, aborting.")
 
         best_f_score = evaluate(trained_model_path=Path(trained_model_path))
         return best_f_score
