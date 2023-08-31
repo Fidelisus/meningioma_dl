@@ -23,7 +23,10 @@ module add Python/3.6.2-goolf-1.4.10
 virtualenv --system-site-packages ${base_dir}/meningioma_dl/venv
 source ${venv_path}/bin/activate
 
+echo "Running Slurm job with id $SLURM_JOBID"
+echo "venv path: $venv_path"
+
 #lddpython is needed to load a newer glibc
 lddpython_ ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=2 \
-  --n_trials=2 --study_name=playground_1 --run_id=$SLURM_JOBID
+  --n_trials=2 --study_name=playground_1 --run_id="$SLURM_JOBID"
