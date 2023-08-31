@@ -50,6 +50,7 @@ def run_study(
     study_name: str = "more_augmentations",
     run_id: Optional[str] = None,
     device_name: str = "cpu",
+    n_workers: int = 1,
 ):
     augmentation_settings = test_run_augment
 
@@ -61,6 +62,7 @@ def run_study(
             augmentation_settings=transforms,
             n_epochs=n_epochs,
             device_name=device_name,
+            n_workers=n_workers,
             **suggest_parameters_values(trial, test_run_params),
         )
         if trained_model_path is None:

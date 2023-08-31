@@ -27,7 +27,6 @@ def evaluate(
     resnet_shortcut_type: str = "B",
     num_workers: int = 1,
     number_of_classes: int = 3,
-    gpus_ids: Tuple[int] = (),
     device_name: str = "cpu",
 ) -> float:
     if env_file_path is not None:

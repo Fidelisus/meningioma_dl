@@ -32,7 +32,7 @@ def train(
     n_epochs: int = 2,
     resnet_shortcut_type: str = "B",
     validation_interval: int = 1,
-    num_workers: int = 1,
+    n_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
 ) -> tuple[float, Optional[str]]:
@@ -51,7 +51,7 @@ def train(
     training_data_loader, labels_train = get_data_loader(
         Config.train_labels_file_path,
         Config.data_directory,
-        num_workers,
+        n_workers,
         transformations_mode=TransformationsMode.AUGMENT,
         batch_size=batch_size,
         augmentation_settings=augmentation_settings,
@@ -59,7 +59,7 @@ def train(
     validation_data_loader, labels_validation = get_data_loader(
         Config.validation_labels_file_path,
         Config.data_directory,
-        num_workers,
+        n_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
     )
