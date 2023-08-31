@@ -34,7 +34,6 @@ def train(
     validation_interval: int = 1,
     num_workers: int = 1,
     number_of_classes: int = 3,
-    gpus_ids: Tuple[int] = (),
     device_name: str = "cpu",
 ) -> tuple[float, Optional[str]]:
     if run_id is None:
@@ -73,7 +72,6 @@ def train(
         model_depth,
         resnet_shortcut_type,
         number_of_classes,
-        gpus_ids,
         Config.pretrained_models_directory,
         device,
     )

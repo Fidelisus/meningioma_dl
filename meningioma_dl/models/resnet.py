@@ -278,7 +278,6 @@ def create_resnet_model(
     model_depth: int,
     resnet_shortcut_type: str,
     number_of_classes: int,
-    gpus_ids: tuple[int],
     pretrained_model_path: Path,
     device: torch.device,
     use_23_dataset_pretrained_model: bool = False,
@@ -300,6 +299,7 @@ def create_resnet_model(
         # model = nn.DataParallel(model)
         initialized_model_state_dict = model.state_dict()
     else:
+        gpus_ids = [d for d in range(torch.cuda.device_count())]
         assert len(gpus_ids) > 0
         if len(gpus_ids) > 1:
             model = model.cuda()
