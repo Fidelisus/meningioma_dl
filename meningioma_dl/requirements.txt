@@ -2,9 +2,15 @@ torch
 nibabel
 scipy
 numpy
-pandas
-fire
+pandas~=2.0.2
+fire~=0.5.0
+plotly~=5.15.0
+monai~=1.2.0
+optuna~=3.1.1
+scikit-learn~=1.2.2
+setuptools~=60.2.0
+shortuuid~=1.0.11
+python-dotenv~=1.0.0
+
 # https://learn.microsoft.com/en-us/windows/ai/directml/gpu-pytorch-windows
 # torch-directml
-plotly
-monai
