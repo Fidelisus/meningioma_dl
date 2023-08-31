@@ -28,5 +28,6 @@ echo "venv path: $venv_path"
 
 #lddpython is needed to load a newer glibc
 lddpython_ ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
+  --device_name="cuda" \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=2 \
   --n_trials=2 --study_name=playground_1 --run_id="$SLURM_JOBID"
