@@ -52,17 +52,23 @@ AUGMENTATIONS: dict[str, Augmentation] = {
             "prob": HyperparameterSpecs(data_type=float),
         },
     ),
+    "gaussian_noise": Augmentation(
+        transforms.RandGaussianNoised,
+        {
+            "keys": ["img"],
+        },
+        {
+            "std": HyperparameterSpecs(data_type=float),
+            "prob": HyperparameterSpecs(data_type=float),
+        },
+    ),
+    "mask_after_gaussian": Augmentation(
+        transforms.MaskIntensityd, {"keys": ["img"], "mask_key": "mask"}, {}
+    ),
 }
 
-sample_augmentation_transforms: list[transforms.Transform] = [
-    transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=0.5),
-    transforms.RandRotated(keys=["img"], prob=0.8),
-    # gaussian noise
-    # elastic deforamtions
-]
 
-
-def _suggest_hyperparameter_value(
+def suggest_hyperparameter_value(
     trial: Trial, name: str, values: tuple, data_type: type
 ) -> Any:
     if data_type == int:
@@ -88,7 +94,7 @@ def propose_augmentation(
             if type(hyperparameter_values) is tuple:
                 chosen_hyperparameters[
                     hyperparameter_name
-                ] = _suggest_hyperparameter_value(
+                ] = suggest_hyperparameter_value(
                     trial,
                     f"{augmentation_name}_{hyperparameter_name}",
                     hyperparameter_values,
