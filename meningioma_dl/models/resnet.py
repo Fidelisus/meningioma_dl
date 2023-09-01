@@ -2,7 +2,7 @@ import logging
 import os
 from functools import partial
 from pathlib import Path
-from typing import Type, Union, List, Dict, Callable, Optional
+from typing import Type, Union, List, Dict, Callable, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -281,7 +281,7 @@ def create_resnet_model(
     pretrained_model_path: Path,
     device: torch.device,
     use_23_dataset_pretrained_model: bool = False,
-) -> Tuple[ResNet, list[Parameter], list[Parameter]]:
+) -> Tuple[ResNet, List[Parameter], List[Parameter]]:
     assert model_depth in RESNET_MODELS_MAP
     assert resnet_shortcut_type in ["A", "B"]
 

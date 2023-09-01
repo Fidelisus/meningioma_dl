@@ -22,7 +22,7 @@ def train(
     env_file_path: Optional[str] = None,
     run_id: Optional[str] = None,
     manual_seed: int = Config.random_seed,
-    augmentation_settings: Optional[list[transforms.Transform]] = None,
+    augmentation_settings: Optional[List[transforms.Transform]] = None,
     learning_rate: float = 0.001,
     sgd_momentum: float = 0.9,
     weight_decay: float = 0.001,

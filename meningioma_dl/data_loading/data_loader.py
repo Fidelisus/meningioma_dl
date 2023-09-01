@@ -24,7 +24,7 @@ def get_data_loader(
     num_workers: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     batch_size: Optional[int] = None,
-    augmentation_settings: Optional[list[transforms.Transform]] = None,
+    augmentation_settings: Optional[List[transforms.Transform]] = None,
 ) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path
@@ -57,7 +57,7 @@ def init_data_loader(
     batch_size: int,
     num_workers: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
-    augmentation_settings: Optional[list[transforms.Transform]] = None,
+    augmentation_settings: Optional[List[transforms.Transform]] = None,
 ) -> DataLoader:
     file_label_map = [
         {"img": img, "mask": mask, "label": label}
