@@ -1,4 +1,6 @@
-SearchSpace = dict[str, dict[str, tuple]]
+from typing import Tuple, Dict
+
+SearchSpace = Dict[str, Dict[str, Tuple]]
 
 FULL_SEARCH_SPACE: SearchSpace = {
     "rand_flip": {"spatial_axis": (0, 1), "prob": (0, 1)},
@@ -25,7 +27,7 @@ AFFINE_TRANSFORMS_SEARCH_SPACE: SearchSpace = {
     },
 }
 
-SEARCH_SPACES: dict[str, SearchSpace] = {
+SEARCH_SPACES: Dict[str, SearchSpace] = {
     "full": FULL_SEARCH_SPACE,
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
 }

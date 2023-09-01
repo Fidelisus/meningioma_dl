@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import Any, Type
+from typing import Any, Type, Dict, Tuple, List
 
 from monai import transforms
 from optuna import Trial
@@ -14,11 +14,11 @@ class HyperparameterSpecs:
 @dataclass
 class Augmentation:
     transformation: Type[transforms.Transform]
-    parameters: dict[str, Any]
-    hyperparameters: dict[str, HyperparameterSpecs]
+    parameters: Dict[str, Any]
+    hyperparameters: Dict[str, HyperparameterSpecs]
 
 
-AUGMENTATIONS: dict[str, Augmentation] = {
+AUGMENTATIONS: Dict[str, Augmentation] = {
     "rand_flip": Augmentation(
         transforms.RandFlipd,
         {
@@ -69,7 +69,7 @@ AUGMENTATIONS: dict[str, Augmentation] = {
 
 
 def suggest_hyperparameter_value(
-    trial: Trial, name: str, values: tuple, data_type: type
+    trial: Trial, name: str, values: Tuple, data_type: Type
 ) -> Any:
     if data_type == int:
         value = trial.suggest_int(name, *values)
@@ -84,12 +84,12 @@ def suggest_hyperparameter_value(
 
 
 def propose_augmentation(
-    trial: Trial, augmentation_settings: dict[str, dict[str, tuple]]
-) -> list[transforms.Transform]:
-    augmentation_transforms: list[transforms.Transform] = []
+    trial: Trial, augmentation_settings: Dict[str, dict[str, Tuple]]
+) -> List[transforms.Transform]:
+    augmentation_transforms: List[transforms.Transform] = []
 
     for augmentation_name, hyperparameters_dict in augmentation_settings.items():
-        chosen_hyperparameters: dict[str, Any] = {}
+        chosen_hyperparameters: Dict[str, Any] = {}
         for hyperparameter_name, hyperparameter_values in hyperparameters_dict.items():
             if type(hyperparameter_values) is tuple:
                 chosen_hyperparameters[

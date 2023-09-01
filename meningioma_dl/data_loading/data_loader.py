@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import monai
 import numpy as np
@@ -25,7 +25,7 @@ def get_data_loader(
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     batch_size: Optional[int] = None,
     augmentation_settings: Optional[list[transforms.Transform]] = None,
-) -> tuple[DataLoader, list[int]]:
+) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path
     )
@@ -64,7 +64,7 @@ def init_data_loader(
         for img, label, mask in zip(images, labels, masks)
     ]
 
-    transformations: list[transforms.Transform] = [
+    transformations: List[transforms.Transform] = [
         transforms.LoadImaged(
             keys=["img", "mask"], ensure_channel_first=True, image_only=True
         ),
@@ -93,7 +93,7 @@ def init_data_loader(
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
         if augmentation_settings is None:
             logging.warning("No augmentation settings provided, using default ones")
-            augmentation_settings: list[transforms.Transform] = [
+            augmentation_settings: List[transforms.Transform] = [
                 transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
                 transforms.RandRotated(keys=["img"], prob=1),
                 transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=1),

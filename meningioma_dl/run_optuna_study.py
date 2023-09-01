@@ -1,6 +1,5 @@
-from __future__ import annotations
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 import fire
 import optuna
@@ -17,15 +16,15 @@ from meningioma_dl.train import train
 from meningioma_dl.utils import generate_run_id, setup_logging
 
 
-test_run_params: dict[str, Any] = {"learning_rate": (0.01, 0.1)}
+test_run_params: Dict[str, Any] = {"learning_rate": (0.01, 0.1)}
 
 #  optuna-dashboard sqlite:///C:\Users\Lenovo\Desktop\meningioma_project\meningioma_dl\data\optuna\optuna_store.db
 
 
 def suggest_parameters_values(
-    trial: Trial, augmentation_settings: dict[str, Any]
+    trial: Trial, augmentation_settings: Dict[str, Any]
 ) -> dict[str, Any]:
-    parameters_values: dict[str, Any] = {}
+    parameters_values: Dict[str, Any] = {}
     for name, values in augmentation_settings.items():
         parameters_values[name] = suggest_hyperparameter_value(
             trial, name, values, float
@@ -64,7 +63,7 @@ def run_study(
         )
         return best_f_score
 
-    if run_id is not None:
+    if run_id is None:
         run_id = f"{study_name}_{generate_run_id()}"
     else:
         run_id = f"{study_name}_{run_id}"

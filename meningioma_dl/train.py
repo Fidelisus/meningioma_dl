@@ -35,7 +35,7 @@ def train(
     n_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
-) -> tuple[float, Optional[str]]:
+) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
 

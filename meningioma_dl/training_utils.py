@@ -27,7 +27,7 @@ def training_loop(
     model_save_folder: Path,
     device: torch.device,
     run_id: str,
-) -> tuple[float, Optional[Path]]:
+) -> Tuple[float, Optional[Path]]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
     batches_per_epoch = len(training_data_loader)
@@ -98,7 +98,7 @@ def training_loop(
 
 def get_model_predictions(
     validation_data_loader: DataLoader, model: nn.Module, device: torch.device
-) -> tuple[torch.Tensor, torch.Tensor]:
+) -> Tuple[torch.Tensor, torch.Tensor]:
     predictions = torch.tensor([], dtype=torch.float32, device=device)
     labels = torch.tensor([], dtype=torch.long, device=device)
     for validation_data in validation_data_loader:

@@ -2,7 +2,7 @@ import logging
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import shortuuid
@@ -24,7 +24,7 @@ def select_device(device="") -> torch.device:
         return torch.device("cpu")
 
 
-def get_loss_function_class_weights(labels: list[int]) -> np.array:
+def get_loss_function_class_weights(labels: List[int]) -> np.array:
     counts = Counter(labels)
     return np.array(list(counts.values())) / sum(list(counts.values()))
 
