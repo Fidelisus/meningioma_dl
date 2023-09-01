@@ -15,14 +15,15 @@
 #SBATCH --job-name=gputest_lukasz
 
 base_dir=/home/cir/lsobocinski
-venv_path=${base_dir}/meningioma_dl/venv
+venv_path=${base_dir}/meningioma_dl/venv1
 
 num_workers=4
 n_epochs=2
 n_trials=2
 study_name="playground_1"
 
-module add Python/3.6.2-goolf-1.4.10
+module add Python/3.7.3-foss-2019a
+module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
 virtualenv --system-site-packages ${base_dir}/meningioma_dl/venv
 source ${venv_path}/bin/activate
 
