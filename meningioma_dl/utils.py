@@ -7,7 +7,6 @@ from typing import Optional, List
 import numpy as np
 import shortuuid
 import torch
-import torch_directml
 from torch import nn
 
 
@@ -18,10 +17,10 @@ def select_device(device="") -> torch.device:
             return torch.device("cpu")
         else:
             return torch.device("cuda")
-    if device.lower() == "dml":
-        return torch_directml.device(torch_directml.default_device())
-    else:
-        return torch.device("cpu")
+    # if device.lower() == "dml":
+    #     return torch_directml.device(torch_directml.default_device())
+    # else:
+    return torch.device("cpu")
 
 
 def get_loss_function_class_weights(labels: List[int]) -> np.array:

@@ -1,15 +1,13 @@
 import logging
-import os
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
 from monai.data import DataLoader
 from sklearn.metrics import f1_score
 from torch import nn
-from torch.optim.lr_scheduler import LRScheduler
 from torch.optim.optimizer import Optimizer
 
 from meningioma_dl.utils import one_hot_encode_labels
@@ -20,7 +18,7 @@ def training_loop(
     validation_data_loader: DataLoader,
     model: nn.Module,
     optimizer: Optimizer,
-    scheduler: LRScheduler,
+    scheduler,
     loss_function_class_weights: np.array,
     total_epochs: int,
     validation_interval: int,
