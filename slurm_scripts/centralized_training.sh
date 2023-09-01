@@ -31,7 +31,7 @@ echo "Running Slurm job with id $SLURM_JOBID"
 echo "venv path: $venv_path"
 
 #lddpython is needed to load a newer glibc
-lddpython_ ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
+${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
   --device_name="cuda" \
   --num_workers=${num_workers} \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=${n_epochs} \
