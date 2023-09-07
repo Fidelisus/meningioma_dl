@@ -20,12 +20,20 @@ FULL_SEARCH_SPACE_EXPERIMENT_1: SearchSpace = {
 
 FULL_SEARCH_SPACE_EXPERIMENT_2: SearchSpace = {
     "rand_flip_0_axis": {"spatial_axis": 0, "prob": 0.2},
-    "rand_flip_1_axis": {"spatial_axis": 0, "prob": 0.2},
+    "rand_flip_1_axis": {"spatial_axis": 1, "prob": 0.2},
+    "rand_flip_2_axis": {"spatial_axis": 2, "prob": 0.2},
     "rand_rotate": {"prob": 0.3},
     "rand_zoom": {
         "min_zoom": 0.8,
         "max_zoom": 1.2,
         "prob": 0.3,
+    },
+    "translate": {
+        "prob": 0.2,
+    },
+    "shift_intensity": {
+        "prob": 0.2,
+        "factors": 0.05,
     },
     "gaussian_noise": {
         "std": (0.05, 0.2),
