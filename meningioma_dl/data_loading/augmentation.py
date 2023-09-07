@@ -52,6 +52,19 @@ AUGMENTATIONS: Dict[str, Augmentation] = {
             "prob": HyperparameterSpecs(data_type=float),
         },
     ),
+    "translate": Augmentation(
+        transforms.RandAffined,
+        {"keys": ["img"], "translate_range": [(-10, 10), (-10, 10), (-10, 10)]},
+        {"prob": HyperparameterSpecs(data_type=float)},
+    ),
+    "shift_intensity": Augmentation(
+        transforms.RandStdShiftIntensityd,
+        {"keys": ["img"]},
+        {
+            "prob": HyperparameterSpecs(data_type=float),
+            "factors": HyperparameterSpecs(data_type=float),
+        },
+    ),
     "gaussian_noise": Augmentation(
         transforms.RandGaussianNoised,
         {

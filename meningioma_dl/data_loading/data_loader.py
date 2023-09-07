@@ -123,6 +123,12 @@ def init_data_loader(
                 transforms.RandFlipd(keys=["img"], spatial_axis=1, prob=1),
                 transforms.RandRotated(keys=["img"], prob=1),
                 transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.1, prob=1),
+                transforms.RandAffined(
+                    keys=["img"],
+                    translate_range=[(-10, 10), (-10, 10), (-10, 10)],
+                    prob=1,
+                ),
+                transforms.RandStdShiftIntensityd(keys=["img"], factors=0.1, prob=1),
                 transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.039),
                 # We need to mask after gaussian to avoid adding noise to the empty parts
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
