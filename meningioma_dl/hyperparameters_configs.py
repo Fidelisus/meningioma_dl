@@ -1,8 +1,9 @@
-from typing import Tuple, Dict
+from numbers import Number
+from typing import Tuple, Dict, Union
 
-SearchSpace = Dict[str, Dict[str, Tuple]]
+SearchSpace = Dict[str, Dict[str, Union[Tuple, Number]]]
 
-FULL_SEARCH_SPACE: SearchSpace = {
+FULL_SEARCH_SPACE_EXPERIMENT_1: SearchSpace = {
     "rand_flip": {"spatial_axis": (0, 1), "prob": 0.2},
     "rand_rotate": {"prob": 0.2},
     "rand_zoom": {
@@ -16,6 +17,23 @@ FULL_SEARCH_SPACE: SearchSpace = {
     },
     "mask_after_gaussian": {},
 }
+
+FULL_SEARCH_SPACE_EXPERIMENT_2: SearchSpace = {
+    "rand_flip_0_axis": {"spatial_axis": 0, "prob": 0.2},
+    "rand_flip_1_axis": {"spatial_axis": 0, "prob": 0.2},
+    "rand_rotate": {"prob": 0.3},
+    "rand_zoom": {
+        "min_zoom": 0.8,
+        "max_zoom": 1.2,
+        "prob": 0.3,
+    },
+    "gaussian_noise": {
+        "std": (0.05, 0.2),
+        "prob": 0.3,
+    },
+    "mask_after_gaussian": {},
+}
+
 
 AFFINE_TRANSFORMS_SEARCH_SPACE: SearchSpace = {
     "rand_flip": {"spatial_axis": (0, 1), "prob": (0, 1)},
@@ -43,7 +61,19 @@ STATIC: SearchSpace = {
 }
 
 SEARCH_SPACES: Dict[str, SearchSpace] = {
-    "full": FULL_SEARCH_SPACE,
+    "full_exp_1": FULL_SEARCH_SPACE_EXPERIMENT_1,
+    "full_exp_2": FULL_SEARCH_SPACE_EXPERIMENT_2,
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
     "static": STATIC
+}
+
+HyperparametersConfig = Dict[str, Union[Tuple, Number]]
+
+SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.0005, 0.1)}
+
+SIMPLE_LR_CONFIG_EXPERIMENT_2: HyperparametersConfig = {"learning_rate": (0.0005, 0.1)}
+
+HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
+    "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,
+    "simple_conf_exp_2": SIMPLE_LR_CONFIG_EXPERIMENT_2,
 }

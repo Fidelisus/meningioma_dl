@@ -11,12 +11,9 @@ from meningioma_dl.data_loading.augmentation import (
     suggest_hyperparameter_value,
 )
 from meningioma_dl.evaluate import evaluate
-from meningioma_dl.hyperparameters_configs import SEARCH_SPACES
+from meningioma_dl.hyperparameters_configs import SEARCH_SPACES, HYPERPARAMETERS_CONFIGS
 from meningioma_dl.train import train
 from meningioma_dl.utils import generate_run_id, setup_logging
-
-
-test_run_params: Dict[str, Any] = {"learning_rate": (0.0005, 0.1)}
 
 #  optuna-dashboard sqlite:///C:\Users\Lenovo\Desktop\meningioma_project\meningioma_dl\data\optuna\optuna_store.db
 
@@ -34,6 +31,7 @@ def suggest_parameters_values(
 
 def run_study(
     env_file_path: str,
+    hyperparameters_config_name: str,
     n_trials: int = 10,
     n_epochs: int = 10,
     study_name: str = "some_run",
@@ -45,6 +43,7 @@ def run_study(
     validation_interval: int = 1,
 ):
     search_space = SEARCH_SPACES[search_space_name]
+    hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
 
     def objective(trial):
         transforms = propose_augmentation(trial, search_space)

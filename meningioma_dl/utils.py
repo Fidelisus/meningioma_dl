@@ -7,7 +7,6 @@ from typing import Optional, List
 import numpy as np
 import shortuuid
 import torch
-from torch import nn
 
 
 def select_device(device="") -> torch.device:
