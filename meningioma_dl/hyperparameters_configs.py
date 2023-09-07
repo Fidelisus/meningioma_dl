@@ -19,9 +19,9 @@ FULL_SEARCH_SPACE_EXPERIMENT_1: SearchSpace = {
 }
 
 FULL_SEARCH_SPACE_EXPERIMENT_2: SearchSpace = {
-    "rand_flip_0_axis": {"spatial_axis": 0, "prob": 0.2},
-    "rand_flip_1_axis": {"spatial_axis": 1, "prob": 0.2},
-    "rand_flip_2_axis": {"spatial_axis": 2, "prob": 0.2},
+    "rand_flip_0_axis": {"prob": 0.1},
+    "rand_flip_1_axis": {"prob": 0.1},
+    "rand_flip_2_axis": {"prob": 0.1},
     "rand_rotate": {"prob": 0.3},
     "rand_zoom": {
         "min_zoom": 0.8,
@@ -44,7 +44,7 @@ FULL_SEARCH_SPACE_EXPERIMENT_2: SearchSpace = {
 
 
 AFFINE_TRANSFORMS_SEARCH_SPACE: SearchSpace = {
-    "rand_flip": {"spatial_axis": (0, 1), "prob": (0, 1)},
+    "rand_flip_0_axis": {"prob": (0, 1)},
     "rand_rotate": {"prob": (0, 1)},
     "rand_zoom": {
         "min_zoom": (0.6, 1.0),
@@ -77,9 +77,9 @@ SEARCH_SPACES: Dict[str, SearchSpace] = {
 
 HyperparametersConfig = Dict[str, Union[Tuple, Number]]
 
-SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.01, 0.5)}
+SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.0005, 0.1)}
 
-SIMPLE_LR_CONFIG_EXPERIMENT_2: HyperparametersConfig = {"learning_rate": (0.0005, 0.1)}
+SIMPLE_LR_CONFIG_EXPERIMENT_2: HyperparametersConfig = {"learning_rate": (0.01, 0.5)}
 
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,

@@ -19,13 +19,24 @@ class Augmentation:
 
 
 AUGMENTATIONS: Dict[str, Augmentation] = {
-    "rand_flip": Augmentation(
+    "rand_flip_0_axis": Augmentation(
         transforms.RandFlipd,
+        {"keys": ["img"], "spatial_axis": 0},
         {
-            "keys": ["img"],
+            "prob": HyperparameterSpecs(data_type=float),
         },
+    ),
+    "rand_flip_1_axis": Augmentation(
+        transforms.RandFlipd,
+        {"keys": ["img"], "spatial_axis": 1},
         {
-            "spatial_axis": HyperparameterSpecs(data_type=int),
+            "prob": HyperparameterSpecs(data_type=float),
+        },
+    ),
+    "rand_flip_2_axis": Augmentation(
+        transforms.RandFlipd,
+        {"keys": ["img"], "spatial_axis": 2},
+        {
             "prob": HyperparameterSpecs(data_type=float),
         },
     ),
