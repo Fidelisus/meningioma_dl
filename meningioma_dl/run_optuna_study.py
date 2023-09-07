@@ -32,8 +32,8 @@ def suggest_parameters_values(
 def run_study(
     env_file_path: str,
     hyperparameters_config_name: str,
-    n_trials: int = 10,
-    n_epochs: int = 10,
+    n_trials: int = 1,
+    n_epochs: int = 1,
     study_name: str = "some_run",
     run_id: Optional[str] = None,
     device_name: str = "cpu",
