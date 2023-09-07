@@ -10,6 +10,7 @@ from sklearn.metrics import f1_score
 from torch import nn
 from torch.optim.optimizer import Optimizer
 
+from meningioma_dl.config import Config
 from meningioma_dl.visualizations.results_visualizations import plot_training_curve
 
 
@@ -24,7 +25,7 @@ def training_loop(
     validation_interval: int,
     visualizations_folder: Path,
     device: torch.device,
-model_save_folder: Optional[Path] = None,
+    model_save_folder: Optional[Path] = None,
 ) -> Tuple[float, Optional[Path]]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
@@ -98,6 +99,9 @@ model_save_folder: Optional[Path] = None,
 
     plot_training_curve(validation_losses, training_losses, visualizations_folder)
 
+    trained_model_path = _save_model(
+        model, model_save_folder if model_save_folder is not None else Config.saved_models_directory, optimizer, -1
+    )
     logging.info(
         f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation.data}"
     )

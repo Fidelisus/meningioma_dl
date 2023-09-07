@@ -67,12 +67,12 @@ def run_study(
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")
 
-        best_f_score = evaluate(
+        f_score_of_the_best_model = evaluate(
             trained_model_path=trained_model_path,
             device_name=device_name,
             visualizations_folder=Config.visualizations_directory.joinpath(run_id, "evaluation")
         )
-        return best_f_score
+        return f_score_of_the_best_model
 
     if run_id is None:
         run_id = f"{study_name}_{generate_run_id()}"
