@@ -2,7 +2,7 @@ import logging
 import os
 from functools import partial
 from pathlib import Path
-from typing import Type, Union, List, Dict, Callable, Optional, Tuple
+from typing import Type, Union, List, Dict, Callable, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -220,44 +220,43 @@ class ResNet(nn.Module):
         return x
 
 
-def resnet10(**kwargs):
+def resnet10(**kwargs) -> ResNet:
     """Constructs a ResNet-18 model."""
     model = ResNet(BasicBlock, [1, 1, 1, 1], **kwargs)
     return model
 
 
-def resnet18(**kwargs):
+def resnet18(**kwargs) -> ResNet:
     """Constructs a ResNet-18 model."""
     model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
     return model
 
 
-# TODO add typing
-def resnet34(**kwargs):
+def resnet34(**kwargs) -> ResNet:
     """Constructs a ResNet-34 model."""
     model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
     return model
 
 
-def resnet50(**kwargs):
+def resnet50(**kwargs) -> ResNet:
     """Constructs a ResNet-50 model."""
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     return model
 
 
-def resnet101(**kwargs):
+def resnet101(**kwargs) -> ResNet:
     """Constructs a ResNet-101 model."""
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     return model
 
 
-def resnet152(**kwargs):
+def resnet152(**kwargs) -> ResNet:
     """Constructs a ResNet-101 model."""
     model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     return model
 
 
-def resnet200(**kwargs):
+def resnet200(**kwargs) -> ResNet:
     """Constructs a ResNet-101 model."""
     model = ResNet(Bottleneck, [3, 24, 36, 3], **kwargs)
     return model
@@ -293,7 +292,6 @@ def create_resnet_model(
         num_classes=number_of_classes,
     )
 
-    # TODO figure out if no_cuda is needed
     if no_cuda:
         model = model.to(device)
         # model = nn.DataParallel(model)

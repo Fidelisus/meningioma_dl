@@ -27,9 +27,9 @@ def plot_confusion_matrix(labels: np.array, predictions: np.array, save_path: Pa
     fig.write_html(save_path.joinpath("confusion_matrix.html"))
 
 def plot_training_curve(validation_losses: Sequence[float], training_losses: Sequence[float], save_path: Path):
-    fig = px.scatter(y=validation_losses, x=tuple(range(len(validation_losses))))
-    fig.data[0].name="validation"
+    fig = px.scatter()
     fig.add_scatter(y=training_losses, x=tuple(range(len(training_losses))), name="training")
+    fig.add_scatter(y=validation_losses, x=tuple(range(len(training_losses))), name="validation")
     fig.update_layout(title_text="<i><b>Training curve</b></i>")
 
     save_path.mkdir(parents=True, exist_ok=True)

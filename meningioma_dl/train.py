@@ -35,6 +35,8 @@ def train(
     n_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
+    trial_id: int = 0,
+save_model:bool=False,
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
@@ -69,7 +71,6 @@ def train(
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
     )
-    print("nice")
 
     loss_function_class_weights = get_loss_function_class_weights(
         labels_train + labels_validation
@@ -94,19 +95,6 @@ def train(
 
     logging.info("Model initialized succesfully")
 
-    # TODO train from resume
-    # if sets.resume_path:
-    #     if os.path.isfile(sets.resume_path):
-    #         print("=> loading checkpoint '{}'".format(sets.resume_path))
-    #         checkpoint = torch.load(sets.resume_path)
-    #         model.load_state_dict(checkpoint["state_dict"])
-    #         optimizer.load_state_dict(checkpoint["optimizer"])
-    #         print(
-    #             "=> loaded checkpoint '{}' (epoch {})".format(
-    #                 sets.resume_path, checkpoint["epoch"]
-    #             )
-    #         )
-
     best_f_score, trained_model_path = training_loop(
         training_data_loader,
         validation_data_loader,
@@ -116,9 +104,9 @@ def train(
         loss_function_class_weights,
         total_epochs=n_epochs,
         validation_interval=validation_interval,
-        model_save_folder=Config.saved_models_directory,
+        model_save_folder=Config.saved_models_directory.joinpath(run_id, str(trial_id)) if save_model else None,
+        visualizations_folder=Config.visualizations_directory.joinpath(run_id, str(trial_id)),
         device=device,
-        run_id=run_id,
     )
     return best_f_score, trained_model_path
 

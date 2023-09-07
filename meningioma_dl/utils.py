@@ -31,9 +31,10 @@ def one_hot_encode_labels(labels: np.array) -> torch.Tensor:
     """
     For now not used, asa not needed by the loss function
     """
-    # This function return core dumped on the cluster
+    # This function returns core dumped on the cluster, so we cannot use it
     # labels_onehot = nn.functional.one_hot(labels - 1, num_classes=num_classes).float()
-    labels=(labels-1).cpu().numpy().astype(int)
+
+    labels=labels.cpu().numpy().astype(int)
     one_hot_encoded = np.zeros((labels.size, labels.max() + 1))
     one_hot_encoded[np.arange(labels.size), labels] = 1
     labels_onehot=torch.Tensor(one_hot_encoded, device="cpu").to(torch.int64)

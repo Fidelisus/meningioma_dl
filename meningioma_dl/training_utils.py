@@ -1,9 +1,7 @@
 import logging
 import time
 from pathlib import Path
-from typing import Optional, Tuple
-from meningioma_dl.config import Config
-from meningioma_dl.visualizations.results_visualizations import plot_training_curve
+from typing import Optional, Tuple, Union, List
 
 import numpy as np
 import torch
@@ -12,7 +10,7 @@ from sklearn.metrics import f1_score
 from torch import nn
 from torch.optim.optimizer import Optimizer
 
-from meningioma_dl.utils import one_hot_encode_labels
+from meningioma_dl.visualizations.results_visualizations import plot_training_curve
 
 
 def training_loop(
@@ -24,9 +22,9 @@ def training_loop(
     loss_function_class_weights: np.array,
     total_epochs: int,
     validation_interval: int,
-    model_save_folder: Path,
+    visualizations_folder: Path,
     device: torch.device,
-    run_id: str,
+model_save_folder: Optional[Path] = None,
 ) -> Tuple[float, Optional[Path]]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
@@ -39,8 +37,8 @@ def training_loop(
     loss_function = loss_function.to(device)
 
     trained_model_path: Optional[Path] = None
-    training_losses = []
-    validation_losses = []
+    training_losses: List[float] = []
+    validation_losses: List[Union[float, None]] = []
     for epoch in range(total_epochs):
         logging.info("Start epoch {}".format(epoch))
         epoch_start_time = time.time()
@@ -51,13 +49,9 @@ def training_loop(
 
         for batch_id, batch_data in enumerate(training_data_loader):
             step += 1
-            # inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
-            #     device
-            # )
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(device)
             optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)
-            print(labels)
             loss = loss_function(predictions, _convert_simple_labels_to_torch_format(labels, device))
             loss.backward()
             optimizer.step()
@@ -84,20 +78,25 @@ def training_loop(
                 )
                 if f_score > best_f_score:
                     best_f_score = f_score
-                loss_validation: torch.Tensor = loss_function(predictions.to(torch.float64), _convert_simple_labels_to_torch_format(labels, device))
+                loss_validation: torch.Tensor = loss_function(
+                    predictions.to(torch.float64), _convert_simple_labels_to_torch_format(labels, device)
+                )
 
                 if loss_validation < best_loss_validation:
-                    trained_model_path = _save_model(
-                        model, model_save_folder, optimizer, epoch, run_id
-                    )
+                    if model_save_folder is not None:
+                        trained_model_path = _save_model(
+                            model, model_save_folder, optimizer, epoch
+                        )
+                        logging.info(f"Model saved at {trained_model_path}")
                     best_loss_validation=loss_validation
-                    logging.info(f"Model saved at {trained_model_path}")
                 logging.info(f"F1 score: {f_score}")
                 logging.info(f"Validation loss: {loss_validation.data}")
 
                 validation_losses.append(float(loss_validation.cpu().data))
+        else:
+            validation_losses.append(None)
 
-    plot_training_curve(validation_losses, training_losses, Config.visualizations_directory.joinpath(run_id))
+    plot_training_curve(validation_losses, training_losses, visualizations_folder)
 
     logging.info(
         f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation.data}"
@@ -106,7 +105,7 @@ def training_loop(
 
 
 def _convert_simple_labels_to_torch_format(labels: torch.Tensor, device: torch.device) ->torch.Tensor:
-    return (labels-1).to(torch.int64).to(device)
+    return labels.to(torch.int64).to(device)
 
 
 def get_model_predictions(
@@ -126,11 +125,10 @@ def _save_model(
     model_save_folder: Path,
     optimizer: Optimizer,
     epoch: int,
-    run_id: str,
 ) -> Path:
-    model_save_path = model_save_folder.joinpath(run_id, f"epoch_{epoch}.pth.tar")
+    model_save_path = model_save_folder.joinpath(f"epoch_{epoch}.pth.tar")
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
-    logging.info(f"Saving model with run id {run_id} at epoch: {epoch}")
+    logging.info(f"Saving model at epoch: {epoch}")
     torch.save(
         {
             "epoch": epoch,

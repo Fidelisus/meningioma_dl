@@ -76,18 +76,18 @@ def init_data_loader(
     augmentation_settings: Optional[List[transforms.Transform]] = None,
 ) -> DataLoader:
     file_label_map = [
-        {"img": img, "mask": mask, "label": label}
+        {"img": img, "mask": mask, "label": label-1}
         for img, label, mask in zip(images, labels, masks)
     ]
 
     transformations: List[transforms.Transform] = [
         transforms.LoadImaged(
-            keys=["img", "mask"], meta_keys=['img_meta_dict','mask_meta_dict'], # image_only=True, # ensure_channel_first=True,
+            keys=["img", "mask"], meta_keys=["img_meta_dict","mask_meta_dict"],
         ),
-        transforms.EnsureChannelFirstd(keys=["img", "mask"], meta_keys=['img_meta_dict','mask_meta_dict']),
-        transforms.Orientationd(keys=["img", "mask"], meta_keys=['img_meta_dict','mask_meta_dict'], axcodes="PLI"),
+        transforms.EnsureChannelFirstd(keys=["img", "mask"], meta_keys=["img_meta_dict","mask_meta_dict"]),
+        transforms.Orientationd(keys=["img", "mask"], meta_keys=["img_meta_dict","mask_meta_dict"], axcodes="PLI"),
         transforms.Spacingd(
-            keys=["img", "mask"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "nearest"), meta_keys=['img_meta_dict','mask_meta_dict']
+            keys=["img", "mask"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "nearest"), meta_keys=["img_meta_dict","mask_meta_dict"]
         ),
     ]
 
@@ -131,40 +131,6 @@ def init_data_loader(
     transformations.append(
         transforms.Resized(keys=["img", "mask"], spatial_size=(10, 10, 10)) # spatial_size=(224, 224, 224))
     )
-
-    # transformations = [transforms.LoadImaged(
-    #         keys=["img", "mask"],  meta_keys=['img_meta_dict','mask_meta_dict'], #image_only=True, ensure_channel_first=True,
-    #     ),
-    #     transforms.EnsureChannelFirstd(keys=["img", "mask"], meta_keys=['img_meta_dict','mask_meta_dict']),
-    #     transforms.Orientationd(keys=["img", "mask"], axcodes="PLI", meta_keys=['img_meta_dict','mask_meta_dict']),
-    #     transforms.Spacingd(
-    #         keys=["img", "mask"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "nearest"), meta_keys=['img_meta_dict','mask_meta_dict']
-    #     ),
-    #     transforms.CropForegroundd(keys=["img", "mask"], source_key="mask", meta_keys=['img_meta_dict','mask_meta_dict']),
-    #     transforms.SpatialPadd(
-    #         keys=["img", "mask"], spatial_size=(151, 151, 151) # spatial_size=(10, 10, 10),
-    #     ),
-    #     transforms.Zoomd(keys=["mask"], zoom=1.2),
-    #     transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
-    #     transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0),
-    #                     transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
-    #             transforms.RandRotated(keys=["img"], prob=1),
-    #             transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=1),
-    #             transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.2),
-    #             # We need to mask after gaussian to avoid adding noise to the empty parts
-    #             transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
-    #             transforms.Rand3DElasticd(
-    #                 keys=["img"],
-    #                 sigma_range=(0, 1),
-    #                 magnitude_range=(3, 6),
-    #                 prob=1.0,
-    #                 rotate_range=(np.pi / 4),
-    #                 padding_mode="zeros",
-    #             ),
-    #     ]
-    # transformations.append(
-    #     transforms.Resized(keys=["img", "mask"], spatial_size=(224, 224, 224)), # spatial_size=(10, 10, 10))
-    # )
 
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)

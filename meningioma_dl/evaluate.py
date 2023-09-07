@@ -1,10 +1,9 @@
 import logging
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Optional
 
 import fire
 import torch
-from dotenv import load_dotenv
 from sklearn.metrics import f1_score, recall_score, precision_score
 
 from meningioma_dl.config import Config
@@ -13,7 +12,6 @@ from meningioma_dl.models.resnet import RESNET_MODELS_MAP
 from meningioma_dl.training_utils import get_model_predictions
 from meningioma_dl.utils import (
     select_device,
-    get_loss_function_class_weights,
     setup_logging,
 )
 from meningioma_dl.visualizations.results_visualizations import plot_confusion_matrix
@@ -21,7 +19,6 @@ from meningioma_dl.visualizations.results_visualizations import plot_confusion_m
 
 def evaluate(
     trained_model_path: str,
-    run_id:str="", # TODO change to Optional
     env_file_path: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     model_depth: int = 10,
@@ -29,6 +26,7 @@ def evaluate(
     num_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
+    visualizations_folder: Path = Path("."),
 ) -> float:
     if env_file_path is not None:
         Config.load_env_variables(
@@ -62,10 +60,8 @@ def evaluate(
 
     labels, predictions = get_model_predictions(data_loader, model, device)
 
-    labels_cpu = (labels-1).cpu()
+    labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
-    print(predictions_flat)
-    print(predictions)
 
     f_score = f1_score(
         labels_cpu,
@@ -87,9 +83,8 @@ def evaluate(
     logging.info(f"Evaluation recall: {recall}")
     logging.info(f"Evaluation precision: {precision}")
 
-    # TODO put visualizations in trials directory
     plot_confusion_matrix(
-        labels_cpu, predictions_flat, Config.visualizations_directory.joinpath(run_id)
+        labels_cpu, predictions_flat, visualizations_folder
     )
 
     return f_score

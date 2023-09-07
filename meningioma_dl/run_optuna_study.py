@@ -38,16 +38,19 @@ def run_study(
     run_id: Optional[str] = None,
     device_name: str = "cpu",
     n_workers: int = 1,
-    search_space_name: str = "full",
+    search_space_name: str = "affine_transforms",
     batch_size:int = 2,
     validation_interval: int = 1,
+    save_model:bool=False,
 ):
     search_space = SEARCH_SPACES[search_space_name]
     hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
 
-    def objective(trial):
+    def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
+        hyperparameters_values = suggest_parameters_values(trial, hyperparameters_config)
         logging.info(f"Transforms: {transforms}")
+        logging.info(f"Hyperparameters: {hyperparameters_values}")
         _, trained_model_path = train(
             env_file_path=None,
             run_id=run_id,
@@ -57,13 +60,17 @@ def run_study(
             n_workers=n_workers,
             batch_size=batch_size,
             validation_interval=validation_interval,
-            **suggest_parameters_values(trial, test_run_params),
+            trial_id=trial.number,
+            save_model=save_model,
+            **hyperparameters_values,
         )
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")
 
         best_f_score = evaluate(
-            trained_model_path=trained_model_path, device_name=device_name, run_id=run_id
+            trained_model_path=trained_model_path,
+            device_name=device_name,
+            visualizations_folder=Config.visualizations_directory.joinpath(run_id, "evaluation")
         )
         return best_f_score
 
