@@ -18,7 +18,7 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv1
 
 n_workers=1
-n_epochs=10
+n_epochs=15
 n_trials=40
 study_name="augments_probs_02_all_augments_apart_elastic"
 
@@ -36,5 +36,5 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --n_workers=${n_workers} \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=${n_epochs} \
   --n_trials=${n_trials} --study_name=${study_name} --run_id="$SLURM_JOBID" \
-  --batch_size=16 --validation_interval=2 --search_space_name="full" \
+  --batch_size=16 --validation_interval=1 --search_space_name="full_exp_2" \
   --hyperparameters_config_name="simple_conf_exp_1"
