@@ -4,13 +4,11 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import monai
-import numpy as np
 import torch
-from monai.data import DataLoader
 from monai import transforms
+from monai.data import DataLoader
 
 from meningioma_dl.data_loading.labels_loading import get_images_with_labels
-
 
 """
 In order to make Cropforegroundd work you have to add the following code to 
@@ -110,11 +108,10 @@ def init_data_loader(
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                 transforms.SpatialPadd(
                     keys=["img", "mask"],
-                    spatial_size=(10, 10, 10),  # spatial_size=(151, 151, 151)
+                    spatial_size=(151, 151, 151),
                 ),
                 transforms.Zoomd(keys=["mask"], zoom=1.2),
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
-                transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0),
             ]
         )
 
@@ -123,27 +120,30 @@ def init_data_loader(
             logging.warning("No augmentation settings provided, using default ones")
             augmentation_settings: List[transforms.Transform] = [
                 transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
+                transforms.RandFlipd(keys=["img"], spatial_axis=1, prob=1),
                 transforms.RandRotated(keys=["img"], prob=1),
-                transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.2, prob=1),
-                transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.2),
+                transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.1, prob=1),
+                transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.039),
                 # We need to mask after gaussian to avoid adding noise to the empty parts
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
-                transforms.Rand3DElasticd(
-                    keys=["img"],
-                    sigma_range=(0, 1),
-                    magnitude_range=(3, 6),
-                    prob=1.0,
-                    rotate_range=(np.pi / 4),
-                    padding_mode="zeros",
-                ),
+                # transforms.Rand3DElasticd(
+                #     keys=["img"],
+                #     sigma_range=(0, 1),
+                #     magnitude_range=(3, 6),
+                #     prob=1.0,
+                #     rotate_range=(np.pi / 4),
+                #     padding_mode="zeros",
+                # ),
             ]
         transformations.extend(augmentation_settings)
 
     transformations.append(
         transforms.Resized(
-            keys=["img", "mask"], spatial_size=(10, 10, 10)
-        )  # spatial_size=(224, 224, 224))
+            keys=["img", "mask"],
+            spatial_size=(224, 224, 224),
+        )
     )
+    transformations.append(transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0))
 
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)
