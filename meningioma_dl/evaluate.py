@@ -21,6 +21,7 @@ from meningioma_dl.visualizations.results_visualizations import plot_confusion_m
 
 def evaluate(
     trained_model_path: str,
+    run_id:str="", # TODO change to Optional
     env_file_path: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     model_depth: int = 10,
@@ -47,8 +48,6 @@ def evaluate(
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
     )
 
-    loss_function_class_weights = get_loss_function_class_weights(labels)
-
     saved_model = torch.load(trained_model_path)
     no_cuda = False if device == torch.device("cuda") else True
     model = RESNET_MODELS_MAP[model_depth](
@@ -56,29 +55,31 @@ def evaluate(
         no_cuda=no_cuda,
         num_classes=number_of_classes,
     ).to(device)
-    model.load_state_dict(saved_model["state_dict"])
+    state_dict = {
+            k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
+        }
+    model.load_state_dict(state_dict)
 
     labels, predictions = get_model_predictions(data_loader, model, device)
 
-    labels_flat = labels.argmax(dim=1)
-    predictions_flat = predictions.argmax(dim=1)
+    labels_cpu = (labels-1).cpu()
+    predictions_flat = predictions.cpu().argmax(dim=1)
+    print(predictions_flat)
+    print(predictions)
 
     f_score = f1_score(
-        labels_flat,
+        labels_cpu,
         predictions_flat,
-        sample_weight=loss_function_class_weights,
         average="weighted",
     )
     recall = recall_score(
-        labels_flat,
+        labels_cpu,
         predictions_flat,
-        sample_weight=loss_function_class_weights,
         average="weighted",
     )
     precision = precision_score(
-        labels_flat,
+        labels_cpu,
         predictions_flat,
-        sample_weight=loss_function_class_weights,
         average="weighted",
     )
 
@@ -86,8 +87,9 @@ def evaluate(
     logging.info(f"Evaluation recall: {recall}")
     logging.info(f"Evaluation precision: {precision}")
 
+    # TODO put visualizations in trials directory
     plot_confusion_matrix(
-        labels_flat, predictions_flat, Config.visualizations_directory
+        labels_cpu, predictions_flat, Config.visualizations_directory.joinpath(run_id)
     )
 
     return f_score

@@ -16,7 +16,7 @@ from meningioma_dl.train import train
 from meningioma_dl.utils import generate_run_id, setup_logging
 
 
-test_run_params: Dict[str, Any] = {"learning_rate": (0.01, 0.1)}
+test_run_params: Dict[str, Any] = {"learning_rate": (0.0005, 0.1)}
 
 #  optuna-dashboard sqlite:///C:\Users\Lenovo\Desktop\meningioma_project\meningioma_dl\data\optuna\optuna_store.db
 
@@ -41,11 +41,14 @@ def run_study(
     device_name: str = "cpu",
     n_workers: int = 1,
     search_space_name: str = "full",
+    batch_size:int = 2,
+    validation_interval: int = 1,
 ):
     search_space = SEARCH_SPACES[search_space_name]
 
     def objective(trial):
         transforms = propose_augmentation(trial, search_space)
+        logging.info(f"Transforms: {transforms}")
         _, trained_model_path = train(
             env_file_path=None,
             run_id=run_id,
@@ -53,13 +56,15 @@ def run_study(
             n_epochs=n_epochs,
             device_name=device_name,
             n_workers=n_workers,
+            batch_size=batch_size,
+            validation_interval=validation_interval,
             **suggest_parameters_values(trial, test_run_params),
         )
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")
 
         best_f_score = evaluate(
-            trained_model_path=trained_model_path, device_name=device_name
+            trained_model_path=trained_model_path, device_name=device_name, run_id=run_id
         )
         return best_f_score
 
@@ -74,7 +79,7 @@ def run_study(
     logging.info(search_space)
 
     study = optuna.create_study(
-        storage=Config.optuna_database_directory, study_name=run_id
+        storage=Config.optuna_database_directory, study_name=run_id, direction="maximize"
     )
     study.optimize(objective, n_trials=n_trials)
 

@@ -29,7 +29,15 @@ def get_loss_function_class_weights(labels: List[int]) -> np.array:
 
 
 def one_hot_encode_labels(labels: np.array) -> torch.Tensor:
-    labels_onehot = nn.functional.one_hot(labels - 1, num_classes=3).float()
+    """
+    For now not used, asa not needed by the loss function
+    """
+    # This function return core dumped on the cluster
+    # labels_onehot = nn.functional.one_hot(labels - 1, num_classes=num_classes).float()
+    labels=(labels-1).cpu().numpy().astype(int)
+    one_hot_encoded = np.zeros((labels.size, labels.max() + 1))
+    one_hot_encoded[np.arange(labels.size), labels] = 1
+    labels_onehot=torch.Tensor(one_hot_encoded, device="cpu").to(torch.int64)
     return labels_onehot
 
 

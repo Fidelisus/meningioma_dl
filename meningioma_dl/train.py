@@ -44,6 +44,12 @@ def train(
         setup_logging(Config.log_file_path)
 
     device = select_device(device_name)
+
+    logging.info("Devices available:")
+    torch.cuda.is_available()
+    for device_number in range(torch.cuda.device_count()):
+        logging.info(torch.cuda.get_device_name(device_number))
+
     torch.manual_seed(manual_seed)
 
     logging.info("Start training")
@@ -63,6 +69,7 @@ def train(
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
     )
+    print("nice")
 
     loss_function_class_weights = get_loss_function_class_weights(
         labels_train + labels_validation
@@ -77,8 +84,8 @@ def train(
     )
 
     params = [
-        {"params": pretrained_model_parameters, "lr": learning_rate},
-        {"params": parameters_to_fine_tune, "lr": learning_rate * 100},
+        {"params": pretrained_model_parameters, "lr": learning_rate/100.0},
+        {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
     optimizer = torch.optim.SGD(
         params, momentum=sgd_momentum, weight_decay=weight_decay

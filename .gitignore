@@ -164,3 +164,6 @@ trails/
 pretrain/
 toy_data/
 viz/
+venv1/
+slurm-*
+.vscode/

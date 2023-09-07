@@ -1,0 +1,2 @@
+#!/bin/bash -I
+/software/easybuild/software/glibc/2.17-goolf-1.4.10/lib/ld-linux-x86-64.so.2 --library-path /software/easybuild/software/glibc/2.17-goolf-1.4.10/lib:/usr/lib64/nvidia/:${LD_LIBRARY_PATH}:/usr/lib64:/lib64 ${VIRTUAL_ENV}/bin/python3 "$@"

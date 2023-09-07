@@ -320,9 +320,13 @@ def create_resnet_model(
         ),
         map_location=device,
     )
-    pretrained_model_state_dict = {
-        k.replace("module.", ""): v for k, v in pretrain["state_dict"].items()
-    }
+
+    if device == torch.device("cpu"):
+        pretrained_model_state_dict = {
+            k.replace("module.", ""): v for k, v in pretrain["state_dict"].items()
+        }
+    else:
+        pretrained_model_state_dict = pretrain["state_dict"]
 
     initialized_model_state_dict.update(pretrained_model_state_dict)
     logging.info(
