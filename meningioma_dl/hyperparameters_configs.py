@@ -69,7 +69,7 @@ SEARCH_SPACES: Dict[str, SearchSpace] = {
 
 HyperparametersConfig = Dict[str, Union[Tuple, Number]]
 
-SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.0005, 0.1)}
+SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.01, 0.5)}
 
 SIMPLE_LR_CONFIG_EXPERIMENT_2: HyperparametersConfig = {"learning_rate": (0.0005, 0.1)}
 

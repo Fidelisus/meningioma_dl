@@ -31,7 +31,7 @@ def suggest_parameters_values(
 
 def run_study(
     env_file_path: str,
-    hyperparameters_config_name: str,
+    hyperparameters_config_name: str = "simple_conf_exp_1",
     n_trials: int = 1,
     n_epochs: int = 1,
     study_name: str = "some_run",
