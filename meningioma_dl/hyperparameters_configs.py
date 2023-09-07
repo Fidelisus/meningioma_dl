@@ -64,7 +64,7 @@ SEARCH_SPACES: Dict[str, SearchSpace] = {
     "full_exp_1": FULL_SEARCH_SPACE_EXPERIMENT_1,
     "full_exp_2": FULL_SEARCH_SPACE_EXPERIMENT_2,
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
-    "static": STATIC
+    "static": STATIC,
 }
 
 HyperparametersConfig = Dict[str, Union[Tuple, Number]]

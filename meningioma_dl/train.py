@@ -36,7 +36,7 @@ def train(
     number_of_classes: int = 3,
     device_name: str = "cpu",
     trial_id: int = 0,
-save_model:bool=False,
+    save_model: bool = False,
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
@@ -85,7 +85,7 @@ save_model:bool=False,
     )
 
     params = [
-        {"params": pretrained_model_parameters, "lr": learning_rate/100.0},
+        {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
         {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
     optimizer = torch.optim.SGD(
@@ -104,8 +104,12 @@ save_model:bool=False,
         loss_function_class_weights,
         total_epochs=n_epochs,
         validation_interval=validation_interval,
-        model_save_folder=Config.saved_models_directory.joinpath(run_id, str(trial_id)) if save_model else None,
-        visualizations_folder=Config.visualizations_directory.joinpath(run_id, str(trial_id)),
+        model_save_folder=Config.saved_models_directory.joinpath(run_id, str(trial_id))
+        if save_model
+        else None,
+        visualizations_folder=Config.visualizations_directory.joinpath(
+            run_id, str(trial_id)
+        ),
         device=device,
     )
     return best_f_score, trained_model_path

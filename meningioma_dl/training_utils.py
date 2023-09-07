@@ -32,7 +32,8 @@ def training_loop(
     batches_per_epoch = len(training_data_loader)
     logging.info(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
     loss_function = nn.CrossEntropyLoss(
-        ignore_index=-1, weight=torch.tensor(loss_function_class_weights).to(torch.float64)
+        ignore_index=-1,
+        weight=torch.tensor(loss_function_class_weights).to(torch.float64),
     )
 
     loss_function = loss_function.to(device)
@@ -50,10 +51,14 @@ def training_loop(
 
         for batch_id, batch_data in enumerate(training_data_loader):
             step += 1
-            inputs, labels = batch_data["img"].to(device), batch_data["label"].to(device)
+            inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
+                device
+            )
             optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)
-            loss = loss_function(predictions, _convert_simple_labels_to_torch_format(labels, device))
+            loss = loss_function(
+                predictions, _convert_simple_labels_to_torch_format(labels, device)
+            )
             loss.backward()
             optimizer.step()
             scheduler.step()
@@ -80,7 +85,8 @@ def training_loop(
                 if f_score > best_f_score:
                     best_f_score = f_score
                 loss_validation: torch.Tensor = loss_function(
-                    predictions.to(torch.float64), _convert_simple_labels_to_torch_format(labels, device)
+                    predictions.to(torch.float64),
+                    _convert_simple_labels_to_torch_format(labels, device),
                 )
 
                 if loss_validation < best_loss_validation:
@@ -89,7 +95,7 @@ def training_loop(
                             model, model_save_folder, optimizer, epoch
                         )
                         logging.info(f"Model saved at {trained_model_path}")
-                    best_loss_validation=loss_validation
+                    best_loss_validation = loss_validation
                 logging.info(f"F1 score: {f_score}")
                 logging.info(f"Validation loss: {loss_validation.data}")
 
@@ -100,7 +106,12 @@ def training_loop(
     plot_training_curve(validation_losses, training_losses, visualizations_folder)
 
     trained_model_path = _save_model(
-        model, model_save_folder if model_save_folder is not None else Config.saved_models_directory, optimizer, -1
+        model,
+        model_save_folder
+        if model_save_folder is not None
+        else Config.saved_models_directory,
+        optimizer,
+        -1,
     )
     logging.info(
         f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation.data}"
@@ -108,7 +119,9 @@ def training_loop(
     return best_f_score, trained_model_path
 
 
-def _convert_simple_labels_to_torch_format(labels: torch.Tensor, device: torch.device) ->torch.Tensor:
+def _convert_simple_labels_to_torch_format(
+    labels: torch.Tensor, device: torch.device
+) -> torch.Tensor:
     return labels.to(torch.int64).to(device)
 
 
@@ -118,7 +131,9 @@ def get_model_predictions(
     predictions = torch.tensor([], dtype=torch.float32, device=device)
     labels = torch.tensor([], dtype=torch.long, device=device)
     for validation_data in validation_data_loader:
-        validation_images, validation_labels = validation_data["img"].to(device), validation_data["label"].to(device)
+        validation_images, validation_labels = validation_data["img"].to(
+            device
+        ), validation_data["label"].to(device)
         predictions = torch.cat([predictions, model(validation_images)], dim=0)
         labels = torch.cat([labels, validation_labels], dim=0)
     return labels, predictions

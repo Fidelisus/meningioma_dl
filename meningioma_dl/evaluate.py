@@ -54,8 +54,8 @@ def evaluate(
         num_classes=number_of_classes,
     ).to(device)
     state_dict = {
-            k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
-        }
+        k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
+    }
     model.load_state_dict(state_dict)
 
     labels, predictions = get_model_predictions(data_loader, model, device)
@@ -83,9 +83,7 @@ def evaluate(
     logging.info(f"Evaluation recall: {recall}")
     logging.info(f"Evaluation precision: {precision}")
 
-    plot_confusion_matrix(
-        labels_cpu, predictions_flat, visualizations_folder
-    )
+    plot_confusion_matrix(labels_cpu, predictions_flat, visualizations_folder)
 
     return f_score
 

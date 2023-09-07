@@ -39,16 +39,18 @@ def run_study(
     device_name: str = "cpu",
     n_workers: int = 1,
     search_space_name: str = "affine_transforms",
-    batch_size:int = 2,
+    batch_size: int = 2,
     validation_interval: int = 1,
-    save_model:bool=False,
+    save_model: bool = False,
 ):
     search_space = SEARCH_SPACES[search_space_name]
     hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
 
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
-        hyperparameters_values = suggest_parameters_values(trial, hyperparameters_config)
+        hyperparameters_values = suggest_parameters_values(
+            trial, hyperparameters_config
+        )
         logging.info(f"Transforms: {transforms}")
         logging.info(f"Hyperparameters: {hyperparameters_values}")
         _, trained_model_path = train(
@@ -70,7 +72,9 @@ def run_study(
         f_score_of_the_best_model = evaluate(
             trained_model_path=trained_model_path,
             device_name=device_name,
-            visualizations_folder=Config.visualizations_directory.joinpath(run_id, "evaluation")
+            visualizations_folder=Config.visualizations_directory.joinpath(
+                run_id, "evaluation"
+            ),
         )
         return f_score_of_the_best_model
 
@@ -85,7 +89,9 @@ def run_study(
     logging.info(search_space)
 
     study = optuna.create_study(
-        storage=Config.optuna_database_directory, study_name=run_id, direction="maximize"
+        storage=Config.optuna_database_directory,
+        study_name=run_id,
+        direction="maximize",
     )
     study.optimize(objective, n_trials=n_trials)
 
