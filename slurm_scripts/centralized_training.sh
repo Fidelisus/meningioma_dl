@@ -18,8 +18,8 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv1
 
 n_workers=1
-n_epochs=20
-n_trials=5
+n_epochs=40
+n_trials=1
 study_name="no_padding_to_the_biggest_tumor_static_2_lr_02"
 
 module add Python/3.7.3-foss-2019a
