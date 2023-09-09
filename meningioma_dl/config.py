@@ -64,12 +64,14 @@ class Config:
         cls.optuna_database_directory: str = (
             f"sqlite:///{cls.results_storage_directory.joinpath('optuna_store.db')}"
         )
-        cls.visualizations_directory: Path = cls.results_storage_directory.joinpath(
-            "viz"
-        )
-        cls.visualizations_directory.mkdir(parents=True, exist_ok=True)
 
         logs_directory = Path(os.environ.get("LOGS_DIR", None))
         if logs_directory:
             cls.log_file_path = logs_directory.joinpath(run_id, "logs.log")
             cls.log_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        cls.visualizations_directory: Path = logs_directory or cls.results_storage_directory.joinpath(
+            "viz"
+        )
+        cls.visualizations_directory.mkdir(parents=True, exist_ok=True)
+

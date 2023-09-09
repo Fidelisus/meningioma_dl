@@ -23,7 +23,7 @@ def train(
     run_id: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
-    learning_rate: float = 0.001,
+    learning_rate: float = 0.1,
     sgd_momentum: float = 0.9,
     weight_decay: float = 0.001,
     lr_scheduler_gamma: float = 0.99,
@@ -85,7 +85,7 @@ def train(
     )
 
     params = [
-        {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
+        # {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
         {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
     optimizer = torch.optim.SGD(

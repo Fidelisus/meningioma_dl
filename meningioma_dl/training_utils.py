@@ -54,16 +54,16 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
-            optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)
             loss = loss_function(
                 predictions, _convert_simple_labels_to_torch_format(labels, device)
             )
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            scheduler.step()
             epoch_loss += loss.item()
             # logging.info(f"Batch {batch_id} epoch {epoch} finished with loss {loss.item()}")
+        scheduler.step()
 
         logging.info(f"epoch {epoch} average loss: {epoch_loss / step:.4f}")
         logging.info(f"learning rate: {scheduler.get_last_lr()}")

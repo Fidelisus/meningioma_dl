@@ -337,8 +337,9 @@ def create_resnet_model(
 
     for pname, p in model.named_parameters():
         if pname in pretrained_model_state_dict:
+            p.requires_grad = False
             pretrained_model_parameters.append(p)
         else:
             parameters_to_fine_tune.append(p)
-
+    logging.info(f"Parameters to fine tune: {parameters_to_fine_tune}")
     return model, pretrained_model_parameters, parameters_to_fine_tune

@@ -75,6 +75,7 @@ def run_study(
             visualizations_folder=Config.visualizations_directory.joinpath(
                 run_id, "evaluation"
             ),
+            batch_size=batch_size,
         )
         return f_score_of_the_best_model
 
