@@ -67,6 +67,9 @@ def run_study(
             validation_interval=validation_interval,
             visualizations_folder=visualizations_folder,
             save_model=save_model,
+            saved_models_folder=Config.saved_models_directory.joinpath(
+                run_id, str(trial.number)
+            ),
             **hyperparameters_values,
         )
         if trained_model_path is None:

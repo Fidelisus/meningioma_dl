@@ -10,7 +10,6 @@ from sklearn.metrics import f1_score
 from torch import nn
 from torch.optim.optimizer import Optimizer
 
-from meningioma_dl.config import Config
 from meningioma_dl.visualizations.results_visualizations import plot_training_curve
 
 
@@ -25,6 +24,7 @@ def training_loop(
     validation_interval: int,
     visualizations_folder: Path,
     device: torch.device,
+    save_intermediate_models: bool = False,
     model_save_folder: Optional[Path] = None,
 ) -> Tuple[float, Optional[Path]]:
     best_loss_validation = torch.tensor(np.inf)
@@ -38,12 +38,11 @@ def training_loop(
 
     loss_function = loss_function.to(device)
 
-    trained_model_path: Optional[Path] = None
     training_losses: List[float] = []
     validation_losses: List[Union[float, None]] = []
+    f_scores: List[Union[float, None]] = []
     for epoch in range(total_epochs):
-        logging.info("Start epoch {}".format(epoch))
-        epoch_start_time = time.time()
+        logging.info("Start epoch {epoch}")
         step = 0
         epoch_loss = 0
 
@@ -65,9 +64,10 @@ def training_loop(
             # logging.info(f"Batch {batch_id} epoch {epoch} finished with loss {loss.item()}")
         scheduler.step()
 
-        logging.info(f"epoch {epoch} average loss: {epoch_loss / step:.4f}")
-        logging.info(f"learning rate: {scheduler.get_last_lr()}")
-        logging.info(f"epoch time: {time.time() - epoch_start_time}")
+        logging.info(
+            f"Epoch {epoch} average loss: {epoch_loss / step:.4f}, "
+            f"learning rate: {scheduler.get_last_lr()}"
+        )
         training_losses.append(epoch_loss / step)
 
         if (epoch + 1) % validation_interval == 0:
@@ -90,7 +90,7 @@ def training_loop(
                 )
 
                 if loss_validation < best_loss_validation:
-                    if model_save_folder is not None:
+                    if save_intermediate_models:
                         trained_model_path = _save_model(
                             model, model_save_folder, optimizer, epoch
                         )
@@ -100,23 +100,27 @@ def training_loop(
                 logging.info(f"Validation loss: {loss_validation.data}")
 
                 validation_losses.append(float(loss_validation.cpu().data))
+                f_scores.append(f_score)
         else:
             validation_losses.append(None)
+            f_scores.append(None)
 
-    plot_training_curve(validation_losses, training_losses, visualizations_folder)
+    plot_training_curve(
+        validation_losses, training_losses, f_scores, visualizations_folder
+    )
 
     trained_model_path = _save_model(
         model,
-        model_save_folder
-        if model_save_folder is not None
-        else Config.saved_models_directory,
+        model_save_folder,
         optimizer,
         -1,
     )
     logging.info(
-        f"Finished training, best f_score: {best_f_score}, best validation loss: {best_loss_validation.data}"
+        f"Finished training, last f_score: {f_score}, "
+        f"best f_score: {best_f_score}, "
+        f"best validation loss: {best_loss_validation.data}"
     )
-    return best_f_score, trained_model_path
+    return f_score, trained_model_path
 
 
 def _convert_simple_labels_to_torch_format(

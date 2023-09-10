@@ -36,8 +36,8 @@ def train(
     n_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
-    trial_id: int = 0,
     save_model: bool = False,
+    saved_models_folder: Path = Path("."),
     visualizations_folder: Path = Path("."),
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
@@ -106,9 +106,8 @@ def train(
         loss_function_class_weights,
         total_epochs=n_epochs,
         validation_interval=validation_interval,
-        model_save_folder=Config.saved_models_directory.joinpath(run_id, str(trial_id))
-        if save_model
-        else None,
+        save_intermediate_models=save_model,
+        model_save_folder=saved_models_folder,
         visualizations_folder=visualizations_folder,
         device=device,
     )

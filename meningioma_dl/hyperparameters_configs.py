@@ -54,25 +54,25 @@ AFFINE_TRANSFORMS_SEARCH_SPACE: SearchSpace = {
 }
 
 STATIC: SearchSpace = {
-    "rand_flip_0_axis": {"prob": 0.1},
-    "rand_flip_1_axis": {"prob": 0.1},
-    "rand_flip_2_axis": {"prob": 0.1},
-    "rand_rotate": {"prob": 0.3},
+    "rand_flip_0_axis": {"prob": 0.2},
+    "rand_flip_1_axis": {"prob": 0.2},
+    "rand_flip_2_axis": {"prob": 0.2},
+    "rand_rotate": {"prob": 0.4},
     "rand_zoom": {
         "min_zoom": 0.8,
         "max_zoom": 1.2,
-        "prob": 0.3,
+        "prob": 0.4,
     },
     "translate": {
-        "prob": 0.2,
+        "prob": 0.3,
     },
     "shift_intensity": {
-        "prob": 0.2,
+        "prob": 0.3,
         "factors": 0.05,
     },
     "gaussian_noise": {
-        "std": 0.05,
-        "prob": 0.3,
+        "std": 0.15,
+        "prob": 0.4,
     },
     "mask_after_gaussian": {},
 }
@@ -90,7 +90,7 @@ SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.0005
 
 SIMPLE_LR_CONFIG_EXPERIMENT_3: HyperparametersConfig = {"learning_rate": (0.02, 0.3)}
 
-STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.05, 0.05001)}
+STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.03, 0.03001)}
 
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,

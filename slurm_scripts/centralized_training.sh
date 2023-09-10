@@ -18,9 +18,9 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv1
 
 n_workers=1
-n_epochs=40
+n_epochs=15
 n_trials=1
-study_name="experiment_2_try_4_lr_05"
+study_name="experiment_2_try_5_lr_003"
 
 module add Python/3.7.3-foss-2019a
 module add PyTorch/1.6.0-foss-2019a-Python-3.7.3

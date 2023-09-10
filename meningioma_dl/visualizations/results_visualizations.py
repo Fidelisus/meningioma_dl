@@ -30,16 +30,29 @@ def plot_confusion_matrix(labels: np.array, predictions: np.array, save_path: Pa
 def plot_training_curve(
     validation_losses: Sequence[float],
     training_losses: Sequence[float],
+    f_scores: Sequence[float],
     save_path: Path,
 ):
     fig = px.scatter()
     fig.add_scatter(
-        y=training_losses, x=tuple(range(len(training_losses))), name="training"
+        y=training_losses,
+        x=tuple(range(len(training_losses))),
+        name="training",
+        mode="markers",
     )
     fig.add_scatter(
-        y=validation_losses, x=tuple(range(len(training_losses))), name="validation"
+        y=validation_losses,
+        x=tuple(range(len(training_losses))),
+        name="validation",
+        mode="markers",
     )
-    fig.update_layout(title_text="<i><b>Training curve</b></i>")
+    fig.add_scatter(
+        y=f_scores,
+        x=tuple(range(len(training_losses))),
+        name="f_scores",
+        mode="markers",
+    )
+    fig.update_layout(title_text="<i><b>Learning curve</b></i>")
 
     save_path.mkdir(parents=True, exist_ok=True)
-    fig.write_html(save_path.joinpath("training_curve.html"))
+    fig.write_html(save_path.joinpath("learning_curve.html"))
