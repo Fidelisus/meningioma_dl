@@ -36,16 +36,13 @@ def get_data_loader(
     labels_file_path: Path,
     data_root_directory: Path,
     num_workers: int,
+    batch_size: int = 1,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
-    batch_size: Optional[int] = None,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
 ) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path
     )
-
-    if batch_size is None:
-        batch_size = len(labels)
 
     data_loader = init_data_loader(
         images,
@@ -106,9 +103,13 @@ def init_data_loader(
         transformations.extend(
             [
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
-                transforms.SpatialPadd(
+                # transforms.SpatialPadd(
+                #     keys=["img", "mask"],
+                #     spatial_size=(151, 151, 151),
+                # ),
+                transforms.Resized(
                     keys=["img", "mask"],
-                    spatial_size=(151, 151, 151),
+                    spatial_size=(224, 224, 224),
                 ),
                 transforms.Zoomd(keys=["mask"], zoom=1.2),
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
@@ -143,12 +144,12 @@ def init_data_loader(
             ]
         transformations.extend(augmentation_settings)
 
-    transformations.append(
-        transforms.Resized(
-            keys=["img", "mask"],
-            spatial_size=(224, 224, 224),
-        )
-    )
+    # transformations.append(
+    #     transforms.Resized(
+    #         keys=["img", "mask"],
+    #         spatial_size=(224, 224, 224),
+    #     )
+    # )
     transformations.append(transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0))
 
     dataset = monai.data.Dataset(

@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Tuple, Optional, List
 
 import fire
@@ -23,7 +24,7 @@ def train(
     run_id: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
-    learning_rate: float = 0.001,
+    learning_rate: float = 0.1,
     sgd_momentum: float = 0.9,
     weight_decay: float = 0.001,
     lr_scheduler_gamma: float = 0.99,
@@ -37,6 +38,7 @@ def train(
     device_name: str = "cpu",
     trial_id: int = 0,
     save_model: bool = False,
+    visualizations_folder: Path = Path("."),
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
@@ -85,7 +87,7 @@ def train(
     )
 
     params = [
-        {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
+        # {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
         {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
     optimizer = torch.optim.SGD(
@@ -107,9 +109,7 @@ def train(
         model_save_folder=Config.saved_models_directory.joinpath(run_id, str(trial_id))
         if save_model
         else None,
-        visualizations_folder=Config.visualizations_directory.joinpath(
-            run_id, str(trial_id)
-        ),
+        visualizations_folder=visualizations_folder,
         device=device,
     )
     return best_f_score, trained_model_path

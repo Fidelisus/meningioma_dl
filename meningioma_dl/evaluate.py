@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import fire
 import torch
@@ -26,8 +26,11 @@ def evaluate(
     num_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
-    visualizations_folder: Path = Path("."),
+    visualizations_folder: Union[str, Path] = Path("."),
+    batch_size: int = 1,
 ) -> float:
+    if type(visualizations_folder) is str:
+        visualizations_folder = Path(visualizations_folder)
     if env_file_path is not None:
         Config.load_env_variables(
             env_file_path, f"evaluation_{Path(trained_model_path).parent}"
@@ -44,6 +47,7 @@ def evaluate(
         Config.data_directory,
         num_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
+        batch_size=batch_size,
     )
 
     saved_model = torch.load(trained_model_path)
@@ -58,7 +62,9 @@ def evaluate(
     }
     model.load_state_dict(state_dict)
 
-    labels, predictions = get_model_predictions(data_loader, model, device)
+    model.eval()
+    with torch.no_grad():
+        labels, predictions = get_model_predictions(data_loader, model, device)
 
     labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
