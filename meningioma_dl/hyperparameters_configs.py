@@ -54,6 +54,30 @@ AFFINE_TRANSFORMS_SEARCH_SPACE: SearchSpace = {
 }
 
 STATIC: SearchSpace = {
+    "rand_flip_0_axis": {"prob": 0.1},
+    "rand_flip_1_axis": {"prob": 0.1},
+    "rand_flip_2_axis": {"prob": 0.1},
+    "rand_rotate": {"prob": 0.3},
+    "rand_zoom": {
+        "min_zoom": 0.8,
+        "max_zoom": 1.2,
+        "prob": 0.4,
+    },
+    "translate": {
+        "prob": 0.1,
+    },
+    "shift_intensity": {
+        "prob": 0.2,
+        "factors": 0.05,
+    },
+    "gaussian_noise": {
+        "std": 0.15,
+        "prob": 0.3,
+    },
+    "mask_after_gaussian": {},
+}
+
+FULL_SEARCH_SPACE_EXPERIMENT_5: SearchSpace = {
     "rand_flip_0_axis": {"prob": 0.2},
     "rand_flip_1_axis": {"prob": 0.2},
     "rand_flip_2_axis": {"prob": 0.2},
@@ -71,9 +95,10 @@ STATIC: SearchSpace = {
         "factors": 0.05,
     },
     "gaussian_noise": {
-        "std": 0.15,
+        "std": (0.1, 0.3),
         "prob": 0.4,
     },
+    # TODO add elastic
     "mask_after_gaussian": {},
 }
 
@@ -92,8 +117,16 @@ SIMPLE_LR_CONFIG_EXPERIMENT_3: HyperparametersConfig = {"learning_rate": (0.02, 
 
 STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.03, 0.03001)}
 
+STATIC_CONFIG_SCHEDULERS: HyperparametersConfig = {
+    "learning_rate": (0.03, 0.03001),
+    # "sgd_momentum": (0.99, 0.990001),
+    # "weight_decay": (0.01, 0.01001),
+    "lr_scheduler_gamma": (0.9, 0.90001),
+}
+
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,
     "simple_conf_exp_3": SIMPLE_LR_CONFIG_EXPERIMENT_3,
     "static": STATIC_CONFIG,
+    "static_schedulers": STATIC_CONFIG_SCHEDULERS,
 }

@@ -90,8 +90,8 @@ def train(
         # {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
         {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
-    optimizer = torch.optim.SGD(
-        params, momentum=sgd_momentum, weight_decay=weight_decay
+    optimizer = torch.optim.Adam(
+        params,  # weight_decay=weight_decay
     )
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=lr_scheduler_gamma)
 

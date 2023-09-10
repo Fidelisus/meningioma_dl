@@ -42,7 +42,7 @@ def training_loop(
     validation_losses: List[Union[float, None]] = []
     f_scores: List[Union[float, None]] = []
     for epoch in range(total_epochs):
-        logging.info("Start epoch {epoch}")
+        logging.info(f"Start epoch {epoch}")
         step = 0
         epoch_loss = 0
 
@@ -53,11 +53,11 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
+            optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)
             loss = loss_function(
                 predictions, _convert_simple_labels_to_torch_format(labels, device)
             )
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
