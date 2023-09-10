@@ -45,6 +45,12 @@ def run_study(
 ):
     search_space = SEARCH_SPACES[search_space_name]
     hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
+    logging.info(f"Augmentations search space: {search_space}")
+    logging.info(f"Hyperparameters search space: {hyperparameters_config}")
+    logging.info(
+        f"n_epochs: {n_epochs}, n_trials: {n_trials}, "
+        f"batch_size: {batch_size}, validation_interval: {validation_interval}"
+    )
 
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
@@ -92,9 +98,7 @@ def run_study(
     Config.load_env_variables(env_file_path, run_id)
     setup_logging(Config.log_file_path)
 
-    logging.info("The following search space will be used:")
-    logging.info(search_space)
-
+    optuna.logging.enable_propagation()
     study = optuna.create_study(
         storage=Config.optuna_database_directory,
         study_name=run_id,

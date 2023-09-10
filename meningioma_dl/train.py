@@ -25,6 +25,7 @@ def train(
     manual_seed: int = Config.random_seed,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
     learning_rate: float = 0.1,
+    # TODO remove it
     sgd_momentum: float = 0.9,
     weight_decay: float = 0.001,
     lr_scheduler_gamma: float = 0.99,
