@@ -77,7 +77,7 @@ STATIC: SearchSpace = {
     "mask_after_gaussian": {},
 }
 
-FULL_SEARCH_SPACE_EXPERIMENT_5: SearchSpace = {
+STATIC_EXPERIMENT_5: SearchSpace = {
     "rand_flip_0_axis": {"prob": 0.2},
     "rand_flip_1_axis": {"prob": 0.2},
     "rand_flip_2_axis": {"prob": 0.2},
@@ -95,10 +95,9 @@ FULL_SEARCH_SPACE_EXPERIMENT_5: SearchSpace = {
         "factors": 0.05,
     },
     "gaussian_noise": {
-        "std": (0.1, 0.3),
+        "std": 0.15,
         "prob": 0.4,
     },
-    # TODO add elastic
     "mask_after_gaussian": {},
 }
 
@@ -107,6 +106,7 @@ SEARCH_SPACES: Dict[str, SearchSpace] = {
     "full_exp_3": FULL_SEARCH_SPACE_EXPERIMENT_3,
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
     "static": STATIC,
+    "static_exp_5": STATIC_EXPERIMENT_5,
 }
 
 HyperparametersConfig = Dict[str, Union[Tuple, Number]]
@@ -124,9 +124,17 @@ STATIC_CONFIG_SCHEDULERS: HyperparametersConfig = {
     "lr_scheduler_gamma": (0.9, 0.90001),
 }
 
+ADAM_CONFIG_EXPERIMENT_5: HyperparametersConfig = {
+    "learning_rate": (0.01, 0.3),
+    # "sgd_momentum": (0.99, 0.990001),
+    # "weight_decay": (0.01, 0.01001),
+    "lr_scheduler_gamma": (0.8, 0.99),
+}
+
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,
     "simple_conf_exp_3": SIMPLE_LR_CONFIG_EXPERIMENT_3,
     "static": STATIC_CONFIG,
     "static_schedulers": STATIC_CONFIG_SCHEDULERS,
+    "adam_exp_5": ADAM_CONFIG_EXPERIMENT_5,
 }
