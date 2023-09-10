@@ -118,7 +118,7 @@ SIMPLE_LR_CONFIG_EXPERIMENT_3: HyperparametersConfig = {"learning_rate": (0.02, 
 STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.03, 0.03001)}
 
 STATIC_CONFIG_SCHEDULERS: HyperparametersConfig = {
-    "learning_rate": (0.03, 0.03001),
+    "learning_rate": (0.05, 0.05001),
     # "sgd_momentum": (0.99, 0.990001),
     # "weight_decay": (0.01, 0.01001),
     "lr_scheduler_gamma": (0.9, 0.90001),
