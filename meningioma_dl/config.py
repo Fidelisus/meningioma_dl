@@ -70,8 +70,7 @@ class Config:
             cls.log_file_path = logs_directory.joinpath(run_id, "logs.log")
             cls.log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        cls.visualizations_directory: Path = logs_directory or cls.results_storage_directory.joinpath(
-            "viz"
+        cls.visualizations_directory: Path = (
+            logs_directory or cls.results_storage_directory.joinpath("viz")
         )
         cls.visualizations_directory.mkdir(parents=True, exist_ok=True)
-

@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Tuple, Optional, List
 
 import fire
@@ -37,6 +38,7 @@ def train(
     device_name: str = "cpu",
     trial_id: int = 0,
     save_model: bool = False,
+    visualizations_folder: Path = Path("."),
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
@@ -107,9 +109,7 @@ def train(
         model_save_folder=Config.saved_models_directory.joinpath(run_id, str(trial_id))
         if save_model
         else None,
-        visualizations_folder=Config.visualizations_directory.joinpath(
-            run_id, str(trial_id)
-        ),
+        visualizations_folder=visualizations_folder,
         device=device,
     )
     return best_f_score, trained_model_path

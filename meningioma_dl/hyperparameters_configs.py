@@ -90,7 +90,7 @@ SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.0005
 
 SIMPLE_LR_CONFIG_EXPERIMENT_3: HyperparametersConfig = {"learning_rate": (0.02, 0.3)}
 
-STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.2, 0.2001)}
+STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.05, 0.05001)}
 
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,

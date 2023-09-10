@@ -53,6 +53,9 @@ def run_study(
         )
         logging.info(f"Transforms: {transforms}")
         logging.info(f"Hyperparameters: {hyperparameters_values}")
+        visualizations_folder = Config.visualizations_directory.joinpath(
+            run_id, str(trial.number)
+        )
         _, trained_model_path = train(
             env_file_path=None,
             run_id=run_id,
@@ -62,7 +65,7 @@ def run_study(
             n_workers=n_workers,
             batch_size=batch_size,
             validation_interval=validation_interval,
-            trial_id=trial.number,
+            visualizations_folder=visualizations_folder,
             save_model=save_model,
             **hyperparameters_values,
         )
@@ -73,7 +76,7 @@ def run_study(
             trained_model_path=trained_model_path,
             device_name=device_name,
             visualizations_folder=Config.visualizations_directory.joinpath(
-                run_id, "evaluation"
+                run_id, str(trial.number)
             ),
             batch_size=batch_size,
         )

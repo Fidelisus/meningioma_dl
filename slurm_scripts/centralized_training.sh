@@ -10,7 +10,7 @@
 #SBATCH --mail-user=e12123563@student.tuwien.ac.at
 
 #SBATCH --ntasks=1
-#SBATCH --mem=4096
+#SBATCH --mem=8192
 #SBATCH --time=24:00:00
 #SBATCH --job-name=meningioma_classification
 
@@ -18,9 +18,9 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv1
 
 n_workers=1
-n_epochs=20
-n_trials=11
-study_name="experiment_3_try_1"
+n_epochs=40
+n_trials=1
+study_name="experiment_2_try_4_lr_05"
 
 module add Python/3.7.3-foss-2019a
 module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
@@ -36,5 +36,5 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --n_workers=${n_workers} \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=${n_epochs} \
   --n_trials=${n_trials} --study_name=${study_name} --run_id="$SLURM_JOBID" \
-  --batch_size=4 --validation_interval=2 --search_space_name="full_exp_3" \
-  --hyperparameters_config_name="simple_conf_exp_3"
+  --batch_size=4 --validation_interval=2 --search_space_name="static" \
+  --hyperparameters_config_name="static"

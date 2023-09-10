@@ -27,7 +27,7 @@ def evaluate(
     number_of_classes: int = 3,
     device_name: str = "cpu",
     visualizations_folder: Union[str, Path] = Path("."),
-    batch_size: int = 1
+    batch_size: int = 1,
 ) -> float:
     if type(visualizations_folder) is str:
         visualizations_folder = Path(visualizations_folder)
