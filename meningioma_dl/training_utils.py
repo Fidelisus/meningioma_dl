@@ -96,8 +96,9 @@ def training_loop(
                         )
                         logging.info(f"Model saved at {trained_model_path}")
                     best_loss_validation = loss_validation
-                logging.info(f"F1 score: {f_score}")
-                logging.info(f"Validation loss: {loss_validation.data}")
+                logging.info(
+                    f"F1 score: {f_score}, validation loss: {loss_validation.data}"
+                )
 
                 validation_losses.append(float(loss_validation.cpu().data))
                 f_scores.append(f_score)
