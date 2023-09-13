@@ -41,7 +41,7 @@ def run_study(
     search_space_name: str = "affine_transforms",
     batch_size: int = 2,
     validation_interval: int = 1,
-    save_model: bool = False,
+    save_model: bool = False, # TODO rename to save intermediate model
 ):
     search_space = SEARCH_SPACES[search_space_name]
     hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]

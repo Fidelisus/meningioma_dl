@@ -107,6 +107,7 @@ SEARCH_SPACES: Dict[str, SearchSpace] = {
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
     "static": STATIC,
     "static_exp_5": STATIC_EXPERIMENT_5,
+    "static_exp_6": STATIC_EXPERIMENT_5, # same config as exp 5
 }
 
 HyperparametersConfig = Dict[str, Union[Tuple, Number]]
@@ -118,10 +119,10 @@ SIMPLE_LR_CONFIG_EXPERIMENT_3: HyperparametersConfig = {"learning_rate": (0.02, 
 STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.03, 0.03001)}
 
 STATIC_CONFIG_SCHEDULERS: HyperparametersConfig = {
-    "learning_rate": (0.05, 0.05001),
+    "learning_rate": (0.1, 0.1001),
     # "sgd_momentum": (0.99, 0.990001),
     # "weight_decay": (0.01, 0.01001),
-    "lr_scheduler_gamma": (0.9, 0.90001),
+    "lr_scheduler_gamma": (0.99, 0.99001),
 }
 
 ADAM_CONFIG_EXPERIMENT_5: HyperparametersConfig = {
@@ -131,10 +132,18 @@ ADAM_CONFIG_EXPERIMENT_5: HyperparametersConfig = {
     "lr_scheduler_gamma": (0.8, 0.99),
 }
 
+ADAM_CONFIG_EXPERIMENT_6: HyperparametersConfig = {
+    "learning_rate": (0.01, 0.1),
+    # "sgd_momentum": (0.99, 0.990001),
+    # "weight_decay": (0.01, 0.01001),
+    "lr_scheduler_gamma": (0.95, 0.999),
+}
+
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,
     "simple_conf_exp_3": SIMPLE_LR_CONFIG_EXPERIMENT_3,
     "static": STATIC_CONFIG,
     "static_schedulers": STATIC_CONFIG_SCHEDULERS,
     "adam_exp_5": ADAM_CONFIG_EXPERIMENT_5,
+    "adam_exp_6": ADAM_CONFIG_EXPERIMENT_6,
 }
