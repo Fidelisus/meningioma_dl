@@ -32,7 +32,6 @@ def training_loop(
     batches_per_epoch = len(training_data_loader)
     logging.info(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
     loss_function = nn.CrossEntropyLoss(
-        ignore_index=-1,
         weight=torch.tensor(loss_function_class_weights).to(torch.float64),
     )
 
@@ -94,7 +93,11 @@ def training_loop(
                         trained_model_path = _save_model(
                             model, model_save_folder, optimizer, epoch
                         )
-                        logging.info(f"Model saved at {trained_model_path}")
+                    else:
+                        trained_model_path = _save_model(
+                            model, model_save_folder, optimizer, -1
+                        )
+                    logging.info(f"Model saved at {trained_model_path}")
                     best_loss_validation = loss_validation
                 logging.info(
                     f"F1 score: {f_score}, validation loss: {loss_validation.data}"
@@ -110,18 +113,18 @@ def training_loop(
         validation_losses, training_losses, f_scores, visualizations_folder
     )
 
-    trained_model_path = _save_model(
-        model,
-        model_save_folder,
-        optimizer,
-        -1,
-    )
+    # trained_model_path = _save_model(
+    #     model,
+    #     model_save_folder,
+    #     optimizer,
+    #     -1,
+    # )
     logging.info(
         f"Finished training, last f_score: {f_score}, "
         f"best f_score: {best_f_score}, "
         f"best validation loss: {best_loss_validation.data}"
     )
-    return f_score, trained_model_path
+    return best_f_score, trained_model_path
 
 
 def _convert_simple_labels_to_torch_format(
