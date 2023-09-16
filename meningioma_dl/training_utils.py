@@ -45,7 +45,7 @@ def training_loop(
         step = 0
         epoch_loss = 0
 
-        model.train(True)
+        model.train()
 
         for batch_id, batch_data in enumerate(training_data_loader):
             step += 1

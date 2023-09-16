@@ -107,7 +107,8 @@ SEARCH_SPACES: Dict[str, SearchSpace] = {
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
     "static": STATIC,
     "static_exp_5": STATIC_EXPERIMENT_5,
-    "static_exp_6": STATIC_EXPERIMENT_5, # same config as exp 5
+    "static_exp_6": STATIC_EXPERIMENT_5,  # same config as exp 5
+    "empty": {},
 }
 
 HyperparametersConfig = Dict[str, Union[Tuple, Number]]
@@ -116,7 +117,7 @@ SIMPLE_LR_CONFIG_EXPERIMENT_1: HyperparametersConfig = {"learning_rate": (0.0005
 
 SIMPLE_LR_CONFIG_EXPERIMENT_3: HyperparametersConfig = {"learning_rate": (0.02, 0.3)}
 
-STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.03, 0.03001)}
+STATIC_CONFIG: HyperparametersConfig = {"learning_rate": (0.001, 0.001001)}
 
 STATIC_CONFIG_SCHEDULERS: HyperparametersConfig = {
     "learning_rate": (0.1, 0.1001),

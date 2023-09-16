@@ -41,17 +41,8 @@ def run_study(
     search_space_name: str = "affine_transforms",
     batch_size: int = 2,
     validation_interval: int = 1,
-    save_model: bool = False, # TODO rename to save intermediate model
+    save_model: bool = False,  # TODO rename to save intermediate model
 ):
-    search_space = SEARCH_SPACES[search_space_name]
-    hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
-    logging.info(f"Augmentations search space: {search_space}")
-    logging.info(f"Hyperparameters search space: {hyperparameters_config}")
-    logging.info(
-        f"n_epochs: {n_epochs}, n_trials: {n_trials}, "
-        f"batch_size: {batch_size}, validation_interval: {validation_interval}"
-    )
-
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
         hyperparameters_values = suggest_parameters_values(
@@ -97,6 +88,19 @@ def run_study(
         run_id = f"{study_name}_{run_id}"
     Config.load_env_variables(env_file_path, run_id)
     setup_logging(Config.log_file_path)
+
+    search_space = SEARCH_SPACES[search_space_name]
+    hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
+    logging.info(f"run_id: {run_id}")
+    logging.info(
+        f"hyperparameters_config_name: {hyperparameters_config_name}, search_space_name: {search_space_name}"
+    )
+    logging.info(f"Augmentations search space: {search_space}")
+    logging.info(f"Hyperparameters search space: {hyperparameters_config}")
+    logging.info(
+        f"n_epochs: {n_epochs}, n_trials: {n_trials}, "
+        f"batch_size: {batch_size}, validation_interval: {validation_interval}"
+    )
 
     optuna.logging.enable_propagation()
     study = optuna.create_study(
