@@ -43,7 +43,7 @@ def evaluate(
     torch.manual_seed(manual_seed)
 
     data_loader, labels = get_data_loader(
-        Config.test_labels_file_path,
+        Config.validation_labels_file_path,
         Config.data_directory,
         num_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
