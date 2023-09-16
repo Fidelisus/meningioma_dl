@@ -70,7 +70,7 @@ def training_loop(
         training_losses.append(epoch_loss / step)
 
         if (epoch + 1) % validation_interval == 0:
-            model.eval()
+            # model.eval()
             with torch.no_grad():
                 labels, predictions = get_model_predictions(
                     validation_data_loader, model, device
