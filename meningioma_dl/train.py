@@ -25,9 +25,7 @@ def train(
     manual_seed: int = Config.random_seed,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
     learning_rate: float = 0.1,
-    # TODO remove it
-    sgd_momentum: float = 0.9,
-    weight_decay: float = 0.001,
+    weight_decay: float = 0.0,
     lr_scheduler_gamma: float = 0.99,
     model_depth: int = 10,
     batch_size: int = 2,
@@ -37,7 +35,7 @@ def train(
     n_workers: int = 1,
     number_of_classes: int = 3,
     device_name: str = "cpu",
-    save_model: bool = False,
+    save_intermediate_models: bool = False,
     saved_models_folder: Path = Path("."),
     visualizations_folder: Path = Path("."),
 ) -> Tuple[float, Optional[str]]:
@@ -91,9 +89,7 @@ def train(
         # {"params": pretrained_model_parameters, "lr": learning_rate / 100.0},
         {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
-    optimizer = torch.optim.Adam(
-        params,  # weight_decay=weight_decay
-    )
+    optimizer = torch.optim.Adam(params, weight_decay=weight_decay)
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=lr_scheduler_gamma)
 
     logging.info("Model initialized succesfully")
@@ -107,7 +103,7 @@ def train(
         loss_function_class_weights,
         total_epochs=n_epochs,
         validation_interval=validation_interval,
-        save_intermediate_models=save_model,
+        save_intermediate_models=save_intermediate_models,
         model_save_folder=saved_models_folder,
         visualizations_folder=visualizations_folder,
         device=device,

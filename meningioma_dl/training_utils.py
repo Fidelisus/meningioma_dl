@@ -75,30 +75,32 @@ def training_loop(
                 labels, predictions = get_model_predictions(
                     validation_data_loader, model, device
                 )
+                loss_validation: torch.Tensor = loss_function(
+                    predictions.to(torch.float64),
+                    _convert_simple_labels_to_torch_format(labels, device),
+                )
+                best_loss_validation = min(loss_validation, best_loss_validation)
 
                 f_score = f1_score(
                     labels.cpu(),
                     predictions.cpu().argmax(dim=1),
                     average="weighted",
                 )
-                if f_score > best_f_score:
-                    best_f_score = f_score
-                loss_validation: torch.Tensor = loss_function(
-                    predictions.to(torch.float64),
-                    _convert_simple_labels_to_torch_format(labels, device),
-                )
 
-                if loss_validation < best_loss_validation:
+                if f_score < best_f_score:
+                    best_f_score = f_score
                     if save_intermediate_models:
                         trained_model_path = _save_model(
                             model, model_save_folder, optimizer, epoch
                         )
                     else:
                         trained_model_path = _save_model(
-                            model, model_save_folder, optimizer, -1
+                            model,
+                            model_save_folder,
+                            optimizer,
+                            -1,  # -1 used to override previous best model
                         )
                     logging.info(f"Model saved at {trained_model_path}")
-                    best_loss_validation = loss_validation
                 logging.info(
                     f"F1 score: {f_score}, validation loss: {loss_validation.data}"
                 )
@@ -113,12 +115,6 @@ def training_loop(
         validation_losses, training_losses, f_scores, visualizations_folder
     )
 
-    # trained_model_path = _save_model(
-    #     model,
-    #     model_save_folder,
-    #     optimizer,
-    #     -1,
-    # )
     logging.info(
         f"Finished training, last f_score: {f_score}, "
         f"best f_score: {best_f_score}, "
@@ -155,7 +151,6 @@ def _save_model(
 ) -> Path:
     model_save_path = model_save_folder.joinpath(f"epoch_{epoch}.pth.tar")
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
-    logging.info(f"Saving model at epoch: {epoch}")
     torch.save(
         {
             "epoch": epoch,

@@ -41,7 +41,7 @@ def run_study(
     search_space_name: str = "affine_transforms",
     batch_size: int = 2,
     validation_interval: int = 1,
-    save_model: bool = False,  # TODO rename to save intermediate model
+    save_intermediate_models: bool = False,
 ):
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
@@ -63,7 +63,7 @@ def run_study(
             batch_size=batch_size,
             validation_interval=validation_interval,
             visualizations_folder=visualizations_folder,
-            save_model=save_model,
+            save_intermediate_models=save_intermediate_models,
             saved_models_folder=Config.saved_models_directory.joinpath(
                 run_id, str(trial.number)
             ),
