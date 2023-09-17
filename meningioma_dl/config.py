@@ -40,7 +40,7 @@ class Config:
 
     @classmethod
     def load_env_variables(cls, env_file_path: str, run_id: str):
-        load_dotenv(env_file_path)
+        load_dotenv(env_file_path, verbose=True)
 
         cls.data_directory = Path(os.environ["DATA_DIR"])
         cls.labels_directory = Path(os.environ["LABELS_DIR"])

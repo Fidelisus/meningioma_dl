@@ -103,13 +103,9 @@ def init_data_loader(
         transformations.extend(
             [
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
-                # transforms.SpatialPadd(
-                #     keys=["img", "mask"],
-                #     spatial_size=(151, 151, 151),
-                # ),
-                transforms.Resized(
+                transforms.SpatialPadd(
                     keys=["img", "mask"],
-                    spatial_size=(224, 224, 224),
+                    spatial_size=(151, 151, 151),
                 ),
                 transforms.Zoomd(keys=["mask"], zoom=1.2),
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
@@ -144,12 +140,12 @@ def init_data_loader(
             ]
         transformations.extend(augmentation_settings)
 
-    # transformations.append(
-    #     transforms.Resized(
-    #         keys=["img", "mask"],
-    #         spatial_size=(224, 224, 224),
-    #     )
-    # )
+    transformations.append(
+        transforms.Resized(
+            keys=["img", "mask"],
+            spatial_size=(224, 224, 224),
+        )
+    )
     transformations.append(transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0))
 
     dataset = monai.data.Dataset(
