@@ -1,4 +1,4 @@
-from meningioma_dl.experiments_configs.experiments import (
+from meningioma_dl.experiments_configs.data_types import (
     SearchSpace,
     HyperparametersConfig,
 )

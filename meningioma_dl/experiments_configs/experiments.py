@@ -1,6 +1,9 @@
-from numbers import Number
-from typing import Dict, Union, Tuple
+from typing import Dict
 
+from meningioma_dl.experiments_configs.data_types import (
+    SearchSpace,
+    HyperparametersConfig,
+)
 from meningioma_dl.experiments_configs.hyperparameters_configs import (
     FULL_SEARCH_SPACE_EXPERIMENT_1,
     FULL_SEARCH_SPACE_EXPERIMENT_3,
@@ -19,8 +22,7 @@ from meningioma_dl.experiments_configs.hyperparameters_configs_v2 import (
     get_learninig_rate_static_config,
 )
 
-SearchSpace = Dict[str, Dict[str, Union[Tuple, Number]]]
-HYPERPARAMETERS_SEARCH_SPACES: Dict[str, SearchSpace] = {
+AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "full_exp_1": FULL_SEARCH_SPACE_EXPERIMENT_1,
     "full_exp_3": FULL_SEARCH_SPACE_EXPERIMENT_3,
     "affine_transforms": AFFINE_TRANSFORMS_SEARCH_SPACE,
@@ -32,7 +34,6 @@ HYPERPARAMETERS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "exp_8_02_augment_prob": get_default_augmentation(0.2),
     "exp_8_005_augment_prob": get_default_augmentation(0.05),
 }
-HyperparametersConfig = Dict[str, Union[Tuple, Number]]
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,
     "simple_conf_exp_3": SIMPLE_LR_CONFIG_EXPERIMENT_3,

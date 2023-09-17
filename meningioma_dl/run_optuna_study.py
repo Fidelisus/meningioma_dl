@@ -11,7 +11,10 @@ from meningioma_dl.data_loading.augmentation import (
     suggest_hyperparameter_value,
 )
 from meningioma_dl.evaluate import evaluate
-from meningioma_dl.hyperparameters_configs import SEARCH_SPACES, HYPERPARAMETERS_CONFIGS
+from meningioma_dl.experiments_configs.experiments import (
+    AUGMENTATIONS_SEARCH_SPACES,
+    HYPERPARAMETERS_CONFIGS,
+)
 from meningioma_dl.train import train
 from meningioma_dl.utils import generate_run_id, setup_logging
 
@@ -89,7 +92,7 @@ def run_study(
     Config.load_env_variables(env_file_path, run_id)
     setup_logging(Config.log_file_path)
 
-    search_space = SEARCH_SPACES[search_space_name]
+    search_space = AUGMENTATIONS_SEARCH_SPACES[search_space_name]
     hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
     logging.info(f"run_id: {run_id}")
     logging.info(
