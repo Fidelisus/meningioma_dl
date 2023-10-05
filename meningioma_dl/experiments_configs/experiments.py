@@ -21,6 +21,7 @@ from meningioma_dl.experiments_configs.hyperparameters_configs_v2 import (
     get_default_augmentation,
     get_exponential_learninig_rate,
     get_exp9_1_augmentation,
+    get_cosine_learninig_rate,
 )
 
 AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
@@ -57,4 +58,6 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "0005_lr_099_gamma": get_exponential_learninig_rate(0.005, 0.99),
     "001_lr_099_gamma": get_exponential_learninig_rate(0.01, 0.99),
     "002_lr_09_gamma": get_exponential_learninig_rate(0.02, 0.9),
+    "cosine_lr_0003_t0_20": get_cosine_learninig_rate(0.003, 20),
+    "cosine_lr_0002_t0_40": get_cosine_learninig_rate(0.002, 40),
 }

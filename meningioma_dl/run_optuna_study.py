@@ -27,9 +27,14 @@ def suggest_parameters_values(
 ) -> Dict[str, Any]:
     parameters_values: Dict[str, Any] = {}
     for name, values in augmentation_settings.items():
-        parameters_values[name] = suggest_hyperparameter_value(
-            trial, name, values, float
-        )
+        if isinstance(values[1], int):
+            parameters_values[name] = suggest_hyperparameter_value(
+                trial, name, values, int
+            )
+        else:
+            parameters_values[name] = suggest_hyperparameter_value(
+                trial, name, values, float
+            )
     return parameters_values
 
 
