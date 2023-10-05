@@ -1,4 +1,5 @@
 import logging
+import math
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -105,7 +106,10 @@ def init_data_loader(
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                 transforms.SpatialPadd(
                     keys=["img", "mask"],
-                    spatial_size=(151, 151, 151),
+                    # spatial_size=(151, 151, 151),
+                    # spatial_size=(100, 100, 100),
+                    # spatial_size=(50, 50, 50),
+                    spatial_size=(30, 30, 30),
                 ),
                 transforms.Zoomd(keys=["mask"], zoom=1.2),
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
@@ -115,22 +119,40 @@ def init_data_loader(
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
         if augmentation_settings is None:
             logging.warning("No augmentation settings provided, using default ones")
+            probability = 0.2
             augmentation_settings: List[transforms.Transform] = [
-                transforms.RandFlipd(keys=["img"], spatial_axis=0, prob=1),
-                transforms.RandFlipd(keys=["img"], spatial_axis=1, prob=1),
-                transforms.RandRotated(keys=["img"], prob=1),
-                transforms.RandZoomd(keys=["img"], min_zoom=0.8, max_zoom=1.1, prob=1),
-                transforms.RandAffined(
-                    keys=["img"],
-                    translate_range=[(-10, 10), (-10, 10), (-10, 10)],
-                    prob=1,
+                transforms.RandFlipd(
+                    keys=["img", "mask"], spatial_axis=0, prob=probability
                 ),
-                transforms.RandStdShiftIntensityd(keys=["img"], factors=0.1, prob=1),
-                transforms.RandGaussianNoised(keys=["img"], prob=1.0, std=0.039),
+                transforms.RandFlipd(
+                    keys=["img", "mask"], spatial_axis=1, prob=probability
+                ),
+                transforms.RandFlipd(
+                    keys=["img", "mask"], spatial_axis=2, prob=probability
+                ),
+                transforms.RandRotated(
+                    keys=["img", "mask"],
+                    prob=probability,
+                    range_x=math.pi / 2,
+                    range_y=math.pi / 2,
+                    range_z=math.pi / 2,
+                ),
+                transforms.RandZoomd(
+                    keys=["img", "mask"], min_zoom=0.8, max_zoom=1.2, prob=probability
+                ),
+                transforms.RandAffined(
+                    keys=["img", "mask"],
+                    translate_range=[(-10, 10), (-10, 10), (-10, 10)],
+                    prob=probability,
+                ),
+                transforms.RandStdShiftIntensityd(
+                    keys=["img"], factors=0.05, prob=probability
+                ),
+                transforms.RandGaussianNoised(keys=["img"], prob=probability, std=0.15),
                 # We need to mask after gaussian to avoid adding noise to the empty parts
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
                 # transforms.Rand3DElasticd(
-                #     keys=["img"],
+                #     keys=["img", "mask"],
                 #     sigma_range=(0, 1),
                 #     magnitude_range=(3, 6),
                 #     prob=1.0,

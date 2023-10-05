@@ -19,8 +19,8 @@ def get_default_augmentation(probability: float = 0.1) -> SearchSpace:
             "prob": probability,
         },
         "shift_intensity": {
-            "prob": 0.3,
-            "factors": probability,
+            "factors": 0.05,
+            "prob": probability,
         },
         "gaussian_noise": {
             "std": 0.15,
