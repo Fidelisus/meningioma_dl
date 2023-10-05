@@ -20,6 +20,7 @@ from meningioma_dl.experiments_configs.hyperparameters_configs import (
 from meningioma_dl.experiments_configs.hyperparameters_configs_v2 import (
     get_default_augmentation,
     get_learninig_rate_static_config,
+    get_exp9_augmentation
 )
 
 AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
@@ -30,10 +31,14 @@ AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "static_exp_5": STATIC_EXPERIMENT_5,
     "static_exp_6": STATIC_EXPERIMENT_5,  # same config as exp 5
     "empty": {},
+    "exp_8_005_augment_prob": get_default_augmentation(0.05),
     "exp_8_01_augment_prob": get_default_augmentation(0.1),
     "exp_8_02_augment_prob": get_default_augmentation(0.2),
-    "exp_8_005_augment_prob": get_default_augmentation(0.05),
+    "exp_9_000_augment_prob": get_exp9_augmentation(0.0),
+    "exp_9_005_augment_prob": get_exp9_augmentation(0.05),
+    "exp_9_01_augment_prob": get_exp9_augmentation(0.1),
 }
+
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "simple_conf_exp_1": SIMPLE_LR_CONFIG_EXPERIMENT_1,
     "simple_conf_exp_3": SIMPLE_LR_CONFIG_EXPERIMENT_3,
@@ -41,7 +46,14 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "static_schedulers": STATIC_CONFIG_SCHEDULERS,
     "adam_exp_5": ADAM_CONFIG_EXPERIMENT_5,
     "adam_exp_6": ADAM_CONFIG_EXPERIMENT_6,
-    "0001_lr_099_gamma": get_learninig_rate_static_config(0.001, 0.99),
-    "00005_lr_099_gamma": get_learninig_rate_static_config(0.0005, 0.99),
+    "00005_lr_0999_gamma": get_learninig_rate_static_config(0.0005, 0.999),
+    "0001_lr_099_gamma": get_learninig_rate_static_config(0.001, 0.999),
+    "0001_lr_0999_gamma": get_learninig_rate_static_config(0.001, 0.99),
     "0002_lr_09_gamma": get_learninig_rate_static_config(0.002, 0.9),
+    "0002_lr_0999_gamma": get_learninig_rate_static_config(0.002, 0.999),
+    "0002_lr_099_gamma": get_learninig_rate_static_config(0.002, 0.99),
+    "0003_lr_099_gamma": get_learninig_rate_static_config(0.003, 0.99),
+    "0005_lr_099_gamma": get_learninig_rate_static_config(0.005, 0.99),
+    "001_lr_099_gamma": get_learninig_rate_static_config(0.01, 0.99),
+    "002_lr_09_gamma": get_learninig_rate_static_config(0.02, 0.9),
 }

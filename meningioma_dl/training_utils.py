@@ -88,7 +88,7 @@ def training_loop(
                     average="weighted",
                 )
 
-                if f_score < best_f_score:
+                if f_score > best_f_score:
                     best_f_score = f_score
                     if save_intermediate_models:
                         trained_model_path = _save_model(
