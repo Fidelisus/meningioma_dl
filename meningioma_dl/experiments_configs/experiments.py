@@ -53,6 +53,7 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "0002_lr_0999_gamma": get_exponential_learninig_rate(0.002, 0.999),
     "0002_lr_099_gamma": get_exponential_learninig_rate(0.002, 0.99),
     "0003_lr_099_gamma": get_exponential_learninig_rate(0.003, 0.99),
+    "0004_lr_099_gamma": get_exponential_learninig_rate(0.004, 0.99),
     "0005_lr_099_gamma": get_exponential_learninig_rate(0.005, 0.99),
     "001_lr_099_gamma": get_exponential_learninig_rate(0.01, 0.99),
     "002_lr_09_gamma": get_exponential_learninig_rate(0.02, 0.9),
