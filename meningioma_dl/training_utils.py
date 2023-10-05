@@ -79,7 +79,8 @@ def training_loop(
                     predictions.to(torch.float64),
                     _convert_simple_labels_to_torch_format(labels, device),
                 )
-                best_loss_validation = min(loss_validation, best_loss_validation)
+                if loss_validation < best_loss_validation:
+                    best_loss_validation = loss_validation
 
                 f_score = f1_score(
                     labels.cpu(),
@@ -87,7 +88,7 @@ def training_loop(
                     average="weighted",
                 )
 
-                if f_score < best_f_score:
+                if f_score > best_f_score:
                     best_f_score = f_score
                     if save_intermediate_models:
                         trained_model_path = _save_model(

@@ -39,3 +39,29 @@ def get_learninig_rate_static_config(
         "learning_rate": (learning_rate, learning_rate + 0.000001),
         "lr_scheduler_gamma": (lr_scheduler_gamma, lr_scheduler_gamma + 0.000001),
     }
+
+
+def get_exp9_augmentation(probability: float = 0.1) -> SearchSpace:
+    return {
+        "rand_flip_0_axis": {"prob": probability},
+        "rand_flip_1_axis": {"prob": probability},
+        "rand_flip_2_axis": {"prob": probability},
+        "rand_rotate": {"prob": probability+0.02},
+        "rand_zoom": {
+            "min_zoom": 0.9,
+            "max_zoom": 1.1,
+            "prob": probability+0.05,
+        },
+        "translate": {
+            "prob": probability+0.02,
+        },
+        "shift_intensity": {
+            "prob": probability+0.02,
+            "factors": 0.05,
+        },
+        "gaussian_noise": {
+            "std": 0.2,
+            "prob": probability+0.05,
+        },
+        "mask_after_gaussian": {},
+    }

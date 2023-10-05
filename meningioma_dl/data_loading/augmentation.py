@@ -21,21 +21,21 @@ class Augmentation:
 AUGMENTATIONS: Dict[str, Augmentation] = {
     "rand_flip_0_axis": Augmentation(
         transforms.RandFlipd,
-        {"keys": ["img"], "spatial_axis": 0},
+        {"keys": ["img", "mask"], "spatial_axis": 0},
         {
             "prob": HyperparameterSpecs(data_type=float),
         },
     ),
     "rand_flip_1_axis": Augmentation(
         transforms.RandFlipd,
-        {"keys": ["img"], "spatial_axis": 1},
+        {"keys": ["img", "mask"], "spatial_axis": 1},
         {
             "prob": HyperparameterSpecs(data_type=float),
         },
     ),
     "rand_flip_2_axis": Augmentation(
         transforms.RandFlipd,
-        {"keys": ["img"], "spatial_axis": 2},
+        {"keys": ["img", "mask"], "spatial_axis": 2},
         {
             "prob": HyperparameterSpecs(data_type=float),
         },
@@ -43,7 +43,7 @@ AUGMENTATIONS: Dict[str, Augmentation] = {
     "rand_rotate": Augmentation(
         transforms.RandRotated,
         {
-            "keys": ["img"],
+            "keys": ["img", "mask"],
             "range_x": math.pi / 2,
             "range_y": math.pi / 2,
             "range_z": math.pi / 2,
@@ -55,7 +55,7 @@ AUGMENTATIONS: Dict[str, Augmentation] = {
     "rand_zoom": Augmentation(
         transforms.RandZoomd,
         {
-            "keys": ["img"],
+            "keys": ["img", "mask"],
         },
         {
             "min_zoom": HyperparameterSpecs(data_type=float),
@@ -65,7 +65,7 @@ AUGMENTATIONS: Dict[str, Augmentation] = {
     ),
     "translate": Augmentation(
         transforms.RandAffined,
-        {"keys": ["img"], "translate_range": [(-10, 10), (-10, 10), (-10, 10)]},
+        {"keys": ["img", "mask"], "translate_range": [(-10, 10), (-10, 10), (-10, 10)]},
         {"prob": HyperparameterSpecs(data_type=float)},
     ),
     "shift_intensity": Augmentation(
