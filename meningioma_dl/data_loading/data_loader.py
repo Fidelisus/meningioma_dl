@@ -106,9 +106,6 @@ def init_data_loader(
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                 transforms.SpatialPadd(
                     keys=["img", "mask"],
-                    # spatial_size=(151, 151, 151),
-                    # spatial_size=(100, 100, 100),
-                    # spatial_size=(50, 50, 50),
                     spatial_size=(30, 30, 30),
                 ),
                 transforms.Zoomd(keys=["mask"], zoom=1.2),
