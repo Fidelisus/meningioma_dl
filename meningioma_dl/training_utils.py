@@ -7,10 +7,13 @@ import numpy as np
 import torch
 from monai.data import DataLoader
 from sklearn.metrics import f1_score
-from torch import nn
+from torch import nn, optim
 from torch.optim.optimizer import Optimizer
 
 from meningioma_dl.visualizations.results_visualizations import plot_training_curve
+
+
+SCHEDULERS = {"exponent": optim.lr_scheduler.ExponentialLR}
 
 
 def training_loop(

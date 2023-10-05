@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Dict, Any
 
 import fire
 import torch
@@ -26,7 +26,7 @@ def train(
     augmentation_settings: Optional[List[transforms.Transform]] = None,
     learning_rate: float = 0.1,
     weight_decay: float = 0.0,
-    lr_scheduler_gamma: float = 0.99,
+    scheduler_parameters: Dict[str, Any] = {},
     model_depth: int = 10,
     batch_size: int = 2,
     n_epochs: int = 2,
@@ -38,6 +38,7 @@ def train(
     save_intermediate_models: bool = False,
     saved_models_folder: Path = Path("."),
     visualizations_folder: Path = Path("."),
+    scheduler=optim.lr_scheduler.ExponentialLR,
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
@@ -90,7 +91,7 @@ def train(
         {"params": parameters_to_fine_tune, "lr": learning_rate},
     ]
     optimizer = torch.optim.Adam(params, weight_decay=weight_decay)
-    scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=lr_scheduler_gamma)
+    scheduler = scheduler(optimizer, **scheduler_parameters)
 
     logging.info("Model initialized succesfully")
 

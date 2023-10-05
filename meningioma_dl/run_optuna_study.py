@@ -16,6 +16,7 @@ from meningioma_dl.experiments_configs.experiments import (
     HYPERPARAMETERS_CONFIGS,
 )
 from meningioma_dl.train import train
+from meningioma_dl.training_utils import SCHEDULERS
 from meningioma_dl.utils import generate_run_id, setup_logging
 
 #  optuna-dashboard sqlite:///C:\Users\Lenovo\Desktop\meningioma_project\meningioma_dl\data\optuna\optuna_store.db
@@ -45,6 +46,7 @@ def run_study(
     batch_size: int = 2,
     validation_interval: int = 1,
     save_intermediate_models: bool = False,
+    scheduler_name: str = "exponent",
 ):
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
@@ -56,6 +58,7 @@ def run_study(
         visualizations_folder = Config.visualizations_directory.joinpath(
             run_id, str(trial.number)
         )
+        scheduler = SCHEDULERS[scheduler_name]
         _, trained_model_path = train(
             env_file_path=None,
             run_id=run_id,
@@ -70,7 +73,9 @@ def run_study(
             saved_models_folder=Config.saved_models_directory.joinpath(
                 run_id, str(trial.number)
             ),
-            **hyperparameters_values,
+            scheduler=scheduler,
+            learning_rate=hyperparameters_values.pop("learning_rate"),
+            scheduler_parameters=hyperparameters_values,
         )
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")

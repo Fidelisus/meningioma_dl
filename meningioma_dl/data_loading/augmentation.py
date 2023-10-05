@@ -44,12 +44,14 @@ AUGMENTATIONS: Dict[str, Augmentation] = {
         transforms.RandRotated,
         {
             "keys": ["img", "mask"],
-            "range_x": math.pi / 2,
-            "range_y": math.pi / 2,
-            "range_z": math.pi / 2,
         },
         {
             "prob": HyperparameterSpecs(data_type=float),
+            "range_x": HyperparameterSpecs(data_type=float),
+            "range_y": HyperparameterSpecs(data_type=float),
+            "range_z": HyperparameterSpecs(data_type=float),
+            "padding_mode": HyperparameterSpecs(data_type=str),
+            "keep_size": HyperparameterSpecs(data_type=bool),
         },
     ),
     "rand_zoom": Augmentation(
@@ -61,12 +63,17 @@ AUGMENTATIONS: Dict[str, Augmentation] = {
             "min_zoom": HyperparameterSpecs(data_type=float),
             "max_zoom": HyperparameterSpecs(data_type=float),
             "prob": HyperparameterSpecs(data_type=float),
+            "keep_size": HyperparameterSpecs(data_type=bool),
         },
     ),
     "translate": Augmentation(
         transforms.RandAffined,
-        {"keys": ["img", "mask"], "translate_range": [(-10, 10), (-10, 10), (-10, 10)]},
-        {"prob": HyperparameterSpecs(data_type=float)},
+        {"keys": ["img", "mask"]},
+        {
+            "prob": HyperparameterSpecs(data_type=float),
+            "translate_range": HyperparameterSpecs(data_type=float),
+            "padding_mode": HyperparameterSpecs(data_type=str),
+        },
     ),
     "shift_intensity": Augmentation(
         transforms.RandStdShiftIntensityd,

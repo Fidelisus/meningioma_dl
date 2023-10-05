@@ -92,7 +92,6 @@ def init_data_loader(
         transforms.Spacingd(
             keys=["img", "mask"],
             pixdim=(1.0, 1.0, 1.0),
-            mode=("bilinear", "nearest"),
             meta_keys=["img_meta_dict", "mask_meta_dict"],
         ),
     ]
@@ -106,9 +105,9 @@ def init_data_loader(
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                 transforms.SpatialPadd(
                     keys=["img", "mask"],
-                    spatial_size=(30, 30, 30),
+                    spatial_size=(40, 40, 40),
                 ),
-                transforms.Zoomd(keys=["mask"], zoom=1.2),
+                transforms.Zoomd(keys=["mask"], zoom=1.05),
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
             ]
         )
@@ -160,10 +159,10 @@ def init_data_loader(
         transformations.extend(augmentation_settings)
 
     transformations.append(
-        transforms.Resized(
-            keys=["img", "mask"],
-            spatial_size=(224, 224, 224),
-        )
+        transforms.Resized(keys=["img", "mask"], spatial_size=224, size_mode="longest")
+    )
+    transformations.append(
+        transforms.SpatialPadd(keys=["img", "mask"], spatial_size=(224, 224, 224))
     )
     transformations.append(transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0))
 

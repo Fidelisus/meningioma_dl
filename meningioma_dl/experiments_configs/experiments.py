@@ -19,8 +19,8 @@ from meningioma_dl.experiments_configs.hyperparameters_configs import (
 )
 from meningioma_dl.experiments_configs.hyperparameters_configs_v2 import (
     get_default_augmentation,
-    get_learninig_rate_static_config,
-    get_exp9_augmentation
+    get_exponential_learninig_rate,
+    get_exp9_1_augmentation,
 )
 
 AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
@@ -34,9 +34,9 @@ AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "exp_8_005_augment_prob": get_default_augmentation(0.05),
     "exp_8_01_augment_prob": get_default_augmentation(0.1),
     "exp_8_02_augment_prob": get_default_augmentation(0.2),
-    "exp_9_000_augment_prob": get_exp9_augmentation(0.0),
-    "exp_9_005_augment_prob": get_exp9_augmentation(0.05),
-    "exp_9_01_augment_prob": get_exp9_augmentation(0.1),
+    "exp_9_1_005_augment_prob": get_exp9_1_augmentation(0.05),
+    "exp_9_1_01_augment_prob": get_exp9_1_augmentation(0.1),
+    "exp_9_1_03_augment_prob": get_exp9_1_augmentation(0.3),
 }
 
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
@@ -46,14 +46,14 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "static_schedulers": STATIC_CONFIG_SCHEDULERS,
     "adam_exp_5": ADAM_CONFIG_EXPERIMENT_5,
     "adam_exp_6": ADAM_CONFIG_EXPERIMENT_6,
-    "00005_lr_0999_gamma": get_learninig_rate_static_config(0.0005, 0.999),
-    "0001_lr_099_gamma": get_learninig_rate_static_config(0.001, 0.999),
-    "0001_lr_0999_gamma": get_learninig_rate_static_config(0.001, 0.99),
-    "0002_lr_09_gamma": get_learninig_rate_static_config(0.002, 0.9),
-    "0002_lr_0999_gamma": get_learninig_rate_static_config(0.002, 0.999),
-    "0002_lr_099_gamma": get_learninig_rate_static_config(0.002, 0.99),
-    "0003_lr_099_gamma": get_learninig_rate_static_config(0.003, 0.99),
-    "0005_lr_099_gamma": get_learninig_rate_static_config(0.005, 0.99),
-    "001_lr_099_gamma": get_learninig_rate_static_config(0.01, 0.99),
-    "002_lr_09_gamma": get_learninig_rate_static_config(0.02, 0.9),
+    "00005_lr_0999_gamma": get_exponential_learninig_rate(0.0005, 0.999),
+    "0001_lr_099_gamma": get_exponential_learninig_rate(0.001, 0.999),
+    "0001_lr_0999_gamma": get_exponential_learninig_rate(0.001, 0.99),
+    "0002_lr_09_gamma": get_exponential_learninig_rate(0.002, 0.9),
+    "0002_lr_0999_gamma": get_exponential_learninig_rate(0.002, 0.999),
+    "0002_lr_099_gamma": get_exponential_learninig_rate(0.002, 0.99),
+    "0003_lr_099_gamma": get_exponential_learninig_rate(0.003, 0.99),
+    "0005_lr_099_gamma": get_exponential_learninig_rate(0.005, 0.99),
+    "001_lr_099_gamma": get_exponential_learninig_rate(0.01, 0.99),
+    "002_lr_09_gamma": get_exponential_learninig_rate(0.02, 0.9),
 }
