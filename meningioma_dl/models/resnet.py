@@ -295,6 +295,7 @@ def create_resnet_model(
         initialized_model_state_dict = model.state_dict()
     else:
         gpus_ids = [d for d in range(torch.cuda.device_count())]
+        logging.info(f"Gpu ids: {gpus_ids}")
         assert len(gpus_ids) > 0
         if len(gpus_ids) > 1:
             model = model.cuda()
