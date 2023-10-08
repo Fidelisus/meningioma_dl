@@ -50,7 +50,7 @@ def evaluate(
         batch_size=batch_size,
     )
 
-    saved_model = torch.load(trained_model_path)
+    saved_model = torch.load(trained_model_path, map_location=device)
     no_cuda = False if device == torch.device("cuda") else True
     model = RESNET_MODELS_MAP[model_depth](
         shortcut_type=resnet_shortcut_type,
