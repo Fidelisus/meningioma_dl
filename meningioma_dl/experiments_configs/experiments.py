@@ -38,6 +38,7 @@ AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "exp_9_1_000_augment_prob": get_exp9_1_augmentation(0.0),
     "exp_9_1_005_augment_prob": get_exp9_1_augmentation(0.05),
     "exp_9_1_01_augment_prob": get_exp9_1_augmentation(0.1),
+    "exp_9_1_025_augment_prob": get_exp9_1_augmentation(0.25),
     "exp_9_1_03_augment_prob": get_exp9_1_augmentation(0.3),
 }
 
