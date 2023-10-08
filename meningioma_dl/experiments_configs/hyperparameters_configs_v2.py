@@ -141,7 +141,7 @@ def get_exp9_3_augmentation(probability: float = 0.1) -> SearchSpace:
             "keep_size": False,
         },
         "rand_flip_0_axis": {"prob": probability},
-        "rand_flip_1_axis": {"prob": probability},
+        "rand_flip_1_axis": {"prob": probability + 0.05},
         "rand_flip_2_axis": {"prob": probability},
         "translate": {
             "prob": probability + 0.05,
