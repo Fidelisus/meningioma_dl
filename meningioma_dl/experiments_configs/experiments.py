@@ -32,7 +32,7 @@ AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "static": STATIC,
     "static_exp_5": STATIC_EXPERIMENT_5,
     "static_exp_6": STATIC_EXPERIMENT_5,  # same config as exp 5
-    "empty": {},
+    "no_augmentation": {},
     "exp_8_005_augment_prob": get_default_augmentation(0.05),
     "exp_8_01_augment_prob": get_default_augmentation(0.1),
     "exp_8_02_augment_prob": get_default_augmentation(0.2),
@@ -58,11 +58,13 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "0002_lr_099_gamma": get_exponential_learninig_rate(0.002, 0.99),
     "0003_lr_099_gamma": get_exponential_learninig_rate(0.003, 0.99),
     "0004_lr_099_gamma": get_exponential_learninig_rate(0.004, 0.99),
+    "0005_lr_099_gamma": get_exponential_learninig_rate(0.005, 0.99),
     "0005_lr_0995_gamma": get_exponential_learninig_rate(0.005, 0.995),
     "001_lr_099_gamma": get_exponential_learninig_rate(0.01, 0.99),
     "002_lr_099_gamma": get_exponential_learninig_rate(0.02, 0.99),
     "cosine_lr_0003_t0_20": get_cosine_learninig_rate(0.003, 20),
-    "cosine_lr_0002_t0_40": get_cosine_learninig_rate(0.002, 40),
+    "cosine_lr_0004_t0_60": get_cosine_learninig_rate(0.004, 60),
+    "cosine_lr_0005_t0_60": get_cosine_learninig_rate(0.005, 60),
 }
 
 PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
