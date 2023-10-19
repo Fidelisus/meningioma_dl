@@ -6,10 +6,6 @@ import pandas as pd
 from meningioma_dl.config import Config
 
 
-def get_ci_run_samples_df() -> pd.DataFrame:
-    return get_samples_df(Config.ci_run_labels_file_path)
-
-
 def get_training_samples_df() -> pd.DataFrame:
     return get_samples_df(Config.train_labels_file_path)
 

@@ -150,10 +150,10 @@ class ResNet(nn.Module):
             block, 512, layers[3], shortcut_type, stride=1, dilation=4
         )
 
-        # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
-        self.classification_layer = nn.Linear(512 * block.expansion, num_classes)
-        # self.softmax = nn.Softmax(dim=1)
+        self.classification_layer = nn.Linear(
+            self.inplanes * block.expansion, num_classes
+        )
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -214,7 +214,6 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classification_layer(x)
-        # x = self.softmax(x)
 
         return x
 
