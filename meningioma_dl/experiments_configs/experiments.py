@@ -70,5 +70,5 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
 PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
     "default": PreprocessingSettings(),
     "resize_mode_nearest": PreprocessingSettings(final_resize_mode="nearest"),
-    "resize_mode_linear": PreprocessingSettings(final_resize_mode="linear"),
+    "resize_mode_bilinear": PreprocessingSettings(final_resize_mode="bilinear"),
 }

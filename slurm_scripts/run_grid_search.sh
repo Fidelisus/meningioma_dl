@@ -12,7 +12,7 @@ hyperparameters_configs=("002_lr_099_gamma")
 scheduler_name="exponent"
 preprocessing_settings_name="default"
 
-runs_main_name="training_no_251_resize_151_size"
+runs_main_name="training_data_run_2"
 
 for augmentation_config in "${augmentation_configs[@]}"; do
     for hyperparameters_config in "${hyperparameters_configs[@]}"; do
