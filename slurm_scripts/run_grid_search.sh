@@ -10,7 +10,7 @@ augmentation_configs=("no_augmentation")
 
 hyperparameters_configs=("002_lr_099_gamma")
 scheduler_name="exponent"
-preprocessing_settings_name="default"
+preprocessing_settings_name="resize_mode_trilinear"
 
 runs_main_name="training_data_run_2"
 
