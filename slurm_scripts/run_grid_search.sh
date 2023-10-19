@@ -8,8 +8,8 @@ slurm_script_path=/home/cir/lsobocinski/meningioma_dl/slurm_scripts/centralized_
 augmentation_configs=("no_augmentation")
 # hyperparameters_configs=("0001_lr_0999_gamma" "002_lr_099_gamma" "0005_lr_0995_gamma")
 
-hyperparameters_configs=("cosine_lr_0004_t0_60")
-scheduler_name="cosine"
+hyperparameters_configs=("002_lr_099_gamma")
+scheduler_name="exponent"
 preprocessing_settings_name="default"
 
 runs_main_name="training_no_251_resize_151_size"
