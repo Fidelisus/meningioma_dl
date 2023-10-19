@@ -1,5 +1,6 @@
 from typing import Dict
 
+from meningioma_dl.data_loading.data_loader import PreprocessingSettings
 from meningioma_dl.experiments_configs.data_types import (
     SearchSpace,
     HyperparametersConfig,
@@ -62,4 +63,10 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "002_lr_099_gamma": get_exponential_learninig_rate(0.02, 0.99),
     "cosine_lr_0003_t0_20": get_cosine_learninig_rate(0.003, 20),
     "cosine_lr_0002_t0_40": get_cosine_learninig_rate(0.002, 40),
+}
+
+PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
+    "default": PreprocessingSettings(),
+    "resize_mode_nearest": PreprocessingSettings(final_resize_mode="nearest"),
+    "resize_mode_linear": PreprocessingSettings(final_resize_mode="linear"),
 }

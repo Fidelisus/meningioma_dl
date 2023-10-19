@@ -14,6 +14,7 @@ from meningioma_dl.evaluate import evaluate
 from meningioma_dl.experiments_configs.experiments import (
     AUGMENTATIONS_SEARCH_SPACES,
     HYPERPARAMETERS_CONFIGS,
+    PREPROCESSING_SETTINGS,
 )
 from meningioma_dl.train import train
 from meningioma_dl.training_utils import SCHEDULERS
@@ -52,6 +53,7 @@ def run_study(
     validation_interval: int = 1,
     save_intermediate_models: bool = False,
     scheduler_name: str = "exponent",
+    preprocessing_settings_name: str = "empty",
 ):
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
@@ -81,6 +83,7 @@ def run_study(
             scheduler=scheduler,
             learning_rate=hyperparameters_values.pop("learning_rate"),
             scheduler_parameters=hyperparameters_values,
+            preprocessing_settings=preprocessing_settings,
         )
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")
@@ -92,6 +95,7 @@ def run_study(
                 run_id, str(trial.number)
             ),
             batch_size=batch_size,
+            preprocessing_settings=preprocessing_settings,
         )
         return f_score_of_the_best_model
 
@@ -104,12 +108,14 @@ def run_study(
 
     search_space = AUGMENTATIONS_SEARCH_SPACES[search_space_name]
     hyperparameters_config = HYPERPARAMETERS_CONFIGS[hyperparameters_config_name]
+    preprocessing_settings = PREPROCESSING_SETTINGS[preprocessing_settings_name]
     logging.info(f"run_id: {run_id}")
     logging.info(
         f"hyperparameters_config_name: {hyperparameters_config_name}, search_space_name: {search_space_name}"
     )
     logging.info(f"Augmentations search space: {search_space}")
     logging.info(f"Hyperparameters search space: {hyperparameters_config}")
+    logging.info(f"preprocessing_settings: {preprocessing_settings}")
     logging.info(
         f"n_epochs: {n_epochs}, n_trials: {n_trials}, "
         f"batch_size: {batch_size}, validation_interval: {validation_interval}"

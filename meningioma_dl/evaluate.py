@@ -7,7 +7,11 @@ import torch
 from sklearn.metrics import f1_score, recall_score, precision_score
 
 from meningioma_dl.config import Config
-from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
+from meningioma_dl.data_loading.data_loader import (
+    get_data_loader,
+    TransformationsMode,
+    PreprocessingSettings,
+)
 from meningioma_dl.models.resnet import RESNET_MODELS_MAP
 from meningioma_dl.training_utils import get_model_predictions
 from meningioma_dl.utils import (
@@ -28,6 +32,7 @@ def evaluate(
     device_name: str = "cpu",
     visualizations_folder: Union[str, Path] = Path("."),
     batch_size: int = 1,
+    preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
 ) -> float:
     if type(visualizations_folder) is str:
         visualizations_folder = Path(visualizations_folder)
@@ -48,6 +53,7 @@ def evaluate(
         num_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
+        preprocessing_settings=preprocessing_settings,
     )
 
     saved_model = torch.load(trained_model_path, map_location=device)

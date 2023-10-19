@@ -1,5 +1,6 @@
 import logging
 import math
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -33,6 +34,16 @@ class TransformationsMode(Enum):
     AUGMENT = 2
 
 
+@dataclass
+class PreprocessingSettings:
+    initial_pad_spatial_size: int = 100
+    final_resize_spatial_pad: Optional[int] = 224
+    final_resize_mode: Optional[str] = "area"
+    final_crop_and_pad_spatial_size: Optional[int] = None
+    tissue_around_tumour_zoom: float = 1.2
+    do_foreground_cropping: bool = True
+
+
 def get_data_loader(
     labels_file_path: Path,
     data_root_directory: Path,
@@ -40,6 +51,7 @@ def get_data_loader(
     batch_size: int = 1,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
+    preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
 ) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path
@@ -53,6 +65,7 @@ def get_data_loader(
         num_workers=num_workers,
         transformations_mode=transformations_mode,
         augmentation_settings=augmentation_settings,
+        preprocessing_settings=preprocessing_settings,
     )
     return data_loader, labels
 
@@ -70,6 +83,7 @@ def init_data_loader(
     num_workers: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
+    preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
 ) -> DataLoader:
     file_label_map = [
         {"img": img, "mask": mask, "label": label - 1}
@@ -105,12 +119,17 @@ def init_data_loader(
                 transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                 transforms.SpatialPadd(
                     keys=["img", "mask"],
-                    spatial_size=(30, 30, 30),
+                    spatial_size=preprocessing_settings.initial_pad_spatial_size,
                 ),
-                transforms.Zoomd(keys=["mask"], zoom=1.2),
-                transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
+                transforms.Zoomd(
+                    keys=["mask"], zoom=preprocessing_settings.tissue_around_tumour_zoom
+                ),
             ]
         )
+        if preprocessing_settings.do_foreground_cropping:
+            transformations.append(
+                transforms.MaskIntensityd(keys=["img"], mask_key="mask")
+            )
 
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
         if augmentation_settings is None:
@@ -145,8 +164,6 @@ def init_data_loader(
                     keys=["img"], factors=0.05, prob=probability
                 ),
                 transforms.RandGaussianNoised(keys=["img"], prob=probability, std=0.15),
-                # We need to mask after gaussian to avoid adding noise to the empty parts
-                transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
                 # transforms.Rand3DElasticd(
                 #     keys=["img", "mask"],
                 #     sigma_range=(0, 1),
@@ -157,13 +174,41 @@ def init_data_loader(
                 # ),
             ]
         transformations.extend(augmentation_settings)
+        if preprocessing_settings.do_foreground_cropping:
+            transformations.append(
+                # We need to mask after gaussian to avoid adding noise to the empty parts
+                transforms.MaskIntensityd(keys=["img"], mask_key="mask")
+            )
 
-    transformations.append(
-        transforms.Resized(keys=["img", "mask"], spatial_size=224, size_mode="longest")
-    )
-    transformations.append(
-        transforms.SpatialPadd(keys=["img", "mask"], spatial_size=(224, 224, 224))
-    )
+    if preprocessing_settings.final_resize_mode is not None:
+        transformations.append(
+            transforms.Resized(
+                keys=["img", "mask"],
+                spatial_size=preprocessing_settings.final_resize_spatial_pad,
+                size_mode="longest",
+                mode=preprocessing_settings.final_resize_mode,
+            )
+        )
+        transformations.append(
+            transforms.SpatialPadd(
+                keys=["img", "mask"],
+                spatial_size=preprocessing_settings.final_resize_spatial_pad,
+            )
+        )
+    if preprocessing_settings.final_crop_and_pad_spatial_size is not None:
+        transformations.append(
+            transforms.SpatialPadd(
+                keys=["img", "mask"],
+                spatial_size=preprocessing_settings.final_crop_and_pad_spatial_size,
+            )
+        )
+        transformations.append(
+            transforms.CenterSpatialCropd(
+                keys=["img", "mask"],
+                roi_size=preprocessing_settings.final_crop_and_pad_spatial_size,
+            )
+        )
+
     transformations.append(transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0))
 
     dataset = monai.data.Dataset(

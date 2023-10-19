@@ -8,7 +8,11 @@ from monai import transforms
 from torch import optim
 
 from meningioma_dl.config import Config
-from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
+from meningioma_dl.data_loading.data_loader import (
+    get_data_loader,
+    TransformationsMode,
+    PreprocessingSettings,
+)
 from meningioma_dl.models.resnet import create_resnet_model
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
@@ -39,6 +43,7 @@ def train(
     saved_models_folder: Path = Path("."),
     visualizations_folder: Path = Path("."),
     scheduler=optim.lr_scheduler.ExponentialLR,
+    preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
 ) -> Tuple[float, Optional[str]]:
     if run_id is None:
         run_id = generate_run_id()
@@ -65,6 +70,7 @@ def train(
         transformations_mode=TransformationsMode.AUGMENT,
         batch_size=batch_size,
         augmentation_settings=augmentation_settings,
+        preprocessing_settings=preprocessing_settings,
     )
     validation_data_loader, labels_validation = get_data_loader(
         Config.validation_labels_file_path,
