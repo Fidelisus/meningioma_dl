@@ -24,6 +24,7 @@ augmentation_config="${1:-exp_8_005_augment_prob}"
 hyperparameters_config_name="${2:-0002_lr_09_gamma}"
 study_name="${3:-playground}_${augmentation_config}_${hyperparameters_config_name}"
 scheduler_name="${4:-exponent}"
+preprocessing_settings_name="${5:-default}"
 
 module add Python/3.7.3-foss-2019a
 module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
@@ -41,4 +42,5 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --n_trials=${n_trials} --study_name=${study_name} --run_id="$SLURM_JOBID" \
   --batch_size=4 --validation_interval=1 --search_space_name=${augmentation_config} \
   --hyperparameters_config_name=${hyperparameters_config_name} \
-  --scheduler_name=${scheduler_name}
+  --scheduler_name=${scheduler_name} \
+  --preprocessing_settings_name=${preprocessing_settings_name}

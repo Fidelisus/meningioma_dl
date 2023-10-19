@@ -10,12 +10,13 @@ augmentation_configs=("no_augmentation")
 
 hyperparameters_configs=("cosine_lr_0004_t0_60")
 scheduler_name="cosine"
+preprocessing_settings_name="default"
 
 runs_main_name="training_no_251_resize_151_size"
 
 for augmentation_config in "${augmentation_configs[@]}"; do
     for hyperparameters_config in "${hyperparameters_configs[@]}"; do
-        sbatch -p full --qos jobarray $slurm_script_path $augmentation_config $hyperparameters_config $runs_main_name $scheduler_name
+        sbatch -p full --qos jobarray "$slurm_script_path" "$augmentation_config" "$hyperparameters_config" "$runs_main_name" "$scheduler_name" "$preprocessing_settings_name"
         sleep 1m
     done
 done
