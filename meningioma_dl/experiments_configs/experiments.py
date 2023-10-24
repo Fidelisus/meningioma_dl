@@ -108,9 +108,14 @@ PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
     "no_resize_100_final_crop": PreprocessingSettings(
         final_resize_mode=None, final_crop_and_pad_spatial_size=100
     ),
-    "no_0_foreground_70_padding": PreprocessingSettings(
+    "no_0_foreground_50_padding": PreprocessingSettings(
         final_resize_mode="nearest",
-        initial_pad_spatial_size=70,
+        initial_pad_spatial_size=50,
+        do_foreground_cropping=False,
+    ),
+    "no_0_foreground_100_padding": PreprocessingSettings(
+        final_resize_mode="nearest",
+        initial_pad_spatial_size=100,
         do_foreground_cropping=False,
     ),
     "no_0_foreground_no_padding": PreprocessingSettings(
