@@ -78,6 +78,7 @@ def train(
         n_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=batch_size,
+        preprocessing_settings=preprocessing_settings,
     )
 
     loss_function_class_weights = get_loss_function_class_weights(
