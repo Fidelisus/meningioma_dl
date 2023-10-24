@@ -169,11 +169,7 @@ def init_data_loader(
         else:
             transformations.extend(
                 [
-                    transformations.append(
-                        transforms.CropForegroundd(
-                            keys=["img", "mask"], source_key="mask"
-                        )
-                    ),
+                    transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                     transforms.SpatialPadd(
                         keys=["img", "mask"],
                         spatial_size=preprocessing_settings.initial_pad_spatial_size,
@@ -182,13 +178,9 @@ def init_data_loader(
                         keys=["mask"],
                         zoom=preprocessing_settings.tissue_around_tumour_zoom,
                     ),
+                    transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
                 ]
             )
-        if preprocessing_settings.do_foreground_cropping:
-            transformations.append(
-                transforms.MaskIntensityd(keys=["img"], mask_key="mask")
-            )
-
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
         if augmentation_settings is None:
             logging.warning("No augmentation settings provided, using default ones")
