@@ -53,7 +53,7 @@ def run_study(
     validation_interval: int = 1,
     save_intermediate_models: bool = False,
     scheduler_name: str = "exponent",
-    preprocessing_settings_name: str = "empty",
+    preprocessing_settings_name: str = "default",
 ):
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)

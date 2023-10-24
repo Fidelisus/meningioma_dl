@@ -62,6 +62,7 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
     "0005_lr_0995_gamma": get_exponential_learninig_rate(0.005, 0.995),
     "001_lr_099_gamma": get_exponential_learninig_rate(0.01, 0.99),
     "002_lr_099_gamma": get_exponential_learninig_rate(0.02, 0.99),
+    "05_lr_07_gamma": get_exponential_learninig_rate(0.5, 0.7),
     "cosine_lr_0003_t0_20": get_cosine_learninig_rate(0.003, 20),
     "cosine_lr_0004_t0_60": get_cosine_learninig_rate(0.004, 60),
     "cosine_lr_0005_t0_60": get_cosine_learninig_rate(0.005, 60),
@@ -71,4 +72,32 @@ PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
     "default": PreprocessingSettings(),
     "resize_mode_nearest": PreprocessingSettings(final_resize_mode="nearest"),
     "resize_mode_trilinear": PreprocessingSettings(final_resize_mode="trilinear"),
+    "30_padding": PreprocessingSettings(
+        final_resize_mode="nearest", initial_pad_spatial_size=30
+    ),
+    "50_padding": PreprocessingSettings(
+        final_resize_mode="nearest", initial_pad_spatial_size=50
+    ),
+    "70_padding": PreprocessingSettings(
+        final_resize_mode="nearest", initial_pad_spatial_size=70
+    ),
+    "100_padding": PreprocessingSettings(
+        final_resize_mode="nearest", initial_pad_spatial_size=100
+    ),
+    "no_padding": PreprocessingSettings(
+        final_resize_mode="nearest", initial_pad_spatial_size=151
+    ),
+    # Correct ci run validation data for it
+    "no_resize": PreprocessingSettings(
+        final_resize_mode=None, final_crop_and_pad_spatial_size=151
+    ),
+    "no_0_foreground_70_padding": PreprocessingSettings(
+        final_resize_mode="nearest",
+        initial_pad_spatial_size=70,
+        do_foreground_cropping=False,
+    ),
+    "no_0_foreground_no_padding": PreprocessingSettings(
+        final_resize_mode="nearest",
+        do_foreground_cropping=False,
+    ),
 }

@@ -31,6 +31,7 @@ def plot_training_curve(
     validation_losses: Sequence[float],
     training_losses: Sequence[float],
     f_scores: Sequence[float],
+    cohen_kappa_scores: Sequence[float],
     save_path: Path,
 ):
     fig = px.scatter()
@@ -50,6 +51,12 @@ def plot_training_curve(
         y=f_scores,
         x=tuple(range(len(training_losses))),
         name="f_scores",
+        mode="markers",
+    )
+    fig.add_scatter(
+        y=cohen_kappa_scores,
+        x=tuple(range(len(training_losses))),
+        name="cohen_kappa_scores",
         mode="markers",
     )
     fig.update_layout(title_text="<i><b>Learning curve</b></i>")

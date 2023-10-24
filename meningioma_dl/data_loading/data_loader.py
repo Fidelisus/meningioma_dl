@@ -44,6 +44,22 @@ class PreprocessingSettings:
     do_foreground_cropping: bool = True
 
 
+class PadToLargestDimension:
+    def __init__(self, key: str):
+        self.key = key
+
+    def __call__(self, data):
+        max_dimension = 0
+        for item in data[self.key]:
+            max_shape = max(item.shape)
+            if max_shape > max_dimension:
+                max_dimension = max_shape
+        return transforms.SpatialPadd(
+            keys=[self.key],
+            spatial_size=max_dimension,
+        )(data)
+
+
 def get_data_loader(
     labels_file_path: Path,
     data_root_directory: Path,
@@ -84,6 +100,7 @@ def init_data_loader(
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     augmentation_settings: Optional[List[transforms.Transform]] = None,
     preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
+    bounding_box_of_segmentation: int = 151,
 ) -> DataLoader:
     file_label_map = [
         {"img": img, "mask": mask, "label": label - 1}
@@ -114,18 +131,59 @@ def init_data_loader(
         TransformationsMode.ONLY_PREPROCESSING.value,
         TransformationsMode.AUGMENT.value,
     }:
-        transformations.extend(
-            [
-                transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
-                transforms.SpatialPadd(
-                    keys=["img", "mask"],
-                    spatial_size=preprocessing_settings.initial_pad_spatial_size,
-                ),
-                transforms.Zoomd(
-                    keys=["mask"], zoom=preprocessing_settings.tissue_around_tumour_zoom
-                ),
-            ]
-        )
+        if not preprocessing_settings.do_foreground_cropping:
+            cutting_size = (
+                preprocessing_settings.initial_pad_spatial_size
+                or bounding_box_of_segmentation
+            )
+            transformations.extend(
+                [
+                    transforms.CropForegroundd(
+                        keys=["img"],
+                        source_key="mask",
+                        k_divisible=bounding_box_of_segmentation * 2,
+                    ),
+                    transforms.CropForegroundd(
+                        keys=["mask"],
+                        source_key="mask",
+                    ),
+                    transforms.SpatialPadd(
+                        keys=["mask"],
+                        spatial_size=cutting_size,
+                    ),
+                    PadToLargestDimension(key="mask"),
+                    transforms.ShiftIntensityd(
+                        keys=["mask"],
+                        offset=1.0,
+                    ),
+                    transforms.SpatialPadd(
+                        keys=["mask"],
+                        spatial_size=bounding_box_of_segmentation * 2,
+                    ),
+                    transforms.CropForegroundd(
+                        keys=["img", "mask"],
+                        source_key="mask",
+                    ),
+                ]
+            )
+        else:
+            transformations.extend(
+                [
+                    transformations.append(
+                        transforms.CropForegroundd(
+                            keys=["img", "mask"], source_key="mask"
+                        )
+                    ),
+                    transforms.SpatialPadd(
+                        keys=["img", "mask"],
+                        spatial_size=preprocessing_settings.initial_pad_spatial_size,
+                    ),
+                    transforms.Zoomd(
+                        keys=["mask"],
+                        zoom=preprocessing_settings.tissue_around_tumour_zoom,
+                    ),
+                ]
+            )
         if preprocessing_settings.do_foreground_cropping:
             transformations.append(
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask")

@@ -32,7 +32,7 @@ class Config:
 
     # model
     test_size: float = 0.2
-    validation_size: float = 0.1
+    validation_size: float = 0.2
     random_seed: int = 123
 
     # logging
