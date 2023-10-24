@@ -91,9 +91,7 @@ def run_study(
         f_score_of_the_best_model = evaluate(
             trained_model_path=trained_model_path,
             device_name=device_name,
-            visualizations_folder=Config.visualizations_directory.joinpath(
-                run_id, str(trial.number)
-            ),
+            visualizations_folder=visualizations_folder,
             batch_size=batch_size,
             preprocessing_settings=preprocessing_settings,
         )
