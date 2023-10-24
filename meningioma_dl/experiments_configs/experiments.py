@@ -78,9 +78,15 @@ HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
 }
 
 PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
-    "resize_mode_area": PreprocessingSettings(initial_pad_spatial_size=50,final_resize_mode="area"),
-    "resize_mode_nearest": PreprocessingSettings(final_resize_mode="nearest",initial_pad_spatial_size=50),
-    "resize_mode_trilinear": PreprocessingSettings(final_resize_mode="trilinear",initial_pad_spatial_size=50),
+    "resize_mode_area": PreprocessingSettings(
+        initial_pad_spatial_size=50, final_resize_mode="area"
+    ),
+    "resize_mode_nearest": PreprocessingSettings(
+        final_resize_mode="nearest", initial_pad_spatial_size=50
+    ),
+    "resize_mode_trilinear": PreprocessingSettings(
+        final_resize_mode="trilinear", initial_pad_spatial_size=50
+    ),
     "30_padding": PreprocessingSettings(
         final_resize_mode="nearest", initial_pad_spatial_size=30
     ),
