@@ -11,12 +11,17 @@ augmentation_configs=("no_augmentation")
 hyperparameters_configs=("002_lr_099_gamma")
 scheduler_name="exponent"
 preprocessing_settings_name="resize_mode_trilinear"
+freeze_all_layers="False"
+use_training_data_for_validation="False"
+loss_function_name="cross_entropy"
 
 runs_main_name="training_data_run_2"
 
 for augmentation_config in "${augmentation_configs[@]}"; do
     for hyperparameters_config in "${hyperparameters_configs[@]}"; do
-        sbatch -p full --qos jobarray "$slurm_script_path" "$augmentation_config" "$hyperparameters_config" "$runs_main_name" "$scheduler_name" "$preprocessing_settings_name"
+        sbatch -p full --qos jobarray "$slurm_script_path" "$augmentation_config" \
+          "$hyperparameters_config" "$runs_main_name" "$scheduler_name" "$preprocessing_settings_name" \
+          "$freeze_all_layers" "$use_training_data_for_validation" "$loss_function_name"
         sleep 1m
     done
 done

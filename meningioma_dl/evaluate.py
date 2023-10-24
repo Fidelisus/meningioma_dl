@@ -33,6 +33,7 @@ def evaluate(
     visualizations_folder: Union[str, Path] = Path("."),
     batch_size: int = 1,
     preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
+    use_training_data_for_validation: bool = False,
 ) -> float:
     if type(visualizations_folder) is str:
         visualizations_folder = Path(visualizations_folder)
@@ -48,7 +49,9 @@ def evaluate(
     torch.manual_seed(manual_seed)
 
     data_loader, labels = get_data_loader(
-        Config.validation_labels_file_path,
+        Config.train_labels_file_path
+        if use_training_data_for_validation
+        else Config.validation_labels_file_path,
         Config.data_directory,
         num_workers,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,

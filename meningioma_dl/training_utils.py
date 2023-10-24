@@ -24,7 +24,7 @@ def training_loop(
     model: nn.Module,
     optimizer: Optimizer,
     scheduler,
-    loss_function_class_weights: np.array,
+    loss_function,
     total_epochs: int,
     validation_interval: int,
     visualizations_folder: Path,
@@ -36,12 +36,6 @@ def training_loop(
     best_f_score = 0.0
     batches_per_epoch = len(training_data_loader)
     logging.info(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
-    # loss_function = WeightedKappaLoss(3)
-    loss_function = nn.CrossEntropyLoss(
-        weight=torch.tensor(loss_function_class_weights).to(torch.float64),
-    )
-
-    loss_function = loss_function.to(device)
 
     training_losses: List[float] = []
     validation_losses: List[Union[float, None]] = []
@@ -115,7 +109,7 @@ def training_loop(
                         )
                     logging.info(f"Model saved at {trained_model_path}")
                 logging.info(
-                    f"F1 score: {f_score}, cohen_kappa: {cohen_kappa_scores} validation loss: {loss_validation.data}"
+                    f"F1 score: {f_score}, cohen_kappa: {cohen_kappa} validation loss: {loss_validation.data}"
                 )
 
                 validation_losses.append(float(loss_validation.cpu().data))

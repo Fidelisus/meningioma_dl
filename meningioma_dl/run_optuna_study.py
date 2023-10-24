@@ -53,7 +53,10 @@ def run_study(
     validation_interval: int = 1,
     save_intermediate_models: bool = False,
     scheduler_name: str = "exponent",
-    preprocessing_settings_name: str = "default",
+    preprocessing_settings_name: str = "resize_mode_nearest",
+    freeze_all_layers: bool = True,
+    use_training_data_for_validation: bool = False,
+    loss_function_name: str = "cross_entropy",
 ):
     def objective(trial: Trial):
         transforms = propose_augmentation(trial, search_space)
@@ -84,6 +87,9 @@ def run_study(
             learning_rate=hyperparameters_values.pop("learning_rate"),
             scheduler_parameters=hyperparameters_values,
             preprocessing_settings=preprocessing_settings,
+            freeze_all_layers=freeze_all_layers,
+            use_training_data_for_validation=use_training_data_for_validation,
+            loss_function_name=loss_function_name,
         )
         if trained_model_path is None:
             raise ValueError("No model was created during training, aborting.")
@@ -94,6 +100,7 @@ def run_study(
             visualizations_folder=visualizations_folder,
             batch_size=batch_size,
             preprocessing_settings=preprocessing_settings,
+            use_training_data_for_validation=use_training_data_for_validation,
         )
         return f_score_of_the_best_model
 

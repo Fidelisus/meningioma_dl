@@ -277,6 +277,7 @@ def create_resnet_model(
     number_of_classes: int,
     pretrained_model_path: Path,
     device: torch.device,
+    freeze_all_layers: bool,
     use_23_dataset_pretrained_model: bool = False,
 ) -> Tuple[ResNet, List[Parameter], List[Parameter]]:
     assert model_depth in RESNET_MODELS_MAP
@@ -332,13 +333,20 @@ def create_resnet_model(
     model.load_state_dict(initialized_model_state_dict)
 
     pretrained_model_parameters = []
-    parameters_to_fine_tune = []
+    classifier_model_parameters = []
 
     for pname, p in model.named_parameters():
         if pname in pretrained_model_state_dict:
-            p.requires_grad = False
+            if freeze_all_layers:
+                p.requires_grad = False
+            else:
+                if "layer4" not in pname:
+                    p.requires_grad = False
             pretrained_model_parameters.append(p)
         else:
-            parameters_to_fine_tune.append(p)
-    logging.info(f"Parameters to fine tune: {parameters_to_fine_tune}")
-    return model, pretrained_model_parameters, parameters_to_fine_tune
+            classifier_model_parameters.append(p)
+    logging.info(
+        f"Parameters to fine tune: "
+        f"{[pname for pname, p in model.named_parameters() if p.requires_grad]}"
+    )
+    return model, pretrained_model_parameters, classifier_model_parameters

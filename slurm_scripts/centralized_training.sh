@@ -25,6 +25,9 @@ hyperparameters_config_name="${2:-0002_lr_09_gamma}"
 study_name="${3:-playground}_${augmentation_config}_${hyperparameters_config_name}"
 scheduler_name="${4:-exponent}"
 preprocessing_settings_name="${5:-default}"
+freeze_all_layers="${6:-False}"
+use_training_data_for_validation="${7:-False}"
+loss_function_name="${8:-cross_entropy}"
 
 module add Python/3.7.3-foss-2019a
 module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
@@ -38,9 +41,12 @@ echo "venv path: $venv_path"
 ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
   --device_name="cuda" \
   --n_workers=${n_workers} \
-  --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs=${n_epochs} \
-  --n_trials=${n_trials} --study_name=${study_name} --run_id="$SLURM_JOBID" \
-  --batch_size=4 --validation_interval=1 --search_space_name=${augmentation_config} \
-  --hyperparameters_config_name=${hyperparameters_config_name} \
-  --scheduler_name=${scheduler_name} \
-  --preprocessing_settings_name=${preprocessing_settings_name}
+  --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs="${n_epochs}" \
+  --n_trials="${n_trials}" --study_name="${study_name}" --run_id="{$SLURM_JOBID}" \
+  --batch_size=4 --validation_interval=1 --search_space_name="${augmentation_config}" \
+  --hyperparameters_config_name="${hyperparameters_config_name}" \
+  --scheduler_name="${scheduler_name}" \
+  --preprocessing_settings_name="${preprocessing_settings_name}" \
+  --freeze_all_layers="${freeze_all_layers}" \
+  --use_training_data_for_validation="${use_training_data_for_validation}" \
+  --loss_function_name="${loss_function_name}"
