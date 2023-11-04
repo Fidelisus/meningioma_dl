@@ -44,7 +44,7 @@ def train(
     visualizations_folder: Path = Path("."),
     scheduler=optim.lr_scheduler.ExponentialLR,
     preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
-    freeze_all_layers: bool = True,
+    resnet_layers_to_unfreeze: int = 0,
     use_training_data_for_validation: bool = False,
     loss_function_name: str = "cross_entropy",
 ) -> Tuple[float, Optional[str]]:
@@ -100,15 +100,16 @@ def train(
         number_of_classes,
         Config.pretrained_models_directory,
         device,
-        freeze_all_layers,
+        resnet_layers_to_unfreeze,
     )
 
     lr_params = [
         {"params": classifier_model_parameters, "lr": learning_rate},
     ]
-    if freeze_all_layers:
+    if resnet_layers_to_unfreeze > 0:
         lr_params.append(
-            {"params": pretrained_model_parameters, "lr": learning_rate / 5.0}
+            # TODO
+            {"params": pretrained_model_parameters, "lr": learning_rate}
         )
     optimizer = torch.optim.Adam(lr_params, weight_decay=weight_decay)
     scheduler = scheduler(optimizer, **scheduler_parameters)

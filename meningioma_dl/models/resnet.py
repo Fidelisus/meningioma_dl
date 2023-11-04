@@ -277,7 +277,7 @@ def create_resnet_model(
     number_of_classes: int,
     pretrained_model_path: Path,
     device: torch.device,
-    freeze_all_layers: bool,
+    resnet_layers_to_unfreeze: int,
     use_23_dataset_pretrained_model: bool = False,
 ) -> Tuple[ResNet, List[Parameter], List[Parameter]]:
     assert model_depth in RESNET_MODELS_MAP
@@ -337,11 +337,13 @@ def create_resnet_model(
 
     for pname, p in model.named_parameters():
         if pname in pretrained_model_state_dict:
-            if freeze_all_layers:
+            if resnet_layers_to_unfreeze == 0:
                 p.requires_grad = False
             else:
-                if "layer4" not in pname:
-                    p.requires_grad = False
+                # TODO
+                for i in range(1, 4-resnet_layers_to_unfreeze+1):
+                    if f"layer{i}" in pname or pname == 'module.conv1.weight' or pname == 'module.bn1.weight':
+                        p.requires_grad = False
             pretrained_model_parameters.append(p)
         else:
             classifier_model_parameters.append(p)

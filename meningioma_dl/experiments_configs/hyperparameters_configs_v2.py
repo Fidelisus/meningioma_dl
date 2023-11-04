@@ -54,6 +54,7 @@ def get_exp9_1_augmentation(probability: float = 0.1) -> SearchSpace:
             "std": 0.1,
             "prob": probability,
         },
+        # TODO make it parametric for no foreground cropping
         "mask_after_gaussian": {},
         "rand_rotate": {
             "prob": probability + 0.1,

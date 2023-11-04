@@ -41,6 +41,8 @@ AUGMENTATIONS_SEARCH_SPACES: Dict[str, SearchSpace] = {
     "exp_9_1_01_augment_prob": get_exp9_1_augmentation(0.1),
     "exp_9_1_025_augment_prob": get_exp9_1_augmentation(0.25),
     "exp_9_1_03_augment_prob": get_exp9_1_augmentation(0.3),
+    "basic_augment_02_prob": get_exp9_1_augmentation(0.2),
+    "basic_augment_05_prob": get_exp9_1_augmentation(0.5),
 }
 
 HYPERPARAMETERS_CONFIGS: Dict[str, HyperparametersConfig] = {
@@ -88,19 +90,19 @@ PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
         final_resize_mode="trilinear", initial_pad_spatial_size=50
     ),
     "30_padding": PreprocessingSettings(
-        final_resize_mode="nearest", initial_pad_spatial_size=30
+        final_resize_mode="trilinear", initial_pad_spatial_size=30
     ),
     "50_padding": PreprocessingSettings(
-        final_resize_mode="nearest", initial_pad_spatial_size=50
+        final_resize_mode="trilinear", initial_pad_spatial_size=50
     ),
     "70_padding": PreprocessingSettings(
-        final_resize_mode="nearest", initial_pad_spatial_size=70
+        final_resize_mode="trilinear", initial_pad_spatial_size=70
     ),
     "100_padding": PreprocessingSettings(
-        final_resize_mode="nearest", initial_pad_spatial_size=100
+        final_resize_mode="trilinear", initial_pad_spatial_size=100
     ),
     "no_padding": PreprocessingSettings(
-        final_resize_mode="nearest", initial_pad_spatial_size=151
+        final_resize_mode="trilinear", initial_pad_spatial_size=151
     ),
     "no_resize": PreprocessingSettings(
         final_resize_mode=None, final_crop_and_pad_spatial_size=151
@@ -108,18 +110,21 @@ PREPROCESSING_SETTINGS: Dict[str, PreprocessingSettings] = {
     "no_resize_100_final_crop": PreprocessingSettings(
         final_resize_mode=None, final_crop_and_pad_spatial_size=100
     ),
-    "no_0_foreground_50_padding": PreprocessingSettings(
-        final_resize_mode="nearest",
-        initial_pad_spatial_size=50,
+    "no_resize_70_final_crop": PreprocessingSettings(
+        final_resize_mode=None, final_crop_and_pad_spatial_size=70
+    ),
+    "no_0_foreground_30_padding": PreprocessingSettings(
+        final_resize_mode="trilinear",
+        initial_pad_spatial_size=30,
         do_foreground_cropping=False,
     ),
-    "no_0_foreground_100_padding": PreprocessingSettings(
-        final_resize_mode="nearest",
-        initial_pad_spatial_size=100,
+    "no_0_foreground_70_padding": PreprocessingSettings(
+        final_resize_mode="trilinear",
+        initial_pad_spatial_size=70,
         do_foreground_cropping=False,
     ),
     "no_0_foreground_no_padding": PreprocessingSettings(
-        final_resize_mode="nearest",
+        final_resize_mode="trilinear",
         do_foreground_cropping=False,
     ),
 }

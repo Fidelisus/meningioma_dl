@@ -8,20 +8,24 @@ slurm_script_path=/home/cir/lsobocinski/meningioma_dl/slurm_scripts/centralized_
 augmentation_configs=("no_augmentation")
 # hyperparameters_configs=("0001_lr_0999_gamma" "002_lr_099_gamma" "0005_lr_0995_gamma")
 
-hyperparameters_configs=("002_lr_099_gamma")
+hyperparameters_configs=("1_lr_099_gamma")
 scheduler_name="exponent"
-preprocessing_settings_name="resize_mode_trilinear"
-freeze_all_layers="False"
-use_training_data_for_validation="False"
+preprocessing_settings=("no_padding")
+resnet_layers_to_unfreeze=(1 2 3 4)
+use_training_data_for_validation="True"
 loss_function_name="cross_entropy"
 
-runs_main_name="training_data_run_2"
+runs_main_name="unfreeze_${resnet_layers_to_unfreeze}"
 
 for augmentation_config in "${augmentation_configs[@]}"; do
     for hyperparameters_config in "${hyperparameters_configs[@]}"; do
-        sbatch -p full --qos jobarray "$slurm_script_path" "$augmentation_config" \
-          "$hyperparameters_config" "$runs_main_name" "$scheduler_name" "$preprocessing_settings_name" \
-          "$freeze_all_layers" "$use_training_data_for_validation" "$loss_function_name"
-        sleep 1m
+        for preprocessing_setting in "${preprocessing_settings[@]}"; do
+            for layer in "${resnet_layers_to_unfreeze[@]}"; do
+                sbatch -p full --qos jobarray "$slurm_script_path" "$augmentation_config" \
+                "$hyperparameters_config" "$runs_main_name" "$scheduler_name" "$preprocessing_setting" \
+                "$layer" "$use_training_data_for_validation" "$loss_function_name"
+                sleep 1m
+            done
+        done
     done
 done

@@ -18,14 +18,15 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv1
 
 n_workers=1
-n_epochs=180
+n_epochs=100
+
 n_trials=1
 augmentation_config="${1:-exp_8_005_augment_prob}"
 hyperparameters_config_name="${2:-0002_lr_09_gamma}"
-study_name="${3:-playground}_${augmentation_config}_${hyperparameters_config_name}"
 scheduler_name="${4:-exponent}"
 preprocessing_settings_name="${5:-default}"
-freeze_all_layers="${6:-False}"
+study_name="${3:-playground}_${augmentation_config}_${hyperparameters_config_name}_${preprocessing_settings_name}"
+resnet_layers_to_unfreeze="${6:-0}"
 use_training_data_for_validation="${7:-False}"
 loss_function_name="${8:-cross_entropy}"
 
@@ -42,11 +43,11 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --device_name="cuda" \
   --n_workers=${n_workers} \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env --n_epochs="${n_epochs}" \
-  --n_trials="${n_trials}" --study_name="${study_name}" --run_id="{$SLURM_JOBID}" \
-  --batch_size=4 --validation_interval=1 --search_space_name="${augmentation_config}" \
+  --n_trials="${n_trials}" --study_name="${study_name}" --run_id="${SLURM_JOBID}" \
+  --batch_size=4 --validation_interval=4 --search_space_name="${augmentation_config}" \
   --hyperparameters_config_name="${hyperparameters_config_name}" \
   --scheduler_name="${scheduler_name}" \
   --preprocessing_settings_name="${preprocessing_settings_name}" \
-  --freeze_all_layers="${freeze_all_layers}" \
+  --resnet_layers_to_unfreeze="${resnet_layers_to_unfreeze}" \
   --use_training_data_for_validation="${use_training_data_for_validation}" \
   --loss_function_name="${loss_function_name}"

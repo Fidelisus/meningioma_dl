@@ -54,7 +54,7 @@ def run_study(
     save_intermediate_models: bool = False,
     scheduler_name: str = "exponent",
     preprocessing_settings_name: str = "resize_mode_nearest",
-    freeze_all_layers: bool = True,
+    resnet_layers_to_unfreeze: int = 0,
     use_training_data_for_validation: bool = False,
     loss_function_name: str = "cross_entropy",
 ):
@@ -87,7 +87,7 @@ def run_study(
             learning_rate=hyperparameters_values.pop("learning_rate"),
             scheduler_parameters=hyperparameters_values,
             preprocessing_settings=preprocessing_settings,
-            freeze_all_layers=freeze_all_layers,
+            resnet_layers_to_unfreeze=resnet_layers_to_unfreeze,
             use_training_data_for_validation=use_training_data_for_validation,
             loss_function_name=loss_function_name,
         )
