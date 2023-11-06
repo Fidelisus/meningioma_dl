@@ -1,9 +1,8 @@
 import logging
 import math
-from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Sequence
 
 import monai
 import torch
@@ -11,6 +10,7 @@ from monai import transforms
 from monai.data import DataLoader
 
 from meningioma_dl.data_loading.labels_loading import get_images_with_labels
+from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 
 """
 In order to make Cropforegroundd work you have to add the following code to 
@@ -34,16 +34,6 @@ class TransformationsMode(Enum):
     AUGMENT = 2
 
 
-@dataclass
-class PreprocessingSettings:
-    initial_pad_spatial_size: int = 100
-    final_resize_spatial_pad: Optional[int] = 224
-    final_resize_mode: Optional[str] = "area"
-    final_crop_and_pad_spatial_size: Optional[int] = None
-    tissue_around_tumour_zoom: float = 1.2
-    do_foreground_cropping: bool = True
-
-
 class PadToLargestDimension:
     def __init__(self, key: str):
         self.key = key
@@ -63,11 +53,10 @@ class PadToLargestDimension:
 def get_data_loader(
     labels_file_path: Path,
     data_root_directory: Path,
-    num_workers: int,
     batch_size: int = 1,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
-    augmentation_settings: Optional[List[transforms.Transform]] = None,
-    preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
+    augmentations: Optional[Sequence[transforms.Transform]] = None,
+    preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
 ) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path
@@ -78,17 +67,11 @@ def get_data_loader(
         masks,
         labels,
         batch_size=batch_size,
-        num_workers=num_workers,
         transformations_mode=transformations_mode,
-        augmentation_settings=augmentation_settings,
-        preprocessing_settings=preprocessing_settings,
+        augmentations=augmentations,
+        preprocessing_specs=preprocessing_specs,
     )
     return data_loader, labels
-
-
-def mask_image(data_dict):
-    data_dict["image"] = data_dict["image"] * data_dict["label"]
-    return data_dict
 
 
 def init_data_loader(
@@ -96,10 +79,9 @@ def init_data_loader(
     masks: List[str],
     labels: List[int],
     batch_size: int,
-    num_workers: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
-    augmentation_settings: Optional[List[transforms.Transform]] = None,
-    preprocessing_settings: PreprocessingSettings = PreprocessingSettings(),
+    augmentations: Optional[List[transforms.Transform]] = None,
+    preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     bounding_box_of_segmentation: int = 151,
 ) -> DataLoader:
     file_label_map = [
@@ -131,9 +113,9 @@ def init_data_loader(
         TransformationsMode.ONLY_PREPROCESSING.value,
         TransformationsMode.AUGMENT.value,
     }:
-        if not preprocessing_settings.do_foreground_cropping:
+        if not preprocessing_specs.do_foreground_cropping:
             cutting_size = (
-                preprocessing_settings.initial_pad_spatial_size
+                preprocessing_specs.initial_pad_spatial_size
                 or bounding_box_of_segmentation
             )
             transformations.extend(
@@ -172,90 +154,52 @@ def init_data_loader(
                     transforms.CropForegroundd(keys=["img", "mask"], source_key="mask"),
                     transforms.SpatialPadd(
                         keys=["img", "mask"],
-                        spatial_size=preprocessing_settings.initial_pad_spatial_size,
+                        spatial_size=preprocessing_specs.initial_pad_spatial_size,
                     ),
                     transforms.Zoomd(
                         keys=["mask"],
-                        zoom=preprocessing_settings.tissue_around_tumour_zoom,
+                        zoom=preprocessing_specs.tissue_around_tumour_zoom,
                     ),
                     transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
                 ]
             )
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
-        if augmentation_settings is None:
-            logging.warning("No augmentation settings provided, using default ones")
-            probability = 0.2
-            augmentation_settings: List[transforms.Transform] = [
-                transforms.RandFlipd(
-                    keys=["img", "mask"], spatial_axis=0, prob=probability
-                ),
-                transforms.RandFlipd(
-                    keys=["img", "mask"], spatial_axis=1, prob=probability
-                ),
-                transforms.RandFlipd(
-                    keys=["img", "mask"], spatial_axis=2, prob=probability
-                ),
-                transforms.RandRotated(
-                    keys=["img", "mask"],
-                    prob=probability,
-                    range_x=math.pi / 2,
-                    range_y=math.pi / 2,
-                    range_z=math.pi / 2,
-                ),
-                transforms.RandZoomd(
-                    keys=["img", "mask"], min_zoom=0.8, max_zoom=1.2, prob=probability
-                ),
-                transforms.RandAffined(
-                    keys=["img", "mask"],
-                    translate_range=[(-10, 10), (-10, 10), (-10, 10)],
-                    prob=probability,
-                ),
-                transforms.RandStdShiftIntensityd(
-                    keys=["img"], factors=0.05, prob=probability
-                ),
-                transforms.RandGaussianNoised(keys=["img"], prob=probability, std=0.15),
-                # transforms.Rand3DElasticd(
-                #     keys=["img", "mask"],
-                #     sigma_range=(0, 1),
-                #     magnitude_range=(3, 6),
-                #     prob=1.0,
-                #     rotate_range=(np.pi / 4),
-                #     padding_mode="zeros",
-                # ),
-            ]
-        transformations.extend(augmentation_settings)
-        if preprocessing_settings.do_foreground_cropping:
+        if augmentations is None:
+            logging.warning("No augmentation settings provided, using no augmentations")
+            augmentations = []
+        transformations.extend(augmentations)
+        if preprocessing_specs.do_foreground_cropping:
             transformations.append(
                 # We need to mask after gaussian to avoid adding noise to the empty parts
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask")
             )
 
-    if preprocessing_settings.final_resize_mode is not None:
+    if preprocessing_specs.final_resize_mode is not None:
         transformations.append(
             transforms.Resized(
                 keys=["img", "mask"],
-                spatial_size=preprocessing_settings.final_resize_spatial_pad,
+                spatial_size=preprocessing_specs.final_resize_spatial_pad,
                 size_mode="longest",
-                mode=preprocessing_settings.final_resize_mode,
+                mode=preprocessing_specs.final_resize_mode,
             )
         )
         transformations.append(
             transforms.SpatialPadd(
                 keys=["img", "mask"],
-                spatial_size=preprocessing_settings.final_resize_spatial_pad,
+                spatial_size=preprocessing_specs.final_resize_spatial_pad,
             )
         )
-    if preprocessing_settings.final_crop_and_pad_spatial_size is not None:
+    if preprocessing_specs.final_crop_and_pad_spatial_size is not None:
         transformations.append(
             transforms.SpatialPadd(
                 keys=["img", "mask"],
-                spatial_size=preprocessing_settings.final_crop_and_pad_spatial_size,
+                spatial_size=preprocessing_specs.final_crop_and_pad_spatial_size,
             )
         )
         transformations.append(
             transforms.CenterSpatialCropd(
                 keys=["img", "mask"],
-                roi_size=preprocessing_settings.final_crop_and_pad_spatial_size,
+                roi_size=preprocessing_specs.final_crop_and_pad_spatial_size,
             )
         )
 
@@ -267,7 +211,6 @@ def init_data_loader(
     data_loader = DataLoader(
         dataset,
         batch_size=batch_size,
-        num_workers=num_workers,
         pin_memory=torch.cuda.is_available(),
     )
 

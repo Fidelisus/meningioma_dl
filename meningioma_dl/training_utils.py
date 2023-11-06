@@ -12,11 +12,6 @@ from torch.optim.optimizer import Optimizer
 
 from meningioma_dl.visualizations.results_visualizations import plot_training_curve
 
-SCHEDULERS = {
-    "exponent": optim.lr_scheduler.ExponentialLR,
-    "cosine": optim.lr_scheduler.CosineAnnealingWarmRestarts,
-}
-
 
 def training_loop(
     training_data_loader: DataLoader,

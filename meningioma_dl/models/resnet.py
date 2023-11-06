@@ -2,13 +2,12 @@ import logging
 import os
 from functools import partial
 from pathlib import Path
-from typing import Type, Union, List, Dict, Callable, Tuple
+from typing import Type, Union, List, Dict, Callable, Tuple, Set
 
 import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.autograd import Variable
-from torch.nn import Parameter
 
 
 def conv3x3x3(in_planes, out_planes, stride=1, dilation=1):
@@ -277,9 +276,9 @@ def create_resnet_model(
     number_of_classes: int,
     pretrained_model_path: Path,
     device: torch.device,
-    resnet_layers_to_unfreeze: int,
+    number_of_layers_to_unfreeze: int,
     use_23_dataset_pretrained_model: bool = False,
-) -> Tuple[ResNet, List[Parameter], List[Parameter]]:
+) -> Tuple[Union[ResNet, nn.DataParallel], List[torch.Tensor]]:
     assert model_depth in RESNET_MODELS_MAP
     assert resnet_shortcut_type in ["A", "B"]
 
@@ -332,23 +331,35 @@ def create_resnet_model(
     )
     model.load_state_dict(initialized_model_state_dict)
 
-    pretrained_model_parameters = []
-    classifier_model_parameters = []
+    parameters_names_to_fine_tune, parameters_to_fine_tune = freeze_layers(
+        model, number_of_layers_to_unfreeze, pretrained_model_state_dict
+    )
+    logging.info(f"Parameters to fine tune: {parameters_names_to_fine_tune}")
+    return model, parameters_to_fine_tune
 
+
+def freeze_layers(
+    model: ResNet, number_of_layers_to_unfreeze: int, pretrained_model_state_dict: Dict
+) -> Tuple[List[str], List[torch.Tensor]]:
+    parameters_names_to_fine_tune = list()
+    parameters_to_fine_tune = list()
     for pname, p in model.named_parameters():
         if pname in pretrained_model_state_dict:
-            if resnet_layers_to_unfreeze == 0:
+            if number_of_layers_to_unfreeze == 0:
                 p.requires_grad = False
             else:
-                # TODO
-                for i in range(1, 4-resnet_layers_to_unfreeze+1):
-                    if f"layer{i}" in pname or pname == 'module.conv1.weight' or pname == 'module.bn1.weight':
+                for i in range(1, 4 - number_of_layers_to_unfreeze + 1):
+                    if f"layer{i}" in pname or pname in [
+                        "conv1.weight",
+                        "bn1.weight",
+                        "bn1.bias",
+                    ]:
                         p.requires_grad = False
-            pretrained_model_parameters.append(p)
+                        break
+                if p.requires_grad:
+                    parameters_names_to_fine_tune.append(pname)
+                    parameters_to_fine_tune.append(p)
         else:
-            classifier_model_parameters.append(p)
-    logging.info(
-        f"Parameters to fine tune: "
-        f"{[pname for pname, p in model.named_parameters() if p.requires_grad]}"
-    )
-    return model, pretrained_model_parameters, classifier_model_parameters
+            parameters_names_to_fine_tune.append(pname)
+            parameters_to_fine_tune.append(p)
+    return parameters_names_to_fine_tune, parameters_to_fine_tune

@@ -38,6 +38,8 @@ class Config:
     # logging
     log_file_path: Optional[Path] = None
 
+    save_intermediate_models: bool = False
+
     @classmethod
     def load_env_variables(cls, env_file_path: str, run_id: str):
         load_dotenv(env_file_path, verbose=True)
