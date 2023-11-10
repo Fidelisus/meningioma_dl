@@ -31,7 +31,6 @@ def run_study(
     n_trials: int = 1,
     run_id: Optional[str] = None,
     device_name: str = "cpu",
-    batch_size: int = 2,
     validation_interval: int = 1,
     preprocessing_specs_name: str = "no_resize",
     augmentations_specs_name: str = "basic_01p",
@@ -55,6 +54,7 @@ def run_study(
             raise ValueError("No model was created during training, aborting.")
 
         f_score_of_the_best_model = evaluate(
+            run_id=run_id,
             trained_model_path=trained_model_path,
             device_name=device_name,
             visualizations_folder=visualizations_folder,

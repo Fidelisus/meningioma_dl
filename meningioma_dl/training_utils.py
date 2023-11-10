@@ -1,16 +1,29 @@
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 from typing import Tuple, Union, List
 
 import numpy as np
 import torch
 from monai.data import DataLoader
-from sklearn.metrics import f1_score, cohen_kappa_score
-from torch import nn, optim
+from sklearn.metrics import f1_score
+from torch import nn
 from torch.optim.optimizer import Optimizer
 
+from meningioma_dl.visualizations.images_visualization import visualize_images
 from meningioma_dl.visualizations.results_visualizations import plot_training_curve
+
+
+def _save_batch_images(batch_data: Dict, directory: Path):
+    directory.mkdir(parents=True, exist_ok=True)
+    visualize_images(
+        batch_data["img"],
+        directory,
+        [
+            Path(file).stem.split(".")[0]
+            for file in batch_data["img_meta_dict"]["filename_or_obj"]
+        ],
+    )
 
 
 def training_loop(
@@ -35,7 +48,7 @@ def training_loop(
     training_losses: List[float] = []
     validation_losses: List[Union[float, None]] = []
     f_scores: List[Union[float, None]] = []
-    cohen_kappa_scores: List[Union[float, None]] = []
+    learning_rates: List[Union[float, None]] = []
     for epoch in range(total_epochs):
         logging.info(f"Start epoch {epoch}")
         step = 0
@@ -48,6 +61,10 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
+            _save_batch_images(
+                batch_data, visualizations_folder.joinpath("training_images")
+            )
+
             optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)
             loss = loss_function(
@@ -59,11 +76,13 @@ def training_loop(
             # logging.info(f"Batch {batch_id} epoch {epoch} finished with loss {loss.item()}")
         scheduler.step()
 
+        last_lr = scheduler.get_last_lr()
+        learning_rates.append(last_lr[0])
+        training_losses.append(epoch_loss / step)
         logging.info(
             f"Epoch {epoch} average loss: {epoch_loss / step:.4f}, "
-            f"learning rate: {scheduler.get_last_lr()}"
+            f"learning rate: {last_lr}"
         )
-        training_losses.append(epoch_loss / step)
 
         if (epoch + 1) % validation_interval == 0:
             model.eval()
@@ -83,11 +102,6 @@ def training_loop(
                     predictions.cpu().argmax(dim=1),
                     average="weighted",
                 )
-                cohen_kappa = cohen_kappa_score(
-                    labels.cpu(),
-                    predictions.cpu().argmax(dim=1),
-                )
-                cohen_kappa_scores.append(cohen_kappa)
 
                 if f_score > best_f_score:
                     best_f_score = f_score
@@ -104,23 +118,21 @@ def training_loop(
                         )
                     logging.info(f"Model saved at {trained_model_path}")
                 logging.info(
-                    f"F1 score: {f_score}, cohen_kappa: {cohen_kappa} validation loss: {loss_validation.data}"
+                    f"F1 score: {f_score}, validation loss: {loss_validation.data}"
                 )
 
                 validation_losses.append(float(loss_validation.cpu().data))
                 f_scores.append(f_score)
+                plot_training_curve(
+                    validation_losses,
+                    training_losses,
+                    f_scores,
+                    learning_rates,
+                    visualizations_folder,
+                )
         else:
             validation_losses.append(None)
             f_scores.append(None)
-            cohen_kappa_scores.append(None)
-
-    plot_training_curve(
-        validation_losses,
-        training_losses,
-        f_scores,
-        cohen_kappa_scores,
-        visualizations_folder,
-    )
 
     logging.info(
         f"Finished training, last f_score: {f_score}, "

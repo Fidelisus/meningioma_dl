@@ -174,36 +174,39 @@ def init_data_loader(
                 transforms.MaskIntensityd(keys=["img"], mask_key="mask")
             )
 
-    if preprocessing_specs.final_resize_mode is not None:
-        transformations.append(
-            transforms.Resized(
-                keys=["img", "mask"],
-                spatial_size=preprocessing_specs.final_resize_spatial_pad,
-                size_mode="longest",
-                mode=preprocessing_specs.final_resize_mode,
+    if not transformations_mode.value == TransformationsMode.ONLY_LOAD.value:
+        if preprocessing_specs.final_resize_mode is not None:
+            transformations.append(
+                transforms.Resized(
+                    keys=["img", "mask"],
+                    spatial_size=preprocessing_specs.final_resize_spatial_pad,
+                    size_mode="longest",
+                    mode=preprocessing_specs.final_resize_mode,
+                )
             )
-        )
-        transformations.append(
-            transforms.SpatialPadd(
-                keys=["img", "mask"],
-                spatial_size=preprocessing_specs.final_resize_spatial_pad,
+            transformations.append(
+                transforms.SpatialPadd(
+                    keys=["img", "mask"],
+                    spatial_size=preprocessing_specs.final_resize_spatial_pad,
+                )
             )
-        )
-    if preprocessing_specs.final_crop_and_pad_spatial_size is not None:
-        transformations.append(
-            transforms.SpatialPadd(
-                keys=["img", "mask"],
-                spatial_size=preprocessing_specs.final_crop_and_pad_spatial_size,
+        if preprocessing_specs.final_crop_and_pad_spatial_size is not None:
+            transformations.append(
+                transforms.SpatialPadd(
+                    keys=["img", "mask"],
+                    spatial_size=preprocessing_specs.final_crop_and_pad_spatial_size,
+                )
             )
-        )
-        transformations.append(
-            transforms.CenterSpatialCropd(
-                keys=["img", "mask"],
-                roi_size=preprocessing_specs.final_crop_and_pad_spatial_size,
+            transformations.append(
+                transforms.CenterSpatialCropd(
+                    keys=["img", "mask"],
+                    roi_size=preprocessing_specs.final_crop_and_pad_spatial_size,
+                )
             )
-        )
 
-    transformations.append(transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0))
+        transformations.append(
+            transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0)
+        )
 
     dataset = monai.data.Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)

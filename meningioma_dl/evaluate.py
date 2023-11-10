@@ -19,12 +19,13 @@ from meningioma_dl.utils import (
     select_device,
     setup_logging,
 )
-from meningioma_dl.visualizations.results_visualizations import plot_confusion_matrix
+from meningioma_dl.visualizations.results_visualizations import create_evaluation_report
 
 
 def evaluate(
     trained_model_path: str,
     env_file_path: Optional[str] = None,
+    run_id: Optional[None] = None,
     manual_seed: int = Config.random_seed,
     device_name: str = "cpu",
     visualizations_folder: Union[str, Path] = Path("."),
@@ -93,7 +94,15 @@ def evaluate(
     logging.info(f"Evaluation recall: {recall}")
     logging.info(f"Evaluation precision: {precision}")
 
-    plot_confusion_matrix(labels_cpu, predictions_flat, visualizations_folder)
+    create_evaluation_report(
+        labels_cpu,
+        predictions_flat,
+        modelling_specs.model_specs.number_of_classes,
+        visualizations_folder,
+        run_id,
+        modelling_specs,
+        training_specs,
+    )
 
     return f_score
 
