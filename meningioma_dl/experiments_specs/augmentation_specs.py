@@ -58,6 +58,7 @@ def get_basic_augmentation(
 
 
 AUGMENTATIONS = {
+    "no_augment": [],
     "basic_01p": get_basic_augmentation(0.1),
     "basic_02p": get_basic_augmentation(0.2),
     "basic_05p": get_basic_augmentation(0.5),
