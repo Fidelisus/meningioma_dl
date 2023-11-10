@@ -14,18 +14,6 @@ from meningioma_dl.visualizations.images_visualization import visualize_images
 from meningioma_dl.visualizations.results_visualizations import plot_training_curve
 
 
-def _save_batch_images(batch_data: Dict, directory: Path):
-    directory.mkdir(parents=True, exist_ok=True)
-    visualize_images(
-        batch_data["img"],
-        directory,
-        [
-            Path(file).stem.split(".")[0]
-            for file in batch_data["img_meta_dict"]["filename_or_obj"]
-        ],
-    )
-
-
 def training_loop(
     training_data_loader: DataLoader,
     validation_data_loader: DataLoader,
@@ -87,7 +75,7 @@ def training_loop(
         if (epoch + 1) % validation_interval == 0:
             model.eval()
             with torch.no_grad():
-                labels, predictions = get_model_predictions(
+                labels, predictions, _ = get_model_predictions(
                     validation_data_loader, model, device
                 )
                 loss_validation: torch.Tensor = loss_function(
@@ -142,6 +130,19 @@ def training_loop(
     return best_f_score, trained_model_path
 
 
+def _save_batch_images(batch_data: Dict, directory: Path) -> None:
+    visualize_images(
+        batch_data["img"],
+        directory,
+        [
+            f"{Path(file).stem.split('.')[0]}_label_{label.data+1}"
+            for file, label in zip(
+                batch_data["img_meta_dict"]["filename_or_obj"], batch_data["label"]
+            )
+        ],
+    )
+
+
 def _convert_simple_labels_to_torch_format(
     labels: torch.Tensor, device: torch.device
 ) -> torch.Tensor:
@@ -150,16 +151,20 @@ def _convert_simple_labels_to_torch_format(
 
 def get_model_predictions(
     validation_data_loader: DataLoader, model: nn.Module, device: torch.device
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> Tuple[torch.Tensor, torch.Tensor, List[Path]]:
     predictions = torch.tensor([], dtype=torch.float32, device=device)
     labels = torch.tensor([], dtype=torch.long, device=device)
+    images_paths: List[Path] = []
     for validation_data in validation_data_loader:
         validation_images, validation_labels = validation_data["img"].to(
             device
         ), validation_data["label"].to(device)
         predictions = torch.cat([predictions, model(validation_images)], dim=0)
         labels = torch.cat([labels, validation_labels], dim=0)
-    return labels, predictions
+        images_paths.extend(
+            Path(file) for file in validation_data["img_meta_dict"]["filename_or_obj"]
+        )
+    return labels, predictions, images_paths
 
 
 def _save_model(

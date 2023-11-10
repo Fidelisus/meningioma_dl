@@ -67,11 +67,15 @@ AUGMENTATIONS = {
 
 @dataclass
 class AugmentationSpecs:
+    name: str = "basic_05p"
     transformations_list: Sequence[transforms.Transform] = ()
 
     @classmethod
     def get_from_name(cls, name: str) -> Self:
-        return cls(AUGMENTATIONS[name])
+        return cls(name, AUGMENTATIONS[name])
+
+    def __repr__(self):
+        return f"Aumentations named: {self.name}"
 
 
 # def get_exp9_2_augmentation(probability: float = 0.1) -> SearchSpace:

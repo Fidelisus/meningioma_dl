@@ -19,13 +19,16 @@ from meningioma_dl.utils import (
     select_device,
     setup_logging,
 )
+from meningioma_dl.visualizations.images_visualization import (
+    create_images_errors_report,
+)
 from meningioma_dl.visualizations.results_visualizations import create_evaluation_report
 
 
 def evaluate(
     trained_model_path: str,
     env_file_path: Optional[str] = None,
-    run_id: Optional[None] = None,
+    run_id: Optional[str] = None,
     manual_seed: int = Config.random_seed,
     device_name: str = "cpu",
     visualizations_folder: Union[str, Path] = Path("."),
@@ -69,7 +72,9 @@ def evaluate(
 
     model.eval()
     with torch.no_grad():
-        labels, predictions = get_model_predictions(data_loader, model, device)
+        labels, predictions, images_paths = get_model_predictions(
+            data_loader, model, device
+        )
 
     labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
@@ -102,6 +107,12 @@ def evaluate(
         run_id,
         modelling_specs,
         training_specs,
+    )
+    create_images_errors_report(
+        data_loader,
+        images_paths,
+        predictions_flat,
+        visualizations_folder.joinpath("evaluation_images_with_predictions"),
     )
 
     return f_score
