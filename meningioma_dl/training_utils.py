@@ -49,9 +49,10 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
-            _save_batch_images(
-                batch_data, visualizations_folder.joinpath("training_images")
-            )
+            if epoch == 0:
+                _save_batch_images(
+                    batch_data, visualizations_folder.joinpath("training_images")
+                )
 
             optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)

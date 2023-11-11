@@ -41,6 +41,7 @@ def visualize_images(
             fig.savefig(str(image_path))
         else:
             fig.show()
+        fig.clf()
 
 
 def create_images_errors_report(

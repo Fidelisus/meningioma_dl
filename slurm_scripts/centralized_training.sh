@@ -38,7 +38,7 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env \
   --n_trials=$n_trials \
   --run_id="${run_id}" \
-  --validation_interval=4 \
+  --validation_interval=1 \
   --augmentations_specs_name="${augmentation_specs}" \
   --scheduler_specs_name="${scheduler_specs}" \
   --preprocessing_specs_name="${preprocessing_specs}" \
