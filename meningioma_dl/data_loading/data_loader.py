@@ -82,7 +82,7 @@ def init_data_loader(
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     augmentations: Optional[List[transforms.Transform]] = None,
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
-    bounding_box_of_segmentation: int = 151,
+    bounding_box_of_segmentation: int = 129,
 ) -> DataLoader:
     file_label_map = [
         {"img": img, "mask": mask, "label": label - 1}

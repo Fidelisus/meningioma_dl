@@ -17,8 +17,8 @@ PREPROCESSING_SPECS: Dict[str, Dict[str, Any]] = {
     "50_padding": {"final_resize_mode": "trilinear", "initial_pad_spatial_size": 50},
     "70_padding": {"final_resize_mode": "trilinear", "initial_pad_spatial_size": 70},
     "100_padding": {"final_resize_mode": "trilinear", "initial_pad_spatial_size": 100},
-    "no_padding": {"final_resize_mode": "trilinear", " initial_pad_spatial_size": 151},
-    "no_resize": {"final_resize_mode": None, "final_crop_and_pad_spatial_size": 151},
+    "no_padding": {"final_resize_mode": "trilinear", " initial_pad_spatial_size": 129},
+    "no_resize": {"final_resize_mode": None, "final_crop_and_pad_spatial_size": 129},
     "no_resize_100_final_crop": {
         "final_resize_mode": None,
         "final_crop_and_pad_spatial_size": 100,
