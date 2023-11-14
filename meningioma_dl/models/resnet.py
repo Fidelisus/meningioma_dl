@@ -116,7 +116,6 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    # TODO CHECK
     def __init__(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
