@@ -1,6 +1,5 @@
-import logging
 from dataclasses import dataclass
-from typing import Tuple, Optional, Set, Dict
+from typing import Optional, Dict
 
 from typing_extensions import Self
 
@@ -36,6 +35,27 @@ MODELS = {
         "number_of_layers_to_unfreeze": 0,
         "number_of_classes": 2,
         "class_mapping": {1: 1, 2: 1, 3: 2},
+    },
+    "class_2_and_3_together_0_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 0,
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 2, 3: 2},
+    },
+    "class_1_and_2_together_2_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 2,
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 1, 3: 2},
+    },
+    "class_2_and_3_together_2_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 2,
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 2, 3: 2},
     },
 }
 
