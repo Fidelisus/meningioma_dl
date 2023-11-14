@@ -12,12 +12,3 @@ class ModellingSpecs:
     augmentation_specs: AugmentationSpecs = AugmentationSpecs()
     scheduler_specs: SchedulerSpecs = SchedulerSpecs()
     model_specs: ModelSpecs = ModelSpecs()
-
-
-TRAINING_SPECS = {
-    "central_2_epochs": {"training_mode": "centralized", "epochs": 2},
-    "central_100_epochs": {"training_mode": "centralized", "epochs": 100},
-    "central_150_epochs": {"training_mode": "centralized", "epochs": 150},
-    "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
-    "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
-}

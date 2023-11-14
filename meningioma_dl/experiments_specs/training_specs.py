@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from meningioma_dl.experiments_specs.experiments import TRAINING_SPECS
-
 
 @dataclass
 class TrainingSpecs:
@@ -14,6 +12,15 @@ class CentralizedTrainingSpecs(TrainingSpecs):
     batch_size: int = 4
     use_training_data_for_validation: bool = False
     training_mode: str = "centralized"
+
+
+TRAINING_SPECS = {
+    "central_2_epochs": {"training_mode": "centralized", "epochs": 2},
+    "central_100_epochs": {"training_mode": "centralized", "epochs": 100},
+    "central_150_epochs": {"training_mode": "centralized", "epochs": 150},
+    "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
+    "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
+}
 
 
 def get_training_specs(name: str) -> CentralizedTrainingSpecs:
