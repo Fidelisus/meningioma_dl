@@ -18,6 +18,16 @@ MODELS = {
         "resnet_shortcut_type": "B",
         "number_of_layers_to_unfreeze": 2,
     },
+    "resnet_10_3_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 3,
+    },
+    "resnet_10_4_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 4,
+    },
 }
 
 

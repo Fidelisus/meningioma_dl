@@ -57,6 +57,11 @@ SCHEDULER_SPECS: Dict[str, Dict[str, Any]] = {
         "learning_rate": 1.0,
         "gamma": 0.99,
     },
+    "2_lr_099_gamma": {
+        "scheduler": "exponential",
+        "learning_rate": 2.0,
+        "gamma": 0.99,
+    },
     "cosine_lr_0004_t0_60": {
         "scheduler": "cosine",
         "learning_rate": 0.004,

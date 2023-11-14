@@ -62,6 +62,7 @@ AUGMENTATIONS = {
     "basic_01p": get_basic_augmentation(0.1),
     "basic_02p": get_basic_augmentation(0.2),
     "basic_05p": get_basic_augmentation(0.5),
+    "basic_08p": get_basic_augmentation(0.8),
     "basic_02p_no_mask_after_gaussian": get_basic_augmentation(0.2, False),
 }
 

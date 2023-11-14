@@ -22,7 +22,8 @@ augmentation_specs="${1:-basic_01p}"
 scheduler_specs="${2:-05_lr_099_gamma}"
 preprocessing_specs="${3:-no_resize}"
 training_specs="${4:-central_2_epochs}"
-run_id="${5:-playground}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${SLURM_JOBID}"
+model_specs="${5:-resnet_10_2_unfreezed}"
+run_id="${6:-playground}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_${SLURM_JOBID}"
 
 module add Python/3.7.3-foss-2019a
 module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
@@ -42,4 +43,5 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --augmentations_specs_name="${augmentation_specs}" \
   --scheduler_specs_name="${scheduler_specs}" \
   --preprocessing_specs_name="${preprocessing_specs}" \
+  --model_specs_name="${model_specs}" \
   --training_specs_name="${training_specs}"

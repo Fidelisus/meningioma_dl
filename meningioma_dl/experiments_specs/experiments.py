@@ -19,4 +19,5 @@ TRAINING_SPECS = {
     "central_100_epochs": {"training_mode": "centralized", "epochs": 100},
     "central_150_epochs": {"training_mode": "centralized", "epochs": 150},
     "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
+    "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
 }
