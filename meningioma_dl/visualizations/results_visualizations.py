@@ -11,8 +11,8 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 
-from meningioma_dl.experiments_specs.experiments import ModellingSpecs
-from meningioma_dl.experiments_specs.traning_specs import CentralizedTrainingSpecs
+from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
+from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
 
 
 def calculate_sensitivity_and_specificity(
@@ -35,12 +35,12 @@ def calculate_sensitivity_and_specificity(
 def create_evaluation_report(
     true: np.array,
     predictions: np.array,
-    n_classes: int,
     save_path: Path,
     run_id: str,
     modelling_specs: ModellingSpecs,
     training_specs: CentralizedTrainingSpecs,
 ) -> None:
+    n_classes = modelling_specs.model_specs.number_of_classes
     report = classification_report(true, predictions, output_dict=True)
 
     fig = make_subplots(
@@ -60,12 +60,13 @@ def create_evaluation_report(
             "Run specification",
         ),
     )
+
+    fig = add_confusion_matrix_plot(true, predictions, n_classes, fig, row=1, col=1)
+
     sensitivities, specificities = calculate_sensitivity_and_specificity(
         true, predictions, n_classes
     )
-
-    fig = add_confusion_matrix_plot(true, predictions, fig, row=1, col=1)
-
+    labels_available = list(range(1, n_classes + 1))
     fig.add_trace(
         go.Table(
             header=dict(
@@ -79,9 +80,9 @@ def create_evaluation_report(
             ),
             cells=dict(
                 values=[
-                    [1, 2, 3],
-                    [sensitivities["0"], sensitivities["1"], sensitivities["2"]],
-                    [specificities["0"], specificities["1"], specificities["2"]],
+                    labels_available,
+                    [sensitivities[str(label - 1)] for label in labels_available],
+                    [specificities[str(label - 1)] for label in labels_available],
                 ],
                 align="center",
                 format=[None, ".4f", ".4f"],
@@ -145,7 +146,12 @@ def create_evaluation_report(
 
 
 def add_confusion_matrix_plot(
-    true: np.array, predictions: np.array, fig: go.Figure, row: int, col: int
+    true: np.array,
+    predictions: np.array,
+    n_classes: int,
+    fig: go.Figure,
+    row: int,
+    col: int,
 ):
     """
     Structure:
@@ -158,8 +164,8 @@ def add_confusion_matrix_plot(
     confusion_matrix_data = np.flip(
         metrics.confusion_matrix(true, predictions).astype(int), axis=0
     )
-    x_labels = ["predicted 1", "predicted 2", "predicted 3"]
-    y_labels = ["real 3", "real 2", "real 1"]
+    x_labels = [f"predicted {label}" for label in range(1, n_classes + 1)]
+    y_labels = [f"true {label}" for label in range(n_classes, 0, -1)]
 
     heatmap = go.Heatmap(
         z=confusion_matrix_data,

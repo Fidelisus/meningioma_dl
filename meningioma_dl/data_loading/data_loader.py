@@ -2,7 +2,7 @@ import logging
 import math
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Tuple, Sequence
+from typing import List, Optional, Tuple, Sequence, Set, Dict
 
 import monai
 import torch
@@ -57,9 +57,10 @@ def get_data_loader(
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     augmentations: Optional[Sequence[transforms.Transform]] = None,
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
+    class_mapping: Optional[Dict[int, int]] = None,
 ) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
-        data_root_directory, labels_file_path
+        data_root_directory, labels_file_path, class_mapping
     )
 
     data_loader = init_data_loader(

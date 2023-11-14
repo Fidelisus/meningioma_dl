@@ -37,7 +37,7 @@ def run_study(
     augmentations_specs_name: str = "basic_01p",
     scheduler_specs_name: str = "05_lr_099_gamma",
     model_specs_name: str = "resnet_10_2_unfreezed",
-    training_specs_name: str = "central_2_epochs",
+    training_specs_name: str = "central_1_epochs",
 ):
     def objective(trial: Trial):
         visualizations_folder = Config.visualizations_directory.joinpath(run_id)

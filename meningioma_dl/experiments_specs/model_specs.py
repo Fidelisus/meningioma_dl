@@ -1,4 +1,6 @@
+import logging
 from dataclasses import dataclass
+from typing import Tuple, Optional, Set, Dict
 
 from typing_extensions import Self
 
@@ -28,6 +30,13 @@ MODELS = {
         "resnet_shortcut_type": "B",
         "number_of_layers_to_unfreeze": 4,
     },
+    "class_1_and_2_together_0_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 0,
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 1, 3: 2},
+    },
 }
 
 
@@ -37,6 +46,15 @@ class ModelSpecs:
     resnet_shortcut_type: str = "B"
     number_of_layers_to_unfreeze: int = 0
     number_of_classes: int = 3
+    class_mapping: Optional[Dict[int, int]] = None
+
+    def __post_init__(self):
+        if self.number_of_classes not in {2, 3}:
+            raise ValueError("number_of_classes must be 2 or 3")
+        if self.number_of_classes == 2 and self.class_mapping is None:
+            raise ValueError(
+                "class_grouping needs to be defined if number_of_classes==2"
+            )
 
     @classmethod
     def get_from_name(cls, name: str) -> Self:

@@ -11,8 +11,8 @@ from meningioma_dl.data_loading.data_loader import (
     get_data_loader,
     TransformationsMode,
 )
-from meningioma_dl.experiments_specs.experiments import ModellingSpecs
-from meningioma_dl.experiments_specs.traning_specs import CentralizedTrainingSpecs
+from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
+from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
 from meningioma_dl.models.resnet import create_resnet_model
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
@@ -44,7 +44,9 @@ def train(
     device = get_device(device_name)
     torch.manual_seed(manual_seed)
 
-    logging.info("Start training")
+    logging.info(
+        f"Starting training with {modelling_specs.model_specs.number_of_classes} classes"
+    )
     training_data_loader, labels_train = get_data_loader(
         Config.train_labels_file_path,
         Config.data_directory,
@@ -52,6 +54,7 @@ def train(
         batch_size=training_specs.batch_size,
         augmentations=modelling_specs.augmentation_specs.transformations_list,
         preprocessing_specs=modelling_specs.preprocessing_specs,
+        class_mapping=modelling_specs.model_specs.class_mapping,
     )
     validation_data_loader, labels_validation = get_data_loader(
         Config.train_labels_file_path
@@ -61,6 +64,7 @@ def train(
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=training_specs.batch_size,
         preprocessing_specs=modelling_specs.preprocessing_specs,
+        class_mapping=modelling_specs.model_specs.class_mapping,
     )
 
     model, parameters_to_fine_tune = create_resnet_model(

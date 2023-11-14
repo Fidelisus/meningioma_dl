@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Set, Dict
 
 import pandas as pd
 
@@ -21,7 +21,9 @@ def get_samples_df(labels_file: Path) -> pd.DataFrame:
 
 
 def get_images_with_labels(
-    data_root_directory, labels_file_path
+    data_root_directory,
+    labels_file_path,
+    class_mapping: Optional[Dict[int, int]] = None,
 ) -> Tuple[List[str], List[str], List[int]]:
     samples_df = get_samples_df(labels_file_path)
     images = [
@@ -33,4 +35,6 @@ def get_images_with_labels(
         for file in samples_df["label_path"].values
     ]
     labels: List[int] = samples_df["who_grading"].values.tolist()
+    if class_mapping is not None:
+        labels = [class_mapping[label] for label in labels]
     return images, masks, labels

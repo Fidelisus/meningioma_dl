@@ -15,6 +15,7 @@ class CentralizedTrainingSpecs(TrainingSpecs):
 
 
 TRAINING_SPECS = {
+    "central_1_epochs": {"training_mode": "centralized", "epochs": 1},
     "central_2_epochs": {"training_mode": "centralized", "epochs": 2},
     "central_100_epochs": {"training_mode": "centralized", "epochs": 100},
     "central_150_epochs": {"training_mode": "centralized", "epochs": 150},

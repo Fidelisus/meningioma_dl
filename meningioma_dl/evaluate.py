@@ -11,8 +11,8 @@ from meningioma_dl.data_loading.data_loader import (
     get_data_loader,
     TransformationsMode,
 )
-from meningioma_dl.experiments_specs.experiments import ModellingSpecs
-from meningioma_dl.experiments_specs.traning_specs import CentralizedTrainingSpecs
+from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
+from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
 from meningioma_dl.models.resnet import RESNET_MODELS_MAP
 from meningioma_dl.training_utils import get_model_predictions
 from meningioma_dl.utils import (
@@ -56,6 +56,7 @@ def evaluate(
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=training_specs.batch_size,
         preprocessing_specs=modelling_specs.preprocessing_specs,
+        class_mapping=modelling_specs.model_specs.class_mapping,
     )
 
     saved_model = torch.load(trained_model_path, map_location=device)
@@ -102,7 +103,6 @@ def evaluate(
     create_evaluation_report(
         labels_cpu,
         predictions_flat,
-        modelling_specs.model_specs.number_of_classes,
         visualizations_folder,
         run_id,
         modelling_specs,
