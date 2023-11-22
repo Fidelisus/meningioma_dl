@@ -35,6 +35,7 @@ MODELS = {
         "number_of_layers_to_unfreeze": 0,
         "number_of_classes": 2,
         "class_mapping": {1: 1, 2: 1, 3: 2},
+        "evaluation_metric_weighting": "macro",
     },
     "class_2_and_3_together_0_unfreezed": {
         "model_depth": 10,
@@ -42,6 +43,7 @@ MODELS = {
         "number_of_layers_to_unfreeze": 0,
         "number_of_classes": 2,
         "class_mapping": {1: 1, 2: 2, 3: 2},
+        "evaluation_metric_weighting": "macro",
     },
     "class_1_and_2_together_2_unfreezed": {
         "model_depth": 10,
@@ -49,6 +51,7 @@ MODELS = {
         "number_of_layers_to_unfreeze": 2,
         "number_of_classes": 2,
         "class_mapping": {1: 1, 2: 1, 3: 2},
+        "evaluation_metric_weighting": "macro",
     },
     "class_2_and_3_together_2_unfreezed": {
         "model_depth": 10,
@@ -56,6 +59,7 @@ MODELS = {
         "number_of_layers_to_unfreeze": 2,
         "number_of_classes": 2,
         "class_mapping": {1: 1, 2: 2, 3: 2},
+        "evaluation_metric_weighting": "macro",
     },
 }
 
@@ -67,6 +71,7 @@ class ModelSpecs:
     number_of_layers_to_unfreeze: int = 0
     number_of_classes: int = 3
     class_mapping: Optional[Dict[int, int]] = None
+    evaluation_metric_weighting: str = "weighted"
 
     def __post_init__(self):
         if self.number_of_classes not in {2, 3}:
