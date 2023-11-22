@@ -83,17 +83,17 @@ def evaluate(
     f_score = f1_score(
         labels_cpu,
         predictions_flat,
-        average="weighted",
+        average=modelling_specs.model_specs.evaluation_metric_weighting,
     )
     recall = recall_score(
         labels_cpu,
         predictions_flat,
-        average="weighted",
+        average=modelling_specs.model_specs.evaluation_metric_weighting,
     )
     precision = precision_score(
         labels_cpu,
         predictions_flat,
-        average="weighted",
+        average=modelling_specs.model_specs.evaluation_metric_weighting,
     )
 
     logging.info(f"Evaluation f-score: {f_score}")

@@ -25,6 +25,7 @@ def training_loop(
     validation_interval: int,
     visualizations_folder: Path,
     device: torch.device,
+    evaluation_metric_weighting: str,
     save_intermediate_models: bool = False,
     model_save_folder: Optional[Path] = None,
 ) -> Tuple[float, Optional[Path]]:
@@ -89,7 +90,7 @@ def training_loop(
                 f_score = f1_score(
                     labels.cpu(),
                     predictions.cpu().argmax(dim=1),
-                    average="weighted",
+                    average=evaluation_metric_weighting,
                 )
 
                 if f_score > best_f_score:

@@ -85,10 +85,15 @@ def train(
     optimizer = torch.optim.Adam(lr_params)
     scheduler = modelling_specs.scheduler_specs.get_scheduler(optimizer)
 
-    loss_function = nn.CrossEntropyLoss(
-        weight=torch.tensor(
+    loss_function_weighting = (
+        torch.tensor(
             get_loss_function_class_weights(labels_train + labels_validation)
-        ).to(torch.float64),
+        ).to(torch.float64)
+        if modelling_specs.model_specs.evaluation_metric_weighting == "weighted"
+        else None
+    )
+    loss_function = nn.CrossEntropyLoss(
+        weight=loss_function_weighting,
     )
     loss_function = loss_function.to(device)
 
@@ -106,6 +111,7 @@ def train(
         model_save_folder=saved_models_folder,
         visualizations_folder=visualizations_folder,
         device=device,
+        evaluation_metric_weighting=modelling_specs.model_specs.evaluation_metric_weighting,
     )
     return best_f_score, trained_model_path
 
