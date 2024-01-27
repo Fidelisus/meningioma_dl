@@ -2,16 +2,23 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TrainingSpecs:
-    training_mode: str
-
-
-@dataclass
-class CentralizedTrainingSpecs(TrainingSpecs):
+class CentralizedTrainingSpecs:
     epochs: int = 100
     batch_size: int = 4
     use_training_data_for_validation: bool = False
     training_mode: str = "centralized"
+
+
+@dataclass
+class FederatedTrainingSpecs:
+    global_epochs: int = 2
+    epochs_per_client: int = 2
+    batch_size: int = 2
+    use_training_data_for_validation: bool = False
+    training_mode: str = "federated"
+    strategy: str = "fed_avg"
+    number_of_clients: int = 2
+    partitioning_mode: str = "uniform"
 
 
 TRAINING_SPECS = {
@@ -21,6 +28,12 @@ TRAINING_SPECS = {
     "central_150_epochs": {"training_mode": "centralized", "epochs": 150},
     "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
     "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
+    "federated_2_epochs": {
+        "training_mode": "federated",
+        "global_epochs": 2,
+        "epochs_per_client": 2,
+        "number_of_clients": 3,
+    },
 }
 
 

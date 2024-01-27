@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, Any
 from typing import Tuple, Dict
 
 import numpy as np
@@ -38,7 +38,7 @@ def create_evaluation_report(
     save_path: Path,
     run_id: str,
     modelling_specs: ModellingSpecs,
-    training_specs: CentralizedTrainingSpecs,
+    training_specs: Any,
 ) -> None:
     n_classes = modelling_specs.model_specs.number_of_classes
     report = classification_report(true, predictions, output_dict=True)

@@ -1,10 +1,11 @@
 import logging
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Any, Callable
 
 import fire
 import torch
 from sklearn.metrics import f1_score, recall_score, precision_score
+from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import (
@@ -13,7 +14,7 @@ from meningioma_dl.data_loading.data_loader import (
 )
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
-from meningioma_dl.models.resnet import RESNET_MODELS_MAP
+from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet
 from meningioma_dl.training_utils import get_model_predictions
 from meningioma_dl.utils import (
     select_device,
@@ -34,6 +35,7 @@ def evaluate(
     visualizations_folder: Union[str, Path] = Path("."),
     modelling_specs: ModellingSpecs = ModellingSpecs(),
     training_specs: CentralizedTrainingSpecs = CentralizedTrainingSpecs(),
+    logger: Callable[[str], None] = logging.info,
 ) -> float:
     if type(visualizations_folder) is str:
         visualizations_folder = Path(visualizations_folder)
@@ -43,7 +45,7 @@ def evaluate(
         )
         setup_logging(Config.log_file_path)
 
-    logging.info("Starting model evaluation")
+    logger("Starting model evaluation")
 
     device = select_device(device_name)
     torch.manual_seed(manual_seed)
@@ -71,15 +73,37 @@ def evaluate(
     }
     model.load_state_dict(state_dict)
 
+    f_score = evaluate_model(
+        data_loader,
+        model,
+        modelling_specs,
+        training_specs,
+        device,
+        run_id,
+        visualizations_folder,
+        logger,
+    )
+
+    return f_score
+
+
+def evaluate_model(
+    data_loader: DataLoader,
+    model: ResNet,
+    modelling_specs: ModellingSpecs,
+    training_specs: Any,
+    device: torch.device,
+    run_id: str,
+    visualizations_folder: Optional[Path],
+    logger: Callable[[str], None] = logging.info,
+):
     model.eval()
     with torch.no_grad():
         labels, predictions, images_paths = get_model_predictions(
             data_loader, model, device
         )
-
     labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
-
     f_score = f1_score(
         labels_cpu,
         predictions_flat,
@@ -95,26 +119,24 @@ def evaluate(
         predictions_flat,
         average=modelling_specs.model_specs.evaluation_metric_weighting,
     )
-
-    logging.info(f"Evaluation f-score: {f_score}")
-    logging.info(f"Evaluation recall: {recall}")
-    logging.info(f"Evaluation precision: {precision}")
-
-    create_evaluation_report(
-        labels_cpu,
-        predictions_flat,
-        visualizations_folder,
-        run_id,
-        modelling_specs,
-        training_specs,
-    )
-    create_images_errors_report(
-        data_loader,
-        images_paths,
-        predictions_flat,
-        visualizations_folder.joinpath("evaluation_images_with_predictions"),
-    )
-
+    logger(f"Evaluation f-score: {f_score}")
+    logger(f"Evaluation recall: {recall}")
+    logger(f"Evaluation precision: {precision}")
+    if visualizations_folder is not None:
+        create_evaluation_report(
+            labels_cpu,
+            predictions_flat,
+            visualizations_folder,
+            run_id,
+            modelling_specs,
+            training_specs,
+        )
+        create_images_errors_report(
+            data_loader,
+            images_paths,
+            predictions_flat,
+            visualizations_folder.joinpath("evaluation_images_with_predictions"),
+        )
     return f_score
 
 

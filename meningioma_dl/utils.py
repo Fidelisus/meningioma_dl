@@ -8,6 +8,8 @@ import numpy as np
 import shortuuid
 import torch
 
+from meningioma_dl.config import Config
+
 
 def select_device(device="") -> torch.device:
     if device.lower() == "cuda":
@@ -61,3 +63,28 @@ def setup_logging(log_file_path: Optional[Path]) -> None:
 
 def generate_run_id() -> str:
     return f"{datetime.now().strftime('%d-%m-%y_%H-%M-%S')}_{shortuuid.uuid()}"
+
+
+def setup_run(
+    env_file_path: Optional[str],
+    run_id: Optional[str],
+    manual_seed: int,
+    device_name: str,
+):
+    if run_id is None:
+        run_id = generate_run_id()
+    if env_file_path is not None:
+        Config.load_env_variables(env_file_path, run_id)
+        setup_logging(Config.log_file_path)
+    device = get_device(device_name)
+    torch.manual_seed(manual_seed)
+    return device
+
+
+def get_device(device_name) -> torch.device:
+    device = select_device(device_name)
+    logging.info("Devices available:")
+    torch.cuda.is_available()
+    for device_number in range(torch.cuda.device_count()):
+        logging.info(torch.cuda.get_device_name(device_number))
+    return device
