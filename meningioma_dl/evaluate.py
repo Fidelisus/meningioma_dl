@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Optional, Union, Any, Callable
+from typing import Optional, Union, Any, Callable, Tuple
 
 import fire
 import torch
@@ -15,7 +15,10 @@ from meningioma_dl.data_loading.data_loader import (
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
 from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet
-from meningioma_dl.training_utils import get_model_predictions
+from meningioma_dl.training_utils import (
+    get_model_predictions,
+    _convert_simple_labels_to_torch_format,
+)
 from meningioma_dl.utils import (
     select_device,
     setup_logging,
@@ -23,7 +26,10 @@ from meningioma_dl.utils import (
 from meningioma_dl.visualizations.images_visualization import (
     create_images_errors_report,
 )
-from meningioma_dl.visualizations.results_visualizations import create_evaluation_report
+from meningioma_dl.visualizations.results_visualizations import (
+    create_evaluation_report,
+    ValidationMetrics,
+)
 
 
 def evaluate(
@@ -73,7 +79,7 @@ def evaluate(
     }
     model.load_state_dict(state_dict)
 
-    f_score = evaluate_model(
+    f_score, _ = evaluate_model(
         data_loader,
         model,
         modelling_specs,
@@ -94,14 +100,22 @@ def evaluate_model(
     training_specs: Any,
     device: torch.device,
     run_id: str,
-    visualizations_folder: Optional[Path],
+    visualizations_folder: Optional[Path] = None,
     logger: Callable[[str], None] = logging.info,
-):
+    loss_function: Optional[Callable] = None,
+) -> Tuple[float, ValidationMetrics]:
+    loss = None
+
     model.eval()
     with torch.no_grad():
         labels, predictions, images_paths = get_model_predictions(
             data_loader, model, device
         )
+        if loss_function is not None:
+            loss = loss_function(
+                predictions.to(torch.float64),
+                labels.to(torch.int64).to(device),
+            )
     labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
     f_score = f1_score(
@@ -137,7 +151,7 @@ def evaluate_model(
             predictions_flat,
             visualizations_folder.joinpath("evaluation_images_with_predictions"),
         )
-    return f_score
+    return f_score, ValidationMetrics(f_score, loss, labels_cpu, predictions_flat)
 
 
 if __name__ == "__main__":

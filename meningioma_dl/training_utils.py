@@ -5,13 +5,16 @@ from typing import Tuple, Union, List
 
 import numpy as np
 import torch
-from monai.data import DataLoader
 from sklearn.metrics import f1_score
 from torch import nn
 from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
 
 from meningioma_dl.visualizations.images_visualization import visualize_images
-from meningioma_dl.visualizations.results_visualizations import plot_training_curve
+from meningioma_dl.visualizations.results_visualizations import (
+    plot_training_curve,
+    TrainingMetrics,
+)
 
 
 def training_loop(
@@ -23,17 +26,19 @@ def training_loop(
     loss_function,
     total_epochs: int,
     validation_interval: Optional[int],
-    visualizations_folder: Path,
     device: torch.device,
     evaluation_metric_weighting: str,
+    visualizations_folder: Path = None,
     save_intermediate_models: bool = False,
     model_save_folder: Optional[Path] = None,
     logger: Callable[[str], None] = logging.info,
-) -> Tuple[float, Optional[Path]]:
+) -> Tuple[float, Optional[Path], TrainingMetrics]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
     f_score = 0.0
     batches_per_epoch = len(training_data_loader)
+    trained_model_path = None
+    training_metrics = None
     logger(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
 
     training_losses: List[float] = []
@@ -52,7 +57,7 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
-            if epoch == 0:
+            if visualizations_folder is not None and epoch == 0:
                 _save_batch_images(
                     batch_data, visualizations_folder.joinpath("training_images")
                 )
@@ -99,7 +104,7 @@ def training_loop(
                     average=evaluation_metric_weighting,
                 )
 
-                if f_score > best_f_score:
+                if model_save_folder is not None and f_score > best_f_score:
                     best_f_score = f_score
                     if save_intermediate_models:
                         trained_model_path = _save_model(
@@ -121,19 +126,26 @@ def training_loop(
             validation_losses.append(None)
             f_scores.append(None)
 
-        plot_training_curve(
+        training_metrics = TrainingMetrics(
             validation_losses,
             training_losses,
             f_scores,
             learning_rates,
-            visualizations_folder,
         )
+        if visualizations_folder is not None:
+            plot_training_curve(
+                validation_losses,
+                training_losses,
+                f_scores,
+                learning_rates,
+                visualizations_folder,
+            )
     logger(
         f"Finished training, last f_score: {f_score}, "
         f"best f_score: {best_f_score}, "
         f"best validation loss: {best_loss_validation.data}"
     )
-    return best_f_score, None
+    return best_f_score, trained_model_path, training_metrics
 
 
 def _save_batch_images(batch_data: Dict, directory: Path) -> None:

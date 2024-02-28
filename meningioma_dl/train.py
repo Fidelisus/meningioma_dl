@@ -32,7 +32,7 @@ def train(
     modelling_specs: ModellingSpecs = ModellingSpecs(),
     training_specs: CentralizedTrainingSpecs = CentralizedTrainingSpecs(),
 ) -> Tuple[float, Optional[str]]:
-    device = setup_run(env_file_path, run_id, manual_seed, device_name)
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
 
     logging.info(
         f"Starting training with {modelling_specs.model_specs.number_of_classes} classes"
@@ -89,7 +89,7 @@ def train(
 
     logging.info("Model initialized succesfully")
 
-    best_f_score, trained_model_path = training_loop(
+    best_f_score, trained_model_path, _ = training_loop(
         training_data_loader,
         validation_data_loader,
         model,

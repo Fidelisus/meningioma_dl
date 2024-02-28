@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from dataclasses import asdict
 from pathlib import Path
 from typing import Tuple, List, Dict, Callable, Optional, Any
 
@@ -37,11 +38,8 @@ class ClassicalFLClient(fl.client.NumPyClient):
         parameters_to_fine_tune: Optional[List[torch.Tensor]],
         loss_function_weighting: Optional[torch.Tensor],
         device: torch.device,
-        training_function: Callable[
-            [DataLoader, ResNet, Optimizer, Any, Any], Tuple[float, Optional[Path]]
-        ],
-        evaluation_function: Callable[[DataLoader, ResNet, Path], float],
-        visualizations_folder: Path,
+        training_function: Callable,
+        evaluation_function: Callable,
     ):
         self.cid = cid
         self.model = model
@@ -51,7 +49,6 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self.parameters_to_fine_tune = parameters_to_fine_tune
         self.loss_function_weighting = loss_function_weighting
         self.device = device
-        self.visualizations_folder = visualizations_folder
 
         self.training_function = training_function
         self.evaluation_function = evaluation_function
@@ -73,15 +70,18 @@ class ClassicalFLClient(fl.client.NumPyClient):
             weight=self.loss_function_weighting,
         ).to(self.device)
 
-        self.training_function(
+        _, _, training_metrics = self.training_function(
             training_data_loader=self.training_data_loader,
             model=self.model,
             optimizer=optimizer,
             scheduler=scheduler,
             loss_function=loss_function,
-            visualizations_folder=self.visualizations_folder,
         )
-        return get_model_parameters(self.model), len(self.training_data_loader), {}
+        return (
+            get_model_parameters(self.model),
+            len(self.training_data_loader),
+            asdict(training_metrics),
+        )
 
     def evaluate(
         self, parameters: NDArrays, config: Dict[str, Scalar]
@@ -89,13 +89,15 @@ class ClassicalFLClient(fl.client.NumPyClient):
         print(f"[Client {self.cid}] evaluate, config: {config}")
         set_model_parameters(self.model, parameters)
 
-        f1_score = self.evaluation_function(
+        f1_score, validation_metrics = self.evaluation_function(
             data_loader=self.validation_data_loader,
             model=self.model,
-            visualizations_folder=self.visualizations_folder,
+            loss_function=nn.CrossEntropyLoss(
+                weight=self.loss_function_weighting,
+            ).to(self.device),
         )
         return (
             float(f1_score),
             len(self.validation_data_loader),
-            {"info": "abc"},
+            asdict(validation_metrics),
         )

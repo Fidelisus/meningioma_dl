@@ -2,7 +2,7 @@ import logging
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import numpy as np
 import shortuuid
@@ -70,7 +70,7 @@ def setup_run(
     run_id: Optional[str],
     manual_seed: int,
     device_name: str,
-):
+) -> Tuple[torch.device, str]:
     if run_id is None:
         run_id = generate_run_id()
     if env_file_path is not None:
@@ -78,7 +78,7 @@ def setup_run(
         setup_logging(Config.log_file_path)
     device = get_device(device_name)
     torch.manual_seed(manual_seed)
-    return device
+    return device, run_id
 
 
 def get_device(device_name) -> torch.device:
@@ -88,3 +88,12 @@ def get_device(device_name) -> torch.device:
     for device_number in range(torch.cuda.device_count()):
         logging.info(torch.cuda.get_device_name(device_number))
     return device
+
+
+def setup_flower_logger():
+    import flwr as fl
+    from flwr.common.logger import LOGGER_NAME
+
+    fl.common.logger.configure(identifier="FL", filename=str(Config.log_file_path))
+    flower_logger = logging.getLogger(LOGGER_NAME)
+    flower_logger.propagate = False
