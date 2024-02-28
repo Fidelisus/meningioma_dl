@@ -16,10 +16,8 @@ from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSp
 from meningioma_dl.models.resnet import create_resnet_model
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
-    select_device,
     get_loss_function_class_weights,
-    setup_logging,
-    generate_run_id,
+    setup_run,
 )
 
 
@@ -34,15 +32,7 @@ def train(
     modelling_specs: ModellingSpecs = ModellingSpecs(),
     training_specs: CentralizedTrainingSpecs = CentralizedTrainingSpecs(),
 ) -> Tuple[float, Optional[str]]:
-    if run_id is None:
-        run_id = generate_run_id()
-
-    if env_file_path is not None:
-        Config.load_env_variables(env_file_path, run_id)
-        setup_logging(Config.log_file_path)
-
-    device = get_device(device_name)
-    torch.manual_seed(manual_seed)
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
 
     logging.info(
         f"Starting training with {modelling_specs.model_specs.number_of_classes} classes"
@@ -99,7 +89,7 @@ def train(
 
     logging.info("Model initialized succesfully")
 
-    best_f_score, trained_model_path = training_loop(
+    best_f_score, trained_model_path, _ = training_loop(
         training_data_loader,
         validation_data_loader,
         model,
@@ -114,15 +104,6 @@ def train(
         evaluation_metric_weighting=modelling_specs.model_specs.evaluation_metric_weighting,
     )
     return best_f_score, trained_model_path
-
-
-def get_device(device_name) -> torch.device:
-    device = select_device(device_name)
-    logging.info("Devices available:")
-    torch.cuda.is_available()
-    for device_number in range(torch.cuda.device_count()):
-        logging.info(torch.cuda.get_device_name(device_number))
-    return device
 
 
 if __name__ == "__main__":

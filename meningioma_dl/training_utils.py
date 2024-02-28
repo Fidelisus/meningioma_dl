@@ -1,45 +1,53 @@
 import logging
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional, Dict, Callable
 from typing import Tuple, Union, List
 
 import numpy as np
 import torch
-from monai.data import DataLoader
 from sklearn.metrics import f1_score
 from torch import nn
 from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
 
 from meningioma_dl.visualizations.images_visualization import visualize_images
-from meningioma_dl.visualizations.results_visualizations import plot_training_curve
+from meningioma_dl.visualizations.results_visualizations import (
+    plot_training_curve,
+    TrainingMetrics,
+)
 
 
 def training_loop(
     training_data_loader: DataLoader,
-    validation_data_loader: DataLoader,
+    validation_data_loader: Optional[DataLoader],
     model: nn.Module,
     optimizer: Optimizer,
     scheduler,
     loss_function,
     total_epochs: int,
-    validation_interval: int,
-    visualizations_folder: Path,
+    validation_interval: Optional[int],
     device: torch.device,
     evaluation_metric_weighting: str,
+    visualizations_folder: Path = None,
     save_intermediate_models: bool = False,
     model_save_folder: Optional[Path] = None,
-) -> Tuple[float, Optional[Path]]:
+    logger: Callable[[str], None] = logging.info,
+    save_images: bool = True,
+) -> Tuple[float, Optional[Path], TrainingMetrics]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
+    f_score = 0.0
     batches_per_epoch = len(training_data_loader)
-    logging.info(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
+    trained_model_path = None
+    training_metrics = None
+    logger(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
 
     training_losses: List[float] = []
     validation_losses: List[Union[float, None]] = []
     f_scores: List[Union[float, None]] = []
     learning_rates: List[Union[float, None]] = []
     for epoch in range(total_epochs):
-        logging.info(f"Start epoch {epoch}")
+        logger(f"Start epoch {epoch}")
         step = 0
         epoch_loss = 0
 
@@ -50,7 +58,7 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
-            if epoch == 0:
+            if save_images and visualizations_folder is not None and epoch == 0:
                 _save_batch_images(
                     batch_data, visualizations_folder.joinpath("training_images")
                 )
@@ -63,18 +71,22 @@ def training_loop(
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            # logging.info(f"Batch {batch_id} epoch {epoch} finished with loss {loss.item()}")
+            # logger(f"Batch {batch_id} epoch {epoch} finished with loss {loss.item()}")
         scheduler.step()
 
         last_lr = scheduler.get_last_lr()
         learning_rates.append(last_lr[0])
         training_losses.append(epoch_loss / step)
-        logging.info(
+        logger(
             f"Epoch {epoch} average loss: {epoch_loss / step:.4f}, "
             f"learning rate: {last_lr}"
         )
 
-        if (epoch + 1) % validation_interval == 0:
+        if (
+            validation_data_loader is not None
+            and validation_interval is not None
+            and (epoch + 1) % validation_interval == 0
+        ):
             model.eval()
             with torch.no_grad():
                 labels, predictions, _ = get_model_predictions(
@@ -93,43 +105,47 @@ def training_loop(
                     average=evaluation_metric_weighting,
                 )
 
-                if f_score > best_f_score:
+                if model_save_folder is not None and f_score > best_f_score:
                     best_f_score = f_score
                     if save_intermediate_models:
                         trained_model_path = _save_model(
-                            model, model_save_folder, optimizer, epoch
+                            model.state_dict(), model_save_folder, epoch
                         )
                     else:
                         trained_model_path = _save_model(
-                            model,
+                            model.state_dict(),
                             model_save_folder,
-                            optimizer,
                             -1,  # -1 used to override previous best model
                         )
-                    logging.info(f"Model saved at {trained_model_path}")
-                logging.info(
-                    f"F1 score: {f_score}, validation loss: {loss_validation.data}"
-                )
+                    logger(f"Model saved at {trained_model_path}")
+                logger(f"F1 score: {f_score}, validation loss: {loss_validation.data}")
 
                 validation_losses.append(float(loss_validation.cpu().data))
                 f_scores.append(f_score)
-                plot_training_curve(
-                    validation_losses,
-                    training_losses,
-                    f_scores,
-                    learning_rates,
-                    visualizations_folder,
-                )
         else:
             validation_losses.append(None)
             f_scores.append(None)
 
-    logging.info(
+        training_metrics = TrainingMetrics(
+            validation_losses,
+            training_losses,
+            f_scores,
+            learning_rates,
+        )
+        if visualizations_folder is not None:
+            plot_training_curve(
+                validation_losses,
+                training_losses,
+                f_scores,
+                learning_rates,
+                visualizations_folder,
+            )
+    logger(
         f"Finished training, last f_score: {f_score}, "
         f"best f_score: {best_f_score}, "
         f"best validation loss: {best_loss_validation.data}"
     )
-    return best_f_score, trained_model_path
+    return best_f_score, trained_model_path, training_metrics
 
 
 def _save_batch_images(batch_data: Dict, directory: Path) -> None:
@@ -170,19 +186,14 @@ def get_model_predictions(
 
 
 def _save_model(
-    model: nn.Module,
+    model,
     model_save_folder: Path,
-    optimizer: Optimizer,
     epoch: int,
 ) -> Path:
     model_save_path = model_save_folder.joinpath(f"epoch_{epoch}.pth.tar")
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
-        {
-            "epoch": epoch,
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-        },
+        {"epoch": epoch, "state_dict": model},
         str(model_save_path),
     )
     return model_save_path

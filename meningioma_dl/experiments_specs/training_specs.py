@@ -2,16 +2,22 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TrainingSpecs:
-    training_mode: str
-
-
-@dataclass
-class CentralizedTrainingSpecs(TrainingSpecs):
+class CentralizedTrainingSpecs:
     epochs: int = 100
     batch_size: int = 4
     use_training_data_for_validation: bool = False
     training_mode: str = "centralized"
+
+
+@dataclass
+class FederatedTrainingSpecs:
+    global_epochs: int = 3
+    epochs_per_round: int = 4
+    batch_size: int = 2
+    use_training_data_for_validation: bool = False
+    training_mode: str = "federated"
+    number_of_clients: int = 2
+    partitioning_mode: str = "uniform"
 
 
 TRAINING_SPECS = {
@@ -21,14 +27,20 @@ TRAINING_SPECS = {
     "central_150_epochs": {"training_mode": "centralized", "epochs": 150},
     "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
     "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
+    "federated_3_epochs": {
+        "training_mode": "federated",
+        "global_epochs": 2,
+        "epochs_per_round": 2,
+        "number_of_clients": 2,
+    },
 }
 
 
-def get_training_specs(name: str) -> CentralizedTrainingSpecs:
+def get_training_specs(name: str):
     spec_dict = TRAINING_SPECS[name].copy()
     training_mode = spec_dict.pop("training_mode")
 
     if training_mode == "centralized":
         return CentralizedTrainingSpecs(**spec_dict)
     else:
-        raise ValueError("Only centralized training_mode supported for now")
+        return FederatedTrainingSpecs(**spec_dict)

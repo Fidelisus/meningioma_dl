@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, Any, Optional, List
 from typing import Tuple, Dict
 
 import numpy as np
@@ -12,7 +13,22 @@ from sklearn.metrics import (
 )
 
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
-from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
+
+
+@dataclass
+class TrainingMetrics:
+    validation_losses: Sequence[Optional[float]]
+    training_losses: Sequence[Optional[float]]
+    f_scores: Sequence[Optional[float]]
+    learning_rates: Sequence[Optional[float]]
+
+
+@dataclass
+class ValidationMetrics:
+    f_score: float
+    loss: float
+    true: np.array
+    predictions: np.array
 
 
 def calculate_sensitivity_and_specificity(
@@ -38,7 +54,7 @@ def create_evaluation_report(
     save_path: Path,
     run_id: str,
     modelling_specs: ModellingSpecs,
-    training_specs: CentralizedTrainingSpecs,
+    training_specs: Any,
 ) -> None:
     n_classes = modelling_specs.model_specs.number_of_classes
     report = classification_report(true, predictions, output_dict=True)
@@ -248,6 +264,185 @@ def plot_training_curve(
         row=2,
         col=1,
     )
+    fig.update_layout(title_text="<i><b>Learning curve</b></i>")
+
+    save_path.mkdir(parents=True, exist_ok=True)
+    fig.write_html(save_path.joinpath("learning_curve.html"))
+
+
+def blow_up_metrics_as_3d_matrix(
+    quantity: np.ndarray, epochs_in_round: int
+) -> np.ndarray:
+    """
+    blow up from:
+    quantity[round][client_id]
+
+    to:
+    quantity[round][client_id][epoch_in_round]
+    """
+    return np.repeat(quantity, epochs_in_round, axis=1).reshape(
+        (quantity.shape[0], quantity.shape[1], epochs_in_round)
+    )
+
+
+def get_metric_linear_traces(
+    metric: np.ndarray,
+    quantity_name: str,
+    n_samples_per_client: Optional[np.ndarray] = None,
+    main_lines_color: str = "red",
+    client_lines_color: str = "brown",
+    client_samples_number_lines_color: str = "black",
+) -> List[go.Scatter]:
+    traces = []
+
+    x_indices = tuple(range(metric.shape[0] * metric.shape[2]))
+    traces.append(
+        create_scatter_plot_trace(
+            y=np.median(metric, axis=1).flatten(),
+            x=x_indices,
+            name=f"{quantity_name} median",
+            color=main_lines_color,
+        )
+    )
+    traces.append(
+        create_scatter_plot_trace(
+            y=np.percentile(metric, 25, axis=1).flatten(),
+            x=x_indices,
+            name=f"{quantity_name} 25 percentile",
+            color=main_lines_color,
+            opacity=0.5,
+        )
+    )
+    traces.append(
+        create_scatter_plot_trace(
+            y=np.percentile(metric, 75, axis=1).flatten(),
+            x=x_indices,
+            name=f"{quantity_name} 75 percentile",
+            color=main_lines_color,
+            opacity=0.5,
+        )
+    )
+    if n_samples_per_client is not None:
+        n_samples_per_client = blow_up_metrics_as_3d_matrix(
+            n_samples_per_client, metric.shape[2]
+        )
+
+    for client_id in range(metric.shape[1]):
+        client_opacity = 0.1 + (1 + client_id) / metric.shape[1] * 0.4
+        traces.append(
+            create_scatter_plot_trace(
+                y=metric[:, client_id, :].flatten(),
+                x=x_indices,
+                name=f"{quantity_name} for client {client_id}",
+                toogled_on=False,
+                color=client_lines_color,
+                opacity=client_opacity,
+            )
+        )
+        if n_samples_per_client is not None:
+            traces.append(
+                go.Bar(
+                    y=n_samples_per_client[:, client_id].flatten(),
+                    x=x_indices,
+                    name=f"Samples for a client {client_id}",
+                    opacity=client_opacity,
+                    visible="legendonly",
+                    marker=dict(color=client_samples_number_lines_color),
+                )
+            )
+
+    return traces
+
+
+def create_scatter_plot_trace(
+    x: np.array,
+    y: np.array,
+    name: str,
+    toogled_on: bool = True,
+    color: str = None,
+    opacity: float = 1.0,
+) -> go.Scatter:
+    return go.Scatter(
+        y=y,
+        x=x,
+        name=name,
+        mode="markers+lines",
+        opacity=opacity,
+        visible=None if toogled_on else "legendonly",
+        line=dict(color=color),
+        connectgaps=True,
+    )
+
+
+def plot_fl_training_curve(
+    n_samples_per_client_training: np.ndarray,
+    n_samples_per_client_validation: np.ndarray,
+    validation_losses: np.ndarray,
+    training_losses: np.ndarray,
+    f_scores: np.ndarray,
+    learning_rates: np.ndarray,
+    save_path: Path,
+):
+    """
+    Every quantity should be passed as a matrix with the following structure:
+    quantity[round][client_id][epoch_in_round]
+    """
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.03,
+        subplot_titles=(
+            "Loss over epochs",
+            "F-score and learning rate over epochs",
+        ),
+    )
+    traces_losses_row: List[go.Scatter] = []
+    traces_losses_row.extend(
+        get_metric_linear_traces(
+            training_losses,
+            "Training loss",
+            n_samples_per_client=n_samples_per_client_training,
+            main_lines_color="red",
+            client_lines_color="brown",
+            client_samples_number_lines_color="black",
+        )
+    )
+    traces_losses_row.extend(
+        get_metric_linear_traces(
+            validation_losses,
+            "Validation loss",
+            n_samples_per_client=n_samples_per_client_validation,
+            main_lines_color="green",
+            client_lines_color="skyblue",
+            client_samples_number_lines_color="blue",
+        )
+    )
+    traces_f_scores_row: List[go.Scatter] = []
+    traces_f_scores_row.extend(
+        get_metric_linear_traces(
+            f_scores,
+            "F scores",
+            n_samples_per_client=n_samples_per_client_validation,
+            main_lines_color="darkgreen",
+            client_lines_color="darkslategrey",
+            client_samples_number_lines_color="blue",
+        )
+    )
+    traces_f_scores_row.append(
+        create_scatter_plot_trace(
+            x=tuple(range(learning_rates.shape[0] * learning_rates.shape[2])),
+            y=learning_rates[:][0][:].flatten(),
+            name="Learning rate",
+            color="grey",
+        )
+    )
+
+    for trace in traces_losses_row:
+        fig.add_trace(trace, row=1, col=1)
+    for trace in traces_f_scores_row:
+        fig.add_trace(trace, row=2, col=1)
+
     fig.update_layout(title_text="<i><b>Learning curve</b></i>")
 
     save_path.mkdir(parents=True, exist_ok=True)

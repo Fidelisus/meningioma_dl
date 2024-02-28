@@ -19,6 +19,11 @@ PREPROCESSING_SPECS: Dict[str, Dict[str, Any]] = {
     "100_padding": {"final_resize_mode": "trilinear", "initial_pad_spatial_size": 100, "final_resize_spatial_pad": 129},
     "no_padding": {"final_resize_mode": "trilinear", " initial_pad_spatial_size": 129},
     "no_resize": {"final_resize_mode": None, "final_crop_and_pad_spatial_size": 129},
+    "no_resize_no_tissue_around_tumour": {
+        "final_resize_mode": None,
+        "final_crop_and_pad_spatial_size": 129,
+        "tissue_around_tumour_zoom": None,
+    },
     "no_resize_100_final_crop": {
         "final_resize_mode": None,
         "final_crop_and_pad_spatial_size": 100,
