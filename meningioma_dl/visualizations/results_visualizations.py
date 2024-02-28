@@ -328,7 +328,7 @@ def get_metric_linear_traces(
         )
 
     for client_id in range(metric.shape[1]):
-        client_opacity = 0.4 + (1 + client_id) / metric.shape[1] * 0.4
+        client_opacity = 0.1 + (1 + client_id) / metric.shape[1] * 0.4
         traces.append(
             create_scatter_plot_trace(
                 y=metric[:, client_id, :].flatten(),
@@ -370,6 +370,7 @@ def create_scatter_plot_trace(
         opacity=opacity,
         visible=None if toogled_on else "legendonly",
         line=dict(color=color),
+        connectgaps=True,
     )
 
 
@@ -382,6 +383,10 @@ def plot_fl_training_curve(
     learning_rates: np.ndarray,
     save_path: Path,
 ):
+    """
+    Every quantity should be passed as a matrix with the following structure:
+    quantity[round][client_id][epoch_in_round]
+    """
     fig = make_subplots(
         rows=2,
         cols=1,
@@ -407,48 +412,38 @@ def plot_fl_training_curve(
         get_metric_linear_traces(
             validation_losses,
             "Validation loss",
-            n_samples_per_client=n_samples_per_client_training,
+            n_samples_per_client=n_samples_per_client_validation,
             main_lines_color="green",
             client_lines_color="skyblue",
             client_samples_number_lines_color="blue",
         )
     )
+    traces_f_scores_row: List[go.Scatter] = []
+    traces_f_scores_row.extend(
+        get_metric_linear_traces(
+            f_scores,
+            "F scores",
+            n_samples_per_client=n_samples_per_client_validation,
+            main_lines_color="darkgreen",
+            client_lines_color="darkslategrey",
+            client_samples_number_lines_color="blue",
+        )
+    )
+    traces_f_scores_row.append(
+        create_scatter_plot_trace(
+            x=tuple(range(learning_rates.shape[0] * learning_rates.shape[2])),
+            y=learning_rates[:][0][:].flatten(),
+            name="Learning rate",
+            color="grey",
+        )
+    )
 
     for trace in traces_losses_row:
         fig.add_trace(trace, row=1, col=1)
+    for trace in traces_f_scores_row:
+        fig.add_trace(trace, row=2, col=1)
 
     fig.update_layout(title_text="<i><b>Learning curve</b></i>")
 
     save_path.mkdir(parents=True, exist_ok=True)
     fig.write_html(save_path.joinpath("learning_curve.html"))
-
-    # fig.add_trace(
-    #     go.Scatter(
-    #         y=validation_losses,
-    #         x=tuple(range(len(training_losses))),
-    #         name="validation loss",
-    #         mode="markers+lines",
-    #     ),
-    #     row=1,
-    #     col=1,
-    # )
-    # fig.add_trace(
-    #     go.Scatter(
-    #         y=f_scores,
-    #         x=tuple(range(len(training_losses))),
-    #         name="F1 score",
-    #         mode="markers+lines",
-    #     ),
-    #     row=2,
-    #     col=1,
-    # )
-    # fig.add_trace(
-    #     go.Scatter(
-    #         y=learning_rates,
-    #         x=tuple(range(len(training_losses))),
-    #         name="Learning rate",
-    #         mode="markers+lines",
-    #     ),
-    #     row=2,
-    #     col=1,
-    # )

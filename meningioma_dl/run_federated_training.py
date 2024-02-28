@@ -9,6 +9,7 @@ import flwr as fl
 import torch
 from flwr.common import Metrics
 from flwr.common.logger import log
+from flwr.server import History
 
 from meningioma_dl.config import Config
 from meningioma_dl.evaluate import evaluate_model
@@ -131,7 +132,7 @@ class FederatedTraining:
         run_id: Optional[str] = None,
         manual_seed: int = Config.random_seed,
         device_name: str = "cpu",
-    ):
+    ) -> Tuple[Path, History]:
         self._init_instance_variables()
         self.device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
         setup_flower_logger()
@@ -219,7 +220,7 @@ def main(
         visualizations_folder=Config.visualizations_directory.joinpath(run_id),
         saved_models_folder=Config.saved_models_directory.joinpath(run_id),
     )
-    trainer.run_federated_training(
+    model_path, _ = trainer.run_federated_training(
         env_file_path=env_file_path, run_id=run_id, device_name=device_name
     )
 
