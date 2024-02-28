@@ -27,7 +27,13 @@ TRAINING_SPECS = {
     "central_150_epochs": {"training_mode": "centralized", "epochs": 150},
     "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
     "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
-    "federated_3_epochs": {
+    "federated_ci_run": {
+        "training_mode": "federated",
+        "global_epochs": 4,
+        "epochs_per_round": 10,
+        "number_of_clients": 4,
+    },
+    "federated_local_run": {
         "training_mode": "federated",
         "global_epochs": 2,
         "epochs_per_round": 2,

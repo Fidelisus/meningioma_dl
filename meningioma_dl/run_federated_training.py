@@ -218,7 +218,7 @@ def main(
     augmentations_specs_name: str = "basic_01p",
     scheduler_specs_name: str = "05_lr_099_gamma",
     model_specs_name: str = "resnet_10_2_unfreezed",
-    training_specs_name: str = "federated_3_epochs",
+    training_specs_name: str = "federated_local_run",
     fl_strategy_specs_name: str = "fed_avg_default",
 ):
     if run_id is None:
