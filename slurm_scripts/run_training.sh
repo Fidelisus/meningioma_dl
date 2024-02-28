@@ -17,13 +17,14 @@
 base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv1
 
-n_trials=1
 augmentation_specs="${1:-basic_01p}"
 scheduler_specs="${2:-05_lr_099_gamma}"
 preprocessing_specs="${3:-no_resize}"
 training_specs="${4:-central_2_epochs}"
 model_specs="${5:-resnet_10_2_unfreezed}"
-run_id="${6:-playground}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_${SLURM_JOBID}"
+fl_strategy_specs="${6:-fed_avg_default}"
+run_id="${7:-playground}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_${SLURM_JOBID}"
+script_name="${8:-run_grid_search.py}"
 
 module add Python/3.7.3-foss-2019a
 module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
@@ -34,14 +35,13 @@ echo "Running Slurm job with id $SLURM_JOBID and name $run_id"
 echo "venv path: $venv_path"
 
 #lddpython is needed to load a newer glibc
-${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/run_optuna_study.py \
+${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/"$script_name" \
   --device_name="cuda" \
   --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env \
-  --n_trials=$n_trials \
   --run_id="${run_id}" \
-  --validation_interval=1 \
   --augmentations_specs_name="${augmentation_specs}" \
   --scheduler_specs_name="${scheduler_specs}" \
   --preprocessing_specs_name="${preprocessing_specs}" \
   --model_specs_name="${model_specs}" \
-  --training_specs_name="${training_specs}"
+  --training_specs_name="${training_specs}" \
+  --fl_strategy_specs_name="${fl_strategy_specs}"
