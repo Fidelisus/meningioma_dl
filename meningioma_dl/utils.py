@@ -12,8 +12,8 @@ import torch
 def select_device(device="") -> torch.device:
     if device.lower() == "cuda":
         if not torch.cuda.is_available():
-            logging.warning("torch.cuda not available")
-            return torch.device("cpu")
+            raise ValueError("torch.cuda not available")
+            # return torch.device("cpu")
         else:
             return torch.device("cuda")
     # if device.lower() == "dml":
