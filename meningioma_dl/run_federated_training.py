@@ -1,4 +1,6 @@
+import copy
 import logging
+from collections import OrderedDict
 from functools import partial
 from logging import INFO
 from pathlib import Path
@@ -12,6 +14,7 @@ from flwr.common.logger import log
 from flwr.server import History
 
 from meningioma_dl.config import Config
+from meningioma_dl.data_loading.data_loader import TransformationsMode, get_data_loader
 from meningioma_dl.evaluate import evaluate_model
 from meningioma_dl.experiments_specs.augmentation_specs import AugmentationSpecs
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
@@ -28,6 +31,7 @@ from meningioma_dl.federated_learning.federated_training_utils import (
     get_data_loaders,
     visualize_federated_learning_metrics,
     create_strategy,
+    load_best_model,
 )
 from meningioma_dl.models.resnet import create_resnet_model, ResNet
 from meningioma_dl.training_utils import training_loop
@@ -95,6 +99,7 @@ class FederatedTraining:
             evaluation_metric_weighting=self.modelling_specs.model_specs.evaluation_metric_weighting,
             logger=clients_logging_function,
             visualizations_folder=self.visualizations_folder,
+            save_images=False,
         )
         self.evaluation_function = partial(
             evaluate_model,
@@ -103,12 +108,11 @@ class FederatedTraining:
             device=self.device,
             run_id=run_id,
             logger=clients_logging_function,
-            # TODO TODO make one for each client and reduce the number of saved files
             visualizations_folder=self.visualizations_folder,
         )
 
     def client_fn(self, cid: str) -> ClassicalFLClient:
-        model = self.model.to(self.device)
+        model = copy.deepcopy(self.model).to(self.device)
 
         training_data_loader = self.training_data_loaders[int(cid)]
         validation_data_loader = self.validation_data_loaders[int(cid)]
@@ -124,6 +128,30 @@ class FederatedTraining:
             device=self.device,
             training_function=self.training_function,
             evaluation_function=self.evaluation_function,
+            visualizations_folder=self.visualizations_folder.joinpath(f"client_{cid}"),
+        )
+
+    def _evaluate_best_model(self, trained_model_path: Path, run_id: str):
+        self.model = load_best_model(self.model, trained_model_path, self.device)
+        validation_data_loader, _ = get_data_loader(
+            Config.train_labels_file_path
+            if self.training_specs.use_training_data_for_validation
+            else Config.validation_labels_file_path,
+            Config.data_directory,
+            transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
+            batch_size=self.training_specs.batch_size,
+            preprocessing_specs=self.modelling_specs.preprocessing_specs,
+            class_mapping=self.modelling_specs.model_specs.class_mapping,
+        )
+        evaluate_model(
+            model=self.model,
+            data_loader=validation_data_loader,
+            modelling_specs=self.modelling_specs,
+            training_specs=self.training_specs,
+            device=self.device,
+            run_id=run_id,
+            logger=logging.info,
+            visualizations_folder=self.visualizations_folder,
         )
 
     def run_federated_training(
@@ -132,7 +160,7 @@ class FederatedTraining:
         run_id: Optional[str] = None,
         manual_seed: int = Config.random_seed,
         device_name: str = "cpu",
-    ) -> Tuple[Path, History]:
+    ) -> History:
         self._init_instance_variables()
         self.device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
         setup_flower_logger()
@@ -159,6 +187,7 @@ class FederatedTraining:
             self.fl_strategy_specs,
             fit_metrics_aggregation_fn=self._save_fit_metrics,
             evaluate_metrics_aggregation_fn=self._visualize_federated_learning_metrics,
+            saved_models_folder=self.saved_models_folder,
         )
         client_resources = self._get_client_resources()
 
@@ -169,7 +198,8 @@ class FederatedTraining:
             strategy=strategy,
             client_resources=client_resources,
         )
-        # TODO TODO save the model and return it to be later use by eval
+
+        self._evaluate_best_model(strategy.trained_model_path, run_id)
 
         return training_history
 
@@ -220,9 +250,10 @@ def main(
         visualizations_folder=Config.visualizations_directory.joinpath(run_id),
         saved_models_folder=Config.saved_models_directory.joinpath(run_id),
     )
-    model_path, _ = trainer.run_federated_training(
+    trainer.run_federated_training(
         env_file_path=env_file_path, run_id=run_id, device_name=device_name
     )
+    logging.info(f"Training for {run_id} finished successfully.")
 
 
 if __name__ == "__main__":

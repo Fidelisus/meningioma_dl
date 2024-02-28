@@ -38,6 +38,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         parameters_to_fine_tune: Optional[List[torch.Tensor]],
         loss_function_weighting: Optional[torch.Tensor],
         device: torch.device,
+        visualizations_folder: Path,
         training_function: Callable,
         evaluation_function: Callable,
     ):
@@ -49,6 +50,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self.parameters_to_fine_tune = parameters_to_fine_tune
         self.loss_function_weighting = loss_function_weighting
         self.device = device
+        self.visualizations_folder = visualizations_folder
 
         self.training_function = training_function
         self.evaluation_function = evaluation_function
@@ -76,6 +78,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
             optimizer=optimizer,
             scheduler=scheduler,
             loss_function=loss_function,
+            visualizations_folder=self.visualizations_folder,
         )
         return (
             get_model_parameters(self.model),
@@ -95,6 +98,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
             loss_function=nn.CrossEntropyLoss(
                 weight=self.loss_function_weighting,
             ).to(self.device),
+            visualizations_folder=self.visualizations_folder,
         )
         return (
             float(f1_score),

@@ -32,6 +32,7 @@ def training_loop(
     save_intermediate_models: bool = False,
     model_save_folder: Optional[Path] = None,
     logger: Callable[[str], None] = logging.info,
+    save_images: bool = True,
 ) -> Tuple[float, Optional[Path], TrainingMetrics]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
@@ -57,7 +58,7 @@ def training_loop(
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(
                 device
             )
-            if visualizations_folder is not None and epoch == 0:
+            if save_images and visualizations_folder is not None and epoch == 0:
                 _save_batch_images(
                     batch_data, visualizations_folder.joinpath("training_images")
                 )
@@ -108,13 +109,12 @@ def training_loop(
                     best_f_score = f_score
                     if save_intermediate_models:
                         trained_model_path = _save_model(
-                            model, model_save_folder, optimizer, epoch
+                            model.state_dict(), model_save_folder, epoch
                         )
                     else:
                         trained_model_path = _save_model(
-                            model,
+                            model.state_dict(),
                             model_save_folder,
-                            optimizer,
                             -1,  # -1 used to override previous best model
                         )
                     logger(f"Model saved at {trained_model_path}")
@@ -186,19 +186,14 @@ def get_model_predictions(
 
 
 def _save_model(
-    model: nn.Module,
+    model,
     model_save_folder: Path,
-    optimizer: Optimizer,
     epoch: int,
 ) -> Path:
     model_save_path = model_save_folder.joinpath(f"epoch_{epoch}.pth.tar")
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
-        {
-            "epoch": epoch,
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-        },
+        {"epoch": epoch, "state_dict": model},
         str(model_save_path),
     )
     return model_save_path

@@ -1,12 +1,11 @@
+from collections import OrderedDict
 from pathlib import Path
 from typing import List, Tuple, Any, Dict, Optional, Sequence, Callable
 
 import numpy as np
 import pandas as pd
 import torch
-import flwr as fl
 from flwr.common import Metrics
-from flwr.server.strategy import Strategy
 from monai import transforms
 from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader
@@ -15,10 +14,11 @@ from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import TransformationsMode, init_data_loader
 from meningioma_dl.data_loading.labels_loading import get_images_with_labels
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
-
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import FederatedTrainingSpecs
+from meningioma_dl.federated_learning.server import SaveModelFedAvg
+from meningioma_dl.models.resnet import ResNet
 from meningioma_dl.utils import get_loss_function_class_weights
 from meningioma_dl.visualizations.results_visualizations import plot_fl_training_curve
 
@@ -163,13 +163,24 @@ def visualize_federated_learning_metrics(
     return {}
 
 
+def load_best_model(
+    model: ResNet, trained_model_path: Path, device: torch.device
+) -> ResNet:
+    saved_parameters = torch.load(trained_model_path, map_location=device)["state_dict"]
+    params_dict = zip(model.state_dict().keys(), saved_parameters)
+    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
+    model.load_state_dict(state_dict, strict=True)
+    return model
+
+
 def create_strategy(
     fl_strategy_specs: FLStrategySpecs,
+    saved_models_folder: Path,
     fit_metrics_aggregation_fn: Callable,
     evaluate_metrics_aggregation_fn: Callable,
-) -> Strategy:
+) -> SaveModelFedAvg:
     # TODO TODO parameterize it
-    return fl.server.strategy.FedAvg(
+    strategy = SaveModelFedAvg(
         fraction_fit=1.0,  # Sample 100% of available clients for training
         fraction_evaluate=0.5,  # Sample 50% of available clients for evaluation
         min_fit_clients=2,  # Never sample less than 10 clients for training
@@ -178,3 +189,5 @@ def create_strategy(
         fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
         evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
     )
+    strategy.saved_models_folder = saved_models_folder
+    return strategy
