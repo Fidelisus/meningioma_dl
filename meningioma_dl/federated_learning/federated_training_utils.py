@@ -72,6 +72,8 @@ def get_partitions(
 ) -> Dict[int, Tuple[int, ...]]:
     partition_configs = {}
     if partitioning_mode == "uniform":
+        # for i in range(n_partitions):
+        #     partition_configs[i] = samples_df.index[:10]
         splitter = StratifiedKFold(
             n_splits=n_partitions, shuffle=True, random_state=123
         )
@@ -182,9 +184,9 @@ def create_strategy(
     # TODO TODO parameterize it
     strategy = SaveModelFedAvg(
         fraction_fit=1.0,  # Sample 100% of available clients for training
-        fraction_evaluate=0.5,  # Sample 50% of available clients for evaluation
+        # fraction_evaluate=0.5,  # Sample 50% of available clients for evaluation
         min_fit_clients=2,  # Never sample less than 10 clients for training
-        min_evaluate_clients=2,  # Never sample less than 5 clients for evaluation
+        # min_evaluate_clients=2,  # Never sample less than 5 clients for evaluation
         min_available_clients=2,  # Wait until all 10 clients are available
         fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
         evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,

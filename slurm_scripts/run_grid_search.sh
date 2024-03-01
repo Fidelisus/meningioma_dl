@@ -5,8 +5,8 @@ slurm_script_path=/home/cir/lsobocinski/meningioma_dl/slurm_scripts/run_training
 augmentation_specs=("basic_05p")
 scheduler_specs=("1_lr_099_gamma")
 preprocessing_specs=("no_resize")
-training_settings=("central_200_epochs")
-model_specs=("resnet_10_1_unfreezed" "resnet_10_4_unfreezed")
+training_settings=("federated_local_run")
+model_specs=("resnet_10_1_unfreezed")
 fl_strategy_specs=("fed_avg_default")
 
 #script_name="run_grid_search.py"
@@ -21,7 +21,7 @@ for augmentation in "${augmentation_specs[@]}"; do
             for training in "${training_settings[@]}"; do
                 for model in "${model_specs[@]}"; do
                     for fl_strategy in "${fl_strategy_specs[@]}"; do
-                      sbatch -p full --qos jobarray "$slurm_script_path" \
+                      sbatch -p centos7 --qos jobarray "$slurm_script_path" \
                       "$augmentation" \
                       "$scheduler" \
                       "$preprocessing" \

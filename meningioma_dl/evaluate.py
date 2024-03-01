@@ -1,10 +1,11 @@
+from sklearn.metrics import f1_score, recall_score, precision_score
+import torch
+
 import logging
 from pathlib import Path
 from typing import Optional, Union, Any, Callable, Tuple
 
 import fire
-import torch
-from sklearn.metrics import f1_score, recall_score, precision_score
 from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config

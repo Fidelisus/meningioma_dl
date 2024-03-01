@@ -1,3 +1,5 @@
+import torch
+
 import copy
 import logging
 from collections import OrderedDict
@@ -8,7 +10,6 @@ from typing import Tuple, Optional, Callable, List
 
 import fire
 import flwr as fl
-import torch
 from flwr.common import Metrics
 from flwr.common.logger import log
 from flwr.server import History
@@ -194,7 +195,7 @@ class FederatedTraining:
         training_history = fl.simulation.start_simulation(
             client_fn=self.client_fn,
             num_clients=self.training_specs.number_of_clients,
-            config=fl.server.ServerConfig(num_rounds=self.training_specs.global_epochs),
+            num_rounds=self.training_specs.global_epochs,
             strategy=strategy,
             client_resources=client_resources,
         )

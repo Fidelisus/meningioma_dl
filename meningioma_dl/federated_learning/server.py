@@ -24,7 +24,7 @@ class SaveModelFedAvg(fl.server.strategy.FedAvg):
         )
 
         if aggregated_parameters is not None:
-            aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_ndarrays(
+            aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_weights(
                 aggregated_parameters
             )
             self.trained_model_path = _save_model(
