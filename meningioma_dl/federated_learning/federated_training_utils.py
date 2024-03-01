@@ -131,6 +131,8 @@ def visualize_federated_learning_metrics(
         losses_for_clients: List[np.ndarray] = []
         lr_for_clients: List[np.ndarray] = []
         for n_samples, metrics in training_metrics_tuples:
+            metrics = metrics.cpu()
+            n_samples = n_samples.cpu()
             n_samples_for_clients.append(n_samples)
             losses_for_clients.append(metrics["training_losses"])
             lr_for_clients.append(metrics["learning_rates"])
@@ -143,6 +145,8 @@ def visualize_federated_learning_metrics(
         losses_for_clients: List[np.ndarray] = []
         f_scores_for_clients: List[np.ndarray] = []
         for n_samples, metrics in validation_metrics_tuples:
+            metrics = metrics.cpu()
+            n_samples = n_samples.cpu()
             n_samples_for_clients.append(n_samples)
             nans_vector = np.full(epochs_in_one_round - 1, np.nan)
             losses_for_clients.append(np.concatenate([nans_vector, [metrics["loss"]]]))

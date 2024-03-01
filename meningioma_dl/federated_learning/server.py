@@ -8,7 +8,7 @@ from flwr.common import Scalar, Parameters
 from meningioma_dl.training_utils import _save_model
 
 
-class SaveModelFedAvg(fl.server.strategy.FedAvg):
+class SaveModelFedAvg(fl.server.server.FedAvg):
     saved_models_folder: Path
     trained_model_path: Optional[Path] = None
 
