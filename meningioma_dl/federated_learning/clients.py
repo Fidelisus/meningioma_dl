@@ -5,7 +5,7 @@ from typing import Tuple, List, Dict, Callable, Optional, Any
 
 import flwr as fl
 import torch
-from flwr.common import Scalar, NDArrays
+from flwr.common import Scalar
 from torch import nn
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
@@ -17,11 +17,11 @@ from meningioma_dl.federated_learning.federated_training_utils import (
 )
 
 
-def get_model_parameters(model: ResNet) -> NDArrays:
+def get_model_parameters(model: ResNet):
     return [val.cpu().numpy() for _, val in model.state_dict().items()]
 
 
-def set_model_parameters(model: ResNet, parameters: NDArrays):
+def set_model_parameters(model: ResNet, parameters):
     params_dict = zip(model.state_dict().keys(), parameters)
     state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
     model.load_state_dict(state_dict, strict=True)
@@ -55,13 +55,13 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self.training_function = training_function
         self.evaluation_function = evaluation_function
 
-    def get_parameters(self, config: Dict[str, Scalar]) -> NDArrays:
+    def get_parameters(self):
         print(f"[Client {self.cid}] get_parameters")
         return get_model_parameters(self.model)
 
     def fit(
-        self, parameters: NDArrays, config: Dict[str, Scalar]
-    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
+        self, parameters, config: Dict[str, Scalar]
+    ) -> Tuple[Any, int, Dict[str, Scalar]]:
         print(f"[Client {self.cid}] fit, config: {config}")
         set_model_parameters(self.model, parameters)
 
@@ -87,7 +87,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         )
 
     def evaluate(
-        self, parameters: NDArrays, config: Dict[str, Scalar]
+        self, parameters, config: Dict[str, Scalar]
     ) -> Tuple[float, int, Dict[str, Scalar]]:
         print(f"[Client {self.cid}] evaluate, config: {config}")
         set_model_parameters(self.model, parameters)

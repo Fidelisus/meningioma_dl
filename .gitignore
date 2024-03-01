@@ -165,5 +165,6 @@ pretrain/
 toy_data/
 viz/
 venv1/
+venv39/
 slurm-*
 .vscode/
