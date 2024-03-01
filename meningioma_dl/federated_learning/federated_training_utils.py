@@ -131,11 +131,9 @@ def visualize_federated_learning_metrics(
         losses_for_clients: List[np.ndarray] = []
         lr_for_clients: List[np.ndarray] = []
         for n_samples, metrics in training_metrics_tuples:
-            metrics = metrics.cpu()
-            n_samples = n_samples.cpu()
-            n_samples_for_clients.append(n_samples)
-            losses_for_clients.append(metrics["training_losses"])
-            lr_for_clients.append(metrics["learning_rates"])
+            n_samples_for_clients.append(n_samples.cpu())
+            losses_for_clients.append(metrics["training_losses"].cpu())
+            lr_for_clients.append(metrics["learning_rates"].cpu())
         n_samples_per_client_training.append(n_samples_for_clients)
         training_losses.append(np.hstack([losses_for_clients]))
         learning_rates.append(np.hstack([lr_for_clients]))
@@ -145,13 +143,13 @@ def visualize_federated_learning_metrics(
         losses_for_clients: List[np.ndarray] = []
         f_scores_for_clients: List[np.ndarray] = []
         for n_samples, metrics in validation_metrics_tuples:
-            metrics = metrics.cpu()
-            n_samples = n_samples.cpu()
-            n_samples_for_clients.append(n_samples)
+            n_samples_for_clients.append(n_samples.cpu())
             nans_vector = np.full(epochs_in_one_round - 1, np.nan)
-            losses_for_clients.append(np.concatenate([nans_vector, [metrics["loss"]]]))
+            losses_for_clients.append(
+                np.concatenate([nans_vector, [metrics["loss"].cpu()]])
+            )
             f_scores_for_clients.append(
-                np.concatenate([nans_vector, [metrics["f_score"]]])
+                np.concatenate([nans_vector, [metrics["f_score"].cpu()]])
             )
         n_samples_per_client_validation.append(n_samples_for_clients)
         validation_losses.append(np.hstack([losses_for_clients]))
