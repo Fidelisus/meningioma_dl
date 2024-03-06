@@ -252,7 +252,7 @@ def main(
         saved_models_folder=Config.saved_models_directory.joinpath(run_id),
     )
     trainer.run_federated_training(
-        env_file_path=env_file_path, run_id=run_id, device_name=device_name
+        env_file_path=None, run_id=run_id, device_name=device_name
     )
     logging.info(f"Training for {run_id} finished successfully.")
 
