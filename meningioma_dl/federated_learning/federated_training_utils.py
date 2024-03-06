@@ -131,9 +131,9 @@ def visualize_federated_learning_metrics(
         losses_for_clients: List[np.ndarray] = []
         lr_for_clients: List[np.ndarray] = []
         for n_samples, metrics in training_metrics_tuples:
-            n_samples_for_clients.append(n_samples.cpu())
-            losses_for_clients.append(metrics["training_losses"].cpu())
-            lr_for_clients.append(metrics["learning_rates"].cpu())
+            n_samples_for_clients.append(n_samples)
+            losses_for_clients.append(metrics["training_losses"])
+            lr_for_clients.append(metrics["learning_rates"])
         n_samples_per_client_training.append(n_samples_for_clients)
         training_losses.append(np.hstack([losses_for_clients]))
         learning_rates.append(np.hstack([lr_for_clients]))
@@ -143,13 +143,13 @@ def visualize_federated_learning_metrics(
         losses_for_clients: List[np.ndarray] = []
         f_scores_for_clients: List[np.ndarray] = []
         for n_samples, metrics in validation_metrics_tuples:
-            n_samples_for_clients.append(n_samples.cpu())
+            n_samples_for_clients.append(n_samples)
             nans_vector = np.full(epochs_in_one_round - 1, np.nan)
             losses_for_clients.append(
-                np.concatenate([nans_vector, [metrics["loss"].cpu()]])
+                np.concatenate([nans_vector, [metrics["loss"]]])
             )
             f_scores_for_clients.append(
-                np.concatenate([nans_vector, [metrics["f_score"].cpu()]])
+                np.concatenate([nans_vector, [metrics["f_score"]]])
             )
         n_samples_per_client_validation.append(n_samples_for_clients)
         validation_losses.append(np.hstack([losses_for_clients]))
@@ -185,11 +185,11 @@ def create_strategy(
 ) -> SaveModelFedAvg:
     # TODO TODO parameterize it
     strategy = SaveModelFedAvg(
-        fraction_fit=1.0,  # Sample 100% of available clients for training
+        # fraction_fit=1.0,  # Sample 100% of available clients for training
         # fraction_evaluate=0.5,  # Sample 50% of available clients for evaluation
-        min_fit_clients=2,  # Never sample less than 10 clients for training
+        # min_fit_clients=1,  # Never sample less than 10 clients for training
         # min_evaluate_clients=2,  # Never sample less than 5 clients for evaluation
-        min_available_clients=2,  # Wait until all 10 clients are available
+        # min_available_clients=1,  # Wait until all 10 clients are available
         fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
         evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
     )

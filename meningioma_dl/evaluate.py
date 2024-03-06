@@ -116,7 +116,7 @@ def evaluate_model(
             loss = loss_function(
                 predictions.to(torch.float64),
                 labels.to(torch.int64).to(device),
-            )
+            ).cpu()
     labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
     f_score = f1_score(

@@ -192,6 +192,7 @@ class FederatedTraining:
         )
         client_resources = self._get_client_resources()
 
+        logging.info("Starting simulation")
         training_history = fl.simulation.start_simulation(
             client_fn=self.client_fn,
             num_clients=self.training_specs.number_of_clients,
@@ -207,7 +208,7 @@ class FederatedTraining:
     def _get_client_resources(self):
         client_resources = {"num_gpus": 0, "num_cpus": 4}
         if self.device.type == "cuda":
-            client_resources = {"num_gpus": 1, "num_cpus": 4}
+            client_resources = {"num_gpus": 1, "num_cpus": 1}
         return client_resources
 
 
