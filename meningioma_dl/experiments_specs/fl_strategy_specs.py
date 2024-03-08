@@ -4,7 +4,10 @@ from typing import Optional, Dict, Any
 from typing_extensions import Self
 
 FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
-    "fed_avg_default": {"name": "fed_avg", "config": {}},
+    "fed_avg_default": {
+        "name": "fed_avg",
+        "config": {"fraction_fit": 1.0, "fraction_eval": 1.0},
+    },
 }
 
 

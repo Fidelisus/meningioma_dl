@@ -6,7 +6,7 @@ from collections import OrderedDict
 from functools import partial
 from logging import INFO
 from pathlib import Path
-from typing import Tuple, Optional, Callable, List
+from typing import Tuple, Optional, Callable, List, Dict
 
 import fire
 import flwr as fl
@@ -65,15 +65,19 @@ class FederatedTraining:
         self.fl_strategy_specs: FLStrategySpecs = fl_strategy_specs
         self.visualizations_folder: Path = visualizations_folder
         self.saved_models_folder: Path = saved_models_folder
+        self._init_instance_variables()
 
     def _init_instance_variables(self):
         self.training_metrics = []
         self.validation_metrics = []
+        self.last_lr: Optional[float] = None
 
     def _save_fit_metrics(
         self, metrics_from_clients: List[Tuple[int, Metrics]]
     ) -> Metrics:
         self.training_metrics.append(metrics_from_clients)
+        if not self.training_specs.reset_learning_rate_every_round:
+            self.last_lr = metrics_from_clients[0][1]["learning_rates"][-1]
         return {}
 
     def _visualize_federated_learning_metrics(
@@ -111,6 +115,9 @@ class FederatedTraining:
             logger=clients_logging_function,
             visualizations_folder=self.visualizations_folder,
         )
+
+    def on_fit_config_fn(self, _) -> Dict[str, float]:
+        return {"last_lr": self.last_lr}
 
     def client_fn(self, cid: str) -> ClassicalFLClient:
         model = copy.deepcopy(self.model).to(self.device)
@@ -181,6 +188,7 @@ class FederatedTraining:
             self.modelling_specs.model_specs.number_of_layers_to_unfreeze,
         )
         self._set_clients_train_and_eval_functions(run_id)
+        self.last_lr = self.modelling_specs.scheduler_specs.learning_rate
 
         logging.info("Global model initialized succesfully")
 
@@ -189,6 +197,7 @@ class FederatedTraining:
             fit_metrics_aggregation_fn=self._save_fit_metrics,
             evaluate_metrics_aggregation_fn=self._visualize_federated_learning_metrics,
             saved_models_folder=self.saved_models_folder,
+            on_fit_config_fn=self.on_fit_config_fn,
         )
         client_resources = self._get_client_resources()
 

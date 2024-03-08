@@ -18,6 +18,7 @@ class FederatedTrainingSpecs:
     training_mode: str = "federated"
     number_of_clients: int = 2
     partitioning_mode: str = "uniform"
+    reset_learning_rate_every_round: bool = False
 
 
 TRAINING_SPECS = {
@@ -38,6 +39,24 @@ TRAINING_SPECS = {
         "global_epochs": 4,
         "epochs_per_round": 10,
         "number_of_clients": 4,
+    },
+    "federated_20r_20e_5c": {
+        "training_mode": "federated",
+        "global_epochs": 20,
+        "epochs_per_round": 20,
+        "number_of_clients": 5,
+    },
+    "federated_10r_40e_5c": {
+        "training_mode": "federated",
+        "global_epochs": 10,
+        "epochs_per_round": 40,
+        "number_of_clients": 5,
+    },
+    "federated_40r_10e_5c": {
+        "training_mode": "federated",
+        "global_epochs": 40,
+        "epochs_per_round": 10,
+        "number_of_clients": 5,
     },
 }
 

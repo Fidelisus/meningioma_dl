@@ -15,6 +15,7 @@ from meningioma_dl.models.resnet import ResNet
 from meningioma_dl.federated_learning.federated_training_utils import (
     get_optimizer_and_scheduler,
 )
+from meningioma_dl.visualizations.results_visualizations import TrainingMetrics
 
 
 def get_model_parameters(model: ResNet):
@@ -66,7 +67,9 @@ class ClassicalFLClient(fl.client.NumPyClient):
         set_model_parameters(self.model, parameters)
 
         optimizer, scheduler = get_optimizer_and_scheduler(
-            self.parameters_to_fine_tune, self.modelling_specs
+            self.parameters_to_fine_tune,
+            self.modelling_specs,
+            self.modelling_specs.scheduler_specs.learning_rate,
         )
         loss_function = nn.CrossEntropyLoss(
             weight=self.loss_function_weighting,

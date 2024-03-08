@@ -24,12 +24,14 @@ from meningioma_dl.visualizations.results_visualizations import plot_fl_training
 
 
 def get_optimizer_and_scheduler(
-    parameters_to_fine_tune: List[torch.Tensor], modelling_specs: ModellingSpecs
+    parameters_to_fine_tune: List[torch.Tensor],
+    modelling_specs: ModellingSpecs,
+    learning_rate: float,
 ) -> Tuple[torch.optim.Optimizer, Any]:
     lr_params = [
         {
             "params": parameters_to_fine_tune,
-            "lr": modelling_specs.scheduler_specs.learning_rate,
+            "lr": learning_rate,
         }
     ]
     optimizer = torch.optim.Adam(lr_params)
@@ -145,9 +147,7 @@ def visualize_federated_learning_metrics(
         for n_samples, metrics in validation_metrics_tuples:
             n_samples_for_clients.append(n_samples)
             nans_vector = np.full(epochs_in_one_round - 1, np.nan)
-            losses_for_clients.append(
-                np.concatenate([nans_vector, [metrics["loss"]]])
-            )
+            losses_for_clients.append(np.concatenate([nans_vector, [metrics["loss"]]]))
             f_scores_for_clients.append(
                 np.concatenate([nans_vector, [metrics["f_score"]]])
             )
@@ -182,16 +182,22 @@ def create_strategy(
     saved_models_folder: Path,
     fit_metrics_aggregation_fn: Callable,
     evaluate_metrics_aggregation_fn: Callable,
+    on_fit_config_fn: Callable,
 ) -> SaveModelFedAvg:
-    # TODO TODO parameterize it
-    strategy = SaveModelFedAvg(
-        # fraction_fit=1.0,  # Sample 100% of available clients for training
-        # fraction_evaluate=0.5,  # Sample 50% of available clients for evaluation
-        # min_fit_clients=1,  # Never sample less than 10 clients for training
-        # min_evaluate_clients=2,  # Never sample less than 5 clients for evaluation
-        # min_available_clients=1,  # Wait until all 10 clients are available
-        fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
-        evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
-    )
+    if fl_strategy_specs.name == "fed_avg":
+        strategy = SaveModelFedAvg(
+            fraction_fit=fl_strategy_specs.config.get(
+                "fraction_fit", 1.0
+            ),  # % of available clients for training
+            fraction_eval=fl_strategy_specs.config.get(
+                "fraction_eval", 1.0
+            ),  # % of available clients for evaluation
+            accept_failures=False,
+            fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
+            evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
+            on_fit_config_fn=on_fit_config_fn,
+        )
+    else:
+        raise KeyError(f"Strategy named {fl_strategy_specs.name} not supported")
     strategy.saved_models_folder = saved_models_folder
     return strategy
