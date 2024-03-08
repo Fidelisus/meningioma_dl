@@ -69,7 +69,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         optimizer, scheduler = get_optimizer_and_scheduler(
             self.parameters_to_fine_tune,
             self.modelling_specs,
-            self.modelling_specs.scheduler_specs.learning_rate,
+            config["last_lr"],
         )
         loss_function = nn.CrossEntropyLoss(
             weight=self.loss_function_weighting,

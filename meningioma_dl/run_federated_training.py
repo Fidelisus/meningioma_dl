@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 import copy
@@ -90,7 +91,13 @@ class FederatedTraining:
             self.visualizations_folder,
             self.training_specs.epochs_per_round,
         )
-        return {}
+        n_samples_per_client = []
+        f_score_per_client = []
+        for n_samples, metrics in validation_metrics_from_clients:
+            n_samples_per_client.append(n_samples)
+            f_score_per_client.append(metrics["f_score"])
+        weighted_f_score = np.average(f_score_per_client, weights=n_samples_per_client)
+        return {"f_score": weighted_f_score}
 
     def _set_clients_train_and_eval_functions(self, run_id):
         clients_logging_function = partial(log, INFO)
@@ -252,7 +259,7 @@ def main(
     logging.info(f"Modelling specs: {modelling_spec}")
     logging.info(f"Augmentations specs name: {augmentations_specs_name}")
     logging.info(f"Training specs: {training_spec}")
-    logging.info(f"FL strategy specs: {training_spec}")
+    logging.info(f"FL strategy specs: {fl_strategy_specs}")
 
     trainer = FederatedTraining(
         modelling_spec,

@@ -34,6 +34,12 @@ TRAINING_SPECS = {
         "epochs_per_round": 2,
         "number_of_clients": 2,
     },
+    "federated_local_run_longer": {
+        "training_mode": "federated",
+        "global_epochs": 3,
+        "epochs_per_round": 4,
+        "number_of_clients": 2,
+    },
     "federated_ci_run": {
         "training_mode": "federated",
         "global_epochs": 4,

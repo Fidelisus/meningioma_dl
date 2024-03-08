@@ -432,7 +432,7 @@ def plot_fl_training_curve(
     traces_f_scores_row.append(
         create_scatter_plot_trace(
             x=tuple(range(learning_rates.shape[0] * learning_rates.shape[2])),
-            y=learning_rates[:][0][:].flatten(),
+            y=learning_rates[:, 0, :].flatten(),
             name="Learning rate",
             color="grey",
         )
