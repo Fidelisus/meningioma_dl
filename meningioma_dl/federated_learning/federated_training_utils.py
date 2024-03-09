@@ -17,7 +17,7 @@ from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import FederatedTrainingSpecs
-from meningioma_dl.federated_learning.server import SaveModelFedAvg
+from meningioma_dl.federated_learning.server import SaveModelFedAvg, FedProx
 from meningioma_dl.models.resnet import ResNet
 from meningioma_dl.utils import get_loss_function_class_weights
 from meningioma_dl.visualizations.results_visualizations import plot_fl_training_curve
@@ -196,6 +196,20 @@ def create_strategy(
             fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
             evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
             on_fit_config_fn=on_fit_config_fn,
+        )
+    elif fl_strategy_specs.name == "fed_prox":
+        strategy = FedProx(
+            fraction_fit=fl_strategy_specs.config.get(
+                "fraction_fit", 1.0
+            ),  # % of available clients for training
+            fraction_eval=fl_strategy_specs.config.get(
+                "fraction_eval", 1.0
+            ),  # % of available clients for evaluation
+            accept_failures=False,
+            fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
+            evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
+            on_fit_config_fn=on_fit_config_fn,
+            proximal_mu=fl_strategy_specs.config["proximal_mu"],
         )
     else:
         raise KeyError(f"Strategy named {fl_strategy_specs.name} not supported")

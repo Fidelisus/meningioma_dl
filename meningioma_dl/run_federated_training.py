@@ -35,7 +35,7 @@ from meningioma_dl.federated_learning.federated_training_utils import (
     create_strategy,
     load_best_model,
 )
-from meningioma_dl.models.resnet import create_resnet_model, ResNet
+from meningioma_dl.models.resnet import create_resnet_model, ResNet, freeze_layers
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
     setup_run,
@@ -48,8 +48,8 @@ from meningioma_dl.utils import (
 class FederatedTraining:
     device: Optional[torch.device]
     model: Optional[ResNet]
+    pretrained_model_state_dict: Dict
     loss_function_weighting: Optional[torch.Tensor]
-    parameters_to_fine_tune: Optional[List[torch.Tensor]]
     training_function: Optional[Callable]
     evaluation_function: Optional[Callable]
 
@@ -138,7 +138,7 @@ class FederatedTraining:
             training_data_loader=training_data_loader,
             validation_data_loader=validation_data_loader,
             modelling_specs=self.modelling_specs,
-            parameters_to_fine_tune=self.parameters_to_fine_tune,
+            pretrained_model_state_dict=self.pretrained_model_state_dict,
             loss_function_weighting=self.loss_function_weighting,
             device=self.device,
             training_function=self.training_function,
@@ -186,13 +186,12 @@ class FederatedTraining:
             self.validation_data_loaders,
             self.loss_function_weighting,
         ) = get_data_loaders(self.modelling_specs, self.training_specs)
-        self.model, self.parameters_to_fine_tune = create_resnet_model(
+        self.model, self.pretrained_model_state_dict = create_resnet_model(
             self.modelling_specs.model_specs.model_depth,
             self.modelling_specs.model_specs.resnet_shortcut_type,
             self.modelling_specs.model_specs.number_of_classes,
             Config.pretrained_models_directory,
             self.device,
-            self.modelling_specs.model_specs.number_of_layers_to_unfreeze,
         )
         self._set_clients_train_and_eval_functions(run_id)
         self.last_lr = self.modelling_specs.scheduler_specs.learning_rate

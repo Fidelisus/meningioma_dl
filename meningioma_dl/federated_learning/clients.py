@@ -11,7 +11,7 @@ from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
-from meningioma_dl.models.resnet import ResNet
+from meningioma_dl.models.resnet import ResNet, freeze_layers
 from meningioma_dl.federated_learning.federated_training_utils import (
     get_optimizer_and_scheduler,
 )
@@ -36,7 +36,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         training_data_loader: DataLoader,
         validation_data_loader: DataLoader,
         modelling_specs: Optional[ModellingSpecs],
-        parameters_to_fine_tune: Optional[List[torch.Tensor]],
+        pretrained_model_state_dict: Dict,
         loss_function_weighting: Optional[torch.Tensor],
         device: torch.device,
         visualizations_folder: Path,
@@ -48,7 +48,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self.training_data_loader = training_data_loader
         self.validation_data_loader = validation_data_loader
         self.modelling_specs = modelling_specs
-        self.parameters_to_fine_tune = parameters_to_fine_tune
+        self.pretrained_model_state_dict = pretrained_model_state_dict
         self.loss_function_weighting = loss_function_weighting
         self.device = device
         self.visualizations_folder = visualizations_folder
@@ -65,9 +65,13 @@ class ClassicalFLClient(fl.client.NumPyClient):
     ) -> Tuple[Any, int, Dict[str, Scalar]]:
         print(f"[Client {self.cid}] fit, config: {config}")
         set_model_parameters(self.model, parameters)
-
+        _, parameters_to_fine_tune = freeze_layers(
+            self.model,
+            self.modelling_specs.model_specs.number_of_layers_to_unfreeze,
+            self.pretrained_model_state_dict,
+        )
         optimizer, scheduler = get_optimizer_and_scheduler(
-            self.parameters_to_fine_tune,
+            parameters_to_fine_tune,
             self.modelling_specs,
             config["last_lr"],
         )
@@ -82,6 +86,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
             scheduler=scheduler,
             loss_function=loss_function,
             visualizations_folder=self.visualizations_folder,
+            proximal_mu=config.get("proximal_mu", None),
         )
         return (
             get_model_parameters(self.model),

@@ -1,3 +1,4 @@
+import copy
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Callable
@@ -10,6 +11,7 @@ from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
+from meningioma_dl.models.resnet import ResNet
 from meningioma_dl.visualizations.images_visualization import visualize_images
 from meningioma_dl.visualizations.results_visualizations import (
     plot_training_curve,
@@ -20,7 +22,7 @@ from meningioma_dl.visualizations.results_visualizations import (
 def training_loop(
     training_data_loader: DataLoader,
     validation_data_loader: Optional[DataLoader],
-    model: nn.Module,
+    model: ResNet,
     optimizer: Optimizer,
     scheduler,
     loss_function,
@@ -33,6 +35,7 @@ def training_loop(
     model_save_folder: Optional[Path] = None,
     logger: Callable[[str], None] = logging.info,
     save_images: bool = True,
+    proximal_mu: Optional[float] = None,
 ) -> Tuple[float, Optional[Path], TrainingMetrics]:
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
@@ -41,6 +44,11 @@ def training_loop(
     trained_model_path = None
     training_metrics = None
     logger(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
+
+    if proximal_mu is not None:
+        global_params = copy.deepcopy(model)
+    else:
+        global_params = None
 
     training_losses: List[float] = []
     validation_losses: List[Union[float, None]] = []
@@ -65,9 +73,21 @@ def training_loop(
 
             optimizer.zero_grad()
             predictions = model(inputs).to(torch.float64)
-            loss = loss_function(
-                predictions, _convert_simple_labels_to_torch_format(labels, device)
-            )
+
+            labels_torch_format = _convert_simple_labels_to_torch_format(labels, device)
+            if proximal_mu is None:
+                loss = loss_function(predictions, labels_torch_format)
+            else:
+                loss = _calculate_loss_using_proximal_term(
+                    global_params,
+                    model,
+                    labels_torch_format,
+                    predictions,
+                    loss_function,
+                    proximal_mu,
+                    logger,
+                )
+
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
@@ -146,6 +166,28 @@ def training_loop(
         f"best validation loss: {best_loss_validation.data}"
     )
     return best_f_score, trained_model_path, training_metrics
+
+
+def _calculate_loss_using_proximal_term(
+    global_params: ResNet,
+    model: ResNet,
+    labels_torch_format: torch.Tensor,
+    predictions: torch.Tensor,
+    loss_function: Callable,
+    proximal_mu: float,
+    logging_fn: Callable,
+) -> torch.Tensor:
+    proximal_term = 0.0
+    for local_weights, global_weights in zip(
+        model.parameters(), global_params.parameters()
+    ):
+        proximal_term += (local_weights - global_weights).norm(2)
+    loss = (
+        loss_function(predictions, labels_torch_format)
+        + (proximal_mu / 2.0) * proximal_term
+    )
+    logging_fn(f"Loss calculated with a proximal term of {proximal_term}")
+    return loss
 
 
 def _save_batch_images(batch_data: Dict, directory: Path) -> None:
