@@ -104,6 +104,7 @@ def evaluate_model(
     visualizations_folder: Optional[Path] = None,
     logger: Callable[[str], None] = logging.info,
     loss_function: Optional[Callable] = None,
+    save_images: bool = True
 ) -> Tuple[float, ValidationMetrics]:
     loss = None
 
@@ -146,12 +147,13 @@ def evaluate_model(
             modelling_specs,
             training_specs,
         )
-        create_images_errors_report(
-            data_loader,
-            images_paths,
-            predictions_flat,
-            visualizations_folder.joinpath("evaluation_images_with_predictions"),
-        )
+        if save_images:
+            create_images_errors_report(
+                data_loader,
+                images_paths,
+                predictions_flat,
+                visualizations_folder.joinpath("evaluation_images_with_predictions"),
+            )
     return f_score, ValidationMetrics(f_score, loss, labels_cpu, predictions_flat)
 
 

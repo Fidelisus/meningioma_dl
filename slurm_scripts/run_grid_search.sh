@@ -2,18 +2,18 @@
 
 slurm_script_path=/home/cir/lsobocinski/meningioma_dl/slurm_scripts/run_training.sh
 
-augmentation_specs=("basic_05p")
-scheduler_specs=("1_lr_099_gamma")
+augmentation_specs=("basic_02p")
+scheduler_specs=("01_lr_099_gamma")
 preprocessing_specs=("no_resize")
-training_settings=("federated_local_run")
-model_specs=("resnet_10_1_unfreezed")
+training_settings=("federated_80r_2e_3c") #("federated_20r_20e_5c")
+model_specs=("resnet_10_3_unfreezed")
 fl_strategy_specs=("fed_avg_default")
 
 #script_name="run_grid_search.py"
 
 script_name="run_federated_training.py"
 
-runs_main_name="3"
+runs_main_name="FL0"
 
 for augmentation in "${augmentation_specs[@]}"; do
     for scheduler in "${scheduler_specs[@]}"; do

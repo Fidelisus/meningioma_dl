@@ -306,7 +306,7 @@ def get_metric_linear_traces(
     )
     traces.append(
         create_scatter_plot_trace(
-            y=np.percentile(metric, 25, axis=1).flatten(),
+            y=np.quantile(metric, 0.25, axis=1).flatten(),
             x=x_indices,
             name=f"{quantity_name} 25 percentile",
             color=main_lines_color,
@@ -315,7 +315,7 @@ def get_metric_linear_traces(
     )
     traces.append(
         create_scatter_plot_trace(
-            y=np.percentile(metric, 75, axis=1).flatten(),
+            y=np.quantile(metric, 0.75, axis=1).flatten(),
             x=x_indices,
             name=f"{quantity_name} 75 percentile",
             color=main_lines_color,

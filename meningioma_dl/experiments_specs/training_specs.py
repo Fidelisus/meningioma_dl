@@ -64,6 +64,18 @@ TRAINING_SPECS = {
         "epochs_per_round": 10,
         "number_of_clients": 5,
     },
+    "federated_80r_5e_5c": {
+        "training_mode": "federated",
+        "global_epochs": 80,
+        "epochs_per_round": 5,
+        "number_of_clients": 5,
+    },
+    "federated_80r_2e_3c": {
+        "training_mode": "federated",
+        "global_epochs": 80,
+        "epochs_per_round": 2,
+        "number_of_clients": 3,
+    },
 }
 
 

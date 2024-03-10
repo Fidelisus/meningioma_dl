@@ -121,6 +121,7 @@ class FederatedTraining:
             run_id=run_id,
             logger=clients_logging_function,
             visualizations_folder=self.visualizations_folder,
+            save_images=False,
         )
 
     def on_fit_config_fn(self, _) -> Dict[str, float]:
@@ -224,7 +225,7 @@ class FederatedTraining:
     def _get_client_resources(self):
         client_resources = {"num_gpus": 0, "num_cpus": 4}
         if self.device.type == "cuda":
-            client_resources = {"num_gpus": 1, "num_cpus": 1}
+            client_resources = {"num_gpus": 1, "num_cpus": 4}
         return client_resources
 
 
