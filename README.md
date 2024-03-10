@@ -46,3 +46,20 @@ def _quantile_is_valid(q):
 ```
 
 You have to do it to avoid going to the problematic part of the code.
+
+Then, you have to comment out the code there:
+
+```
+	Stack (most recent call first):
+  File "<__array_function__ internals>", line 5 in any
+  File "/home/cir/lsobocinski/meningioma_dl/venv39/lib/python3.9/site-packages/numpy/lib/function_base.py", line 408 in average
+  File "<__array_function__ internals>", line 5 in average
+  File "/home/cir/lsobocinski/meningioma_dl/meningioma_dl/run_federated_training.py", line 99 in _visualize_federated_learning_metrics
+```
+Comment out this code;
+
+```
+        if np.any(scl == 0.0):
+            raise ZeroDivisionError(
+                "Weights sum to zero, can't be normalized")
+```
