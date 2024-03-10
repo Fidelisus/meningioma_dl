@@ -13,7 +13,7 @@ from meningioma_dl.data_loading.data_loader import (
 )
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
-from meningioma_dl.models.resnet import create_resnet_model
+from meningioma_dl.models.resnet import create_resnet_model, freeze_layers
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
     get_loss_function_class_weights,
@@ -57,14 +57,19 @@ def train(
         class_mapping=modelling_specs.model_specs.class_mapping,
     )
 
-    model, parameters_to_fine_tune = create_resnet_model(
+    model, pretrained_model_state_dict = create_resnet_model(
         modelling_specs.model_specs.model_depth,
         modelling_specs.model_specs.resnet_shortcut_type,
         modelling_specs.model_specs.number_of_classes,
         Config.pretrained_models_directory,
         device,
-        modelling_specs.model_specs.number_of_layers_to_unfreeze,
     )
+    parameters_names_to_fine_tune, parameters_to_fine_tune = freeze_layers(
+        model,
+        modelling_specs.model_specs.number_of_layers_to_unfreeze,
+        pretrained_model_state_dict,
+    )
+    logging.info(f"Parameters to fine tune: {parameters_names_to_fine_tune}")
 
     lr_params = [
         {

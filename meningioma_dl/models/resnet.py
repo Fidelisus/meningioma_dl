@@ -275,9 +275,8 @@ def create_resnet_model(
     number_of_classes: int,
     pretrained_model_path: Path,
     device: torch.device,
-    number_of_layers_to_unfreeze: int,
     use_23_dataset_pretrained_model: bool = False,
-) -> Tuple[Union[ResNet, nn.DataParallel], List[torch.Tensor]]:
+) -> Tuple[Union[ResNet, nn.DataParallel], Dict]:
     assert model_depth in RESNET_MODELS_MAP
     assert resnet_shortcut_type in ["A", "B"]
 
@@ -330,11 +329,7 @@ def create_resnet_model(
     )
     model.load_state_dict(initialized_model_state_dict)
 
-    parameters_names_to_fine_tune, parameters_to_fine_tune = freeze_layers(
-        model, number_of_layers_to_unfreeze, pretrained_model_state_dict
-    )
-    logging.info(f"Parameters to fine tune: {parameters_names_to_fine_tune}")
-    return model, parameters_to_fine_tune
+    return model, pretrained_model_state_dict
 
 
 def freeze_layers(

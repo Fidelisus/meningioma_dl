@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional, Dict, Any
 
 
 @dataclass
@@ -19,6 +20,7 @@ class FederatedTrainingSpecs:
     number_of_clients: int = 2
     partitioning_mode: str = "uniform"
     reset_learning_rate_every_round: bool = False
+    partitioning_settings: Optional[Dict[str, Any]] = None
 
 
 TRAINING_SPECS = {
@@ -75,6 +77,14 @@ TRAINING_SPECS = {
         "global_epochs": 80,
         "epochs_per_round": 2,
         "number_of_clients": 3,
+    },
+    "ks05_local_run": {
+        "training_mode": "federated",
+        "global_epochs": 2,
+        "epochs_per_round": 2,
+        "number_of_clients": 2,
+        "partitioning_mode": "ks_stat",
+        "partitioning_settings": {"desired_ks_stat": 0.5},
     },
 }
 
