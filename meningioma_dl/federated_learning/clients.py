@@ -3,6 +3,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Tuple, List, Dict, Callable, Optional, Any
 
+import logging
 import flwr as fl
 import torch
 from flwr.common import Scalar
@@ -57,13 +58,13 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self.evaluation_function = evaluation_function
 
     def get_parameters(self):
-        print(f"[Client {self.cid}] get_parameters")
+        logging.info(f"[Client {self.cid}] get_parameters")
         return get_model_parameters(self.model)
 
     def fit(
         self, parameters, config: Dict[str, Scalar]
     ) -> Tuple[Any, int, Dict[str, Scalar]]:
-        print(f"[Client {self.cid}] fit, config: {config}")
+        logging.info(f"[Client {self.cid}] fit, config: {config}")
         set_model_parameters(self.model, parameters)
         _, parameters_to_fine_tune = freeze_layers(
             self.model,
@@ -97,7 +98,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
     def evaluate(
         self, parameters, config: Dict[str, Scalar]
     ) -> Tuple[float, int, Dict[str, Scalar]]:
-        print(f"[Client {self.cid}] evaluate, config: {config}")
+        logging.info(f"[Client {self.cid}] evaluate, config: {config}")
         set_model_parameters(self.model, parameters)
 
         f1_score, validation_metrics = self.evaluation_function(

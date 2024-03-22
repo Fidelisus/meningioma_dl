@@ -41,6 +41,7 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
         loss_aggregated, metrics_aggregated = super().aggregate_evaluate(
             rnd, results, failures
         )
+        logging.info(f"Round finished with fscore of {metrics_aggregated["f_score"]}")
         if metrics_aggregated["f_score"] > self.best_model_f_score:
             self.best_model_f_score = metrics_aggregated["f_score"]
             aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_weights(

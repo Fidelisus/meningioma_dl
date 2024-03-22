@@ -14,7 +14,7 @@ class CentralizedTrainingSpecs:
 class FederatedTrainingSpecs:
     global_epochs: int = 3
     epochs_per_round: int = 4
-    batch_size: int = 2
+    batch_size: int = 1
     use_training_data_for_validation: bool = False
     training_mode: str = "federated"
     number_of_clients: int = 2
