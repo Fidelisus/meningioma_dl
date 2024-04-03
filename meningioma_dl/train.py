@@ -37,6 +37,7 @@ def train(
     logging.info(
         f"Starting training with {modelling_specs.model_specs.number_of_classes} classes"
     )
+    torch.manual_seed(manual_seed)
     training_data_loader, labels_train = get_data_loader(
         Config.train_labels_file_path,
         Config.data_directory,

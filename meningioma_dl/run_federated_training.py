@@ -181,6 +181,7 @@ class FederatedTraining:
         self.device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
         setup_flower_logger()
 
+        torch.manual_seed(123)
         logging.info("Starting federated training")
         (
             self.training_data_loaders,
