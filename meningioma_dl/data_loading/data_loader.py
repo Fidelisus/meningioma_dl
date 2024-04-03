@@ -216,6 +216,7 @@ def init_data_loader(
         dataset,
         batch_size=batch_size,
         pin_memory=torch.cuda.is_available(),
+        shuffle=True,
     )
 
     return data_loader

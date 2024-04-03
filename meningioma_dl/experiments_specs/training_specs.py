@@ -60,17 +60,35 @@ TRAINING_SPECS = {
         "epochs_per_round": 40,
         "number_of_clients": 5,
     },
+    "federated_10r_40e_3c": {
+        "training_mode": "federated",
+        "global_epochs": 10,
+        "epochs_per_round": 40,
+        "number_of_clients": 3,
+    },
+    "federated_40r_10e_3c": {
+        "training_mode": "federated",
+        "global_epochs": 40,
+        "epochs_per_round": 10,
+        "number_of_clients": 3,
+    },
     "federated_40r_10e_5c": {
         "training_mode": "federated",
         "global_epochs": 40,
         "epochs_per_round": 10,
         "number_of_clients": 5,
     },
-    "federated_80r_5e_5c": {
+    "federated_20r_20e_3c": {
+        "training_mode": "federated",
+        "global_epochs": 20,
+        "epochs_per_round": 20,
+        "number_of_clients": 3,
+    },
+    "federated_80r_10e_3c": {
         "training_mode": "federated",
         "global_epochs": 80,
-        "epochs_per_round": 5,
-        "number_of_clients": 5,
+        "epochs_per_round": 10,
+        "number_of_clients": 3,
     },
     "federated_80r_2e_3c": {
         "training_mode": "federated",

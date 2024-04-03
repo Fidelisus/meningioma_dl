@@ -46,3 +46,18 @@ def _quantile_is_valid(q):
 ```
 
 You have to do it to avoid going to the problematic part of the code.
+
+
+## PLEASE NOTE
+
+Unfortunately, only nodes called `on*` work for FL, and additionally, only 2-3 jobs can be submitted per node... To set the node on which a job should be spawned, one can to either
+
+```
+--exclude cn5,cn6
+```
+
+or 
+
+```
+--nodelist on1
+```
