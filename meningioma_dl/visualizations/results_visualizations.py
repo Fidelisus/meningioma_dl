@@ -298,10 +298,19 @@ def get_metric_linear_traces(
     x_indices = tuple(range(metric.shape[0] * metric.shape[2]))
     traces.append(
         create_scatter_plot_trace(
+            y=np.mean(metric, axis=1).flatten(),
+            x=x_indices,
+            name=f"{quantity_name} mean",
+            color=main_lines_color,
+        )
+    )
+    traces.append(
+        create_scatter_plot_trace(
             y=np.median(metric, axis=1).flatten(),
             x=x_indices,
             name=f"{quantity_name} median",
             color=main_lines_color,
+            toogled_on=False,
         )
     )
     traces.append(
