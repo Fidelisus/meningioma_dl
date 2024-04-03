@@ -49,7 +49,6 @@ class FederatedTraining:
     device: Optional[torch.device]
     model: Optional[ResNet]
     pretrained_model_state_dict: Dict
-    loss_function_weighting: Optional[torch.Tensor]
     training_function: Optional[Callable]
     evaluation_function: Optional[Callable]
 
@@ -140,7 +139,6 @@ class FederatedTraining:
             validation_data_loader=validation_data_loader,
             modelling_specs=self.modelling_specs,
             pretrained_model_state_dict=self.pretrained_model_state_dict,
-            loss_function_weighting=self.loss_function_weighting,
             device=self.device,
             training_function=self.training_function,
             evaluation_function=self.evaluation_function,
@@ -186,7 +184,6 @@ class FederatedTraining:
         (
             self.training_data_loaders,
             self.validation_data_loaders,
-            self.loss_function_weighting,
         ) = get_data_loaders(self.modelling_specs, self.training_specs)
         self.model, self.pretrained_model_state_dict = create_resnet_model(
             self.modelling_specs.model_specs.model_depth,
@@ -231,7 +228,7 @@ class FederatedTraining:
         return training_history
 
     def _get_client_resources(self):
-        client_resources = {"num_gpus": 0, "num_cpus": 4}
+        client_resources = {"num_gpus": 0, "num_cpus": 8}
         if self.device.type == "cuda":
             client_resources = {"num_gpus": 1, "num_cpus": 2}
         return client_resources

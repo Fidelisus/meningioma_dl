@@ -22,7 +22,6 @@ from meningioma_dl.federated_learning.create_federated_data_splits import (
 )
 from meningioma_dl.federated_learning.server import SaveModelFedAvg, FedProx
 from meningioma_dl.models.resnet import ResNet
-from meningioma_dl.utils import get_loss_function_class_weights
 from meningioma_dl.visualizations.results_visualizations import plot_fl_training_curve
 
 
@@ -44,7 +43,7 @@ def get_optimizer_and_scheduler(
 
 def get_data_loaders(
     modelling_specs: ModellingSpecs, training_specs: FederatedTrainingSpecs
-) -> Tuple[Dict[int, DataLoader], Dict[int, DataLoader], Optional[torch.Tensor]]:
+) -> Tuple[Dict[int, DataLoader], Dict[int, DataLoader]]:
     training_data_loader, labels_train = get_federated_data_loaders(
         labels_file_path=Config.train_labels_file_path,
         data_root_directory=Config.data_directory,
@@ -62,14 +61,7 @@ def get_data_loaders(
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
     )
-    loss_function_weighting = (
-        torch.tensor(
-            get_loss_function_class_weights(labels_train + labels_validation)
-        ).to(torch.float64)
-        if modelling_specs.model_specs.evaluation_metric_weighting == "weighted"
-        else None
-    )
-    return training_data_loader, validation_data_loader, loss_function_weighting
+    return training_data_loader, validation_data_loader
 
 
 def get_partitions(

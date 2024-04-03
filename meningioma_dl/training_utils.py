@@ -40,10 +40,11 @@ def training_loop(
     best_loss_validation = torch.tensor(np.inf)
     best_f_score = 0.0
     f_score = 0.0
-    batches_per_epoch = len(training_data_loader)
     trained_model_path = None
     training_metrics = None
-    logger(f"total_epochs: {total_epochs} batches_per_epoch: {batches_per_epoch}")
+    logger(
+        f"total_epochs: {total_epochs} batches_per_epoch: {len(training_data_loader)}"
+    )
 
     if proximal_mu is not None:
         global_params = copy.deepcopy(model)
@@ -91,7 +92,6 @@ def training_loop(
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            # logger(f"Batch {batch_id} epoch {epoch} finished with loss {loss.item()}")
         scheduler.step()
 
         last_lr = scheduler.get_last_lr()
