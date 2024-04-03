@@ -228,7 +228,7 @@ class FederatedTraining:
         return training_history
 
     def _get_client_resources(self):
-        client_resources = {"num_gpus": 0, "num_cpus": 8}
+        client_resources = {"num_gpus": 0, "num_cpus": 4}
         if self.device.type == "cuda":
             client_resources = {"num_gpus": 1, "num_cpus": 2}
         return client_resources
