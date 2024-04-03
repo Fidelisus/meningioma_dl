@@ -36,7 +36,7 @@ source ${venv_path}/bin/activate
 
 echo "Running Slurm job with id $SLURM_JOBID and name $run_id"
 echo "venv path: $venv_path"
-python -m pip freeze
+# python -m pip freeze
 
 #lddpython is needed to load a newer glibc
 ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/"$script_name" \

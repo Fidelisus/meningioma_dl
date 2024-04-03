@@ -63,3 +63,17 @@ Comment out this code;
             raise ZeroDivisionError(
                 "Weights sum to zero, can't be normalized")
 ```
+
+## PLEASE NOTE
+
+Unfortunately, only nodes called `on*` work for FL, and additionally, only 2-3 jobs can be submitted per node... To set the node on which a job should be spawned, one can to either
+
+```
+--exclude cn5,cn6
+```
+
+or 
+
+```
+--nodelist on1
+```
