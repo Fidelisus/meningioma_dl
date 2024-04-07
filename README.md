@@ -77,3 +77,5 @@ or
 ```
 --nodelist on1
 ```
+
+I observed that on3 node works the slowest for me. 

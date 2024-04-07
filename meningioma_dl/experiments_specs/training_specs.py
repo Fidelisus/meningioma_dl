@@ -96,6 +96,12 @@ TRAINING_SPECS = {
         "epochs_per_round": 2,
         "number_of_clients": 3,
     },
+    "federated_300r_1e_3c": {
+        "training_mode": "federated",
+        "global_epochs": 300,
+        "epochs_per_round": 1,
+        "number_of_clients": 3,
+    },
     "ks05_local_run": {
         "training_mode": "federated",
         "global_epochs": 2,

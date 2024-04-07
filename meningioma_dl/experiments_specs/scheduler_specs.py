@@ -7,6 +7,11 @@ from typing_extensions import Self
 
 
 SCHEDULER_SPECS: Dict[str, Dict[str, Any]] = {
+    "0001_lr_099_gamma": {
+        "scheduler": "exponential",
+        "learning_rate": 0.001,
+        "gamma": 0.99,
+    },
     "001_lr_099_gamma": {
         "scheduler": "exponential",
         "learning_rate": 0.01,
