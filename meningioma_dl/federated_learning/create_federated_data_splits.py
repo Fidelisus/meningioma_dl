@@ -71,12 +71,13 @@ def get_best_split_with_given_ks_stat(
     desired_ks_stat: float,
     n_partitions: int,
     bootstrap_rounds: int = 100,
+    manual_seed: int = 123
 ):
     best_ks_stat_diff = 1.0
     best_partitions = None
     for i in range(bootstrap_rounds):
         partitions = create_split_with_given_ks_stat(
-            labels_series, desired_ks_stat, n_partitions, seed=i
+            labels_series, desired_ks_stat, n_partitions, seed=manual_seed+i
         )
         new_ks_stat = calculate_ks_stat_between_all_clients(partitions)
         ks_stat_diff = np.abs(new_ks_stat - desired_ks_stat)
@@ -90,9 +91,9 @@ def get_best_split_with_given_ks_stat(
     return best_partitions
 
 
-def get_uniform_client_partitions(samples_df: pd.Series, n_partitions: int):
+def get_uniform_client_partitions(samples_df: pd.Series, n_partitions: int, manual_seed:int):
     partitions = {}
-    splitter = StratifiedKFold(n_splits=n_partitions, shuffle=True, random_state=123)
+    splitter = StratifiedKFold(n_splits=n_partitions, shuffle=True, random_state=manual_seed)
     for i, (_, client_indexes) in enumerate(
         splitter.split(samples_df.index, samples_df)
     ):
