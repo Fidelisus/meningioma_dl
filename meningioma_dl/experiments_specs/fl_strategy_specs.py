@@ -8,9 +8,21 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
         "name": "fed_avg",
         "config": {"fraction_fit": 1.0, "fraction_eval": 1.0},
     },
+    "fed_prox_1": {
+        "name": "fed_prox",
+        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 1.0},
+    },
     "fed_prox_01": {
         "name": "fed_prox",
+        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 0.1},
+    },
+    "fed_prox_001": {
+        "name": "fed_prox",
         "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 0.01},
+    },
+    "fed_prox_0001": {
+        "name": "fed_prox",
+        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 0.001},
     },
     "fed_avg_05_fraction": {
         "name": "fed_avg",
