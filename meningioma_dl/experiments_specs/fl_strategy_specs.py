@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 from typing_extensions import Self
 
 FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
-    "fed_avg_default": {
+    "fed_avg_all_clients": {
         "name": "fed_avg",
         "config": {"fraction_fit": 1.0, "fraction_eval": 1.0},
     },
@@ -21,7 +21,7 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
 
 @dataclass
 class FLStrategySpecs:
-    name: str = "fed_avg_default"
+    name: str = "fed_avg_all_clients"
     config: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod

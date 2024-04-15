@@ -69,12 +69,13 @@ def get_partitions(
     partitioning_mode: str,
     n_partitions: int,
     partitioning_config: Optional[Dict] = None,
+    manual_seed: int = 123
 ) -> Dict[int, Tuple[int, ...]]:
     if partitioning_mode == "uniform":
-        partitions = get_uniform_client_partitions(samples_df["labels"], n_partitions)
+        partitions = get_uniform_client_partitions(samples_df["labels"], n_partitions, manual_seed)
     elif partitioning_mode == "ks_stat":
         partitions = get_best_split_with_given_ks_stat(
-            samples_df["labels"], partitioning_config["desired_ks_stat"], n_partitions
+            samples_df["labels"], partitioning_config["desired_ks_stat"], n_partitions, manual_seed=manual_seed
         )
     else:
         raise ValueError(f"Invalid partitioning mode: {partitioning_mode}")
