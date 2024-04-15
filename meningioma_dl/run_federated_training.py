@@ -184,7 +184,7 @@ class FederatedTraining:
         (
             self.training_data_loaders,
             self.validation_data_loaders,
-        ) = get_data_loaders(self.modelling_specs, self.training_specs)
+        ) = get_data_loaders(self.modelling_specs, self.training_specs, manual_seed)
         self.model, self.pretrained_model_state_dict = create_resnet_model(
             self.modelling_specs.model_specs.model_depth,
             self.modelling_specs.model_specs.resnet_shortcut_type,
@@ -244,6 +244,7 @@ def main(
     model_specs_name: str = "resnet_10_2_unfreezed",
     training_specs_name: str = "federated_local_run",
     fl_strategy_specs_name: str = "fed_avg_default",
+    manual_seed: int = 123,
 ):
     if run_id is None:
         run_id = generate_run_id()
@@ -275,7 +276,10 @@ def main(
         saved_models_folder=Config.saved_models_directory.joinpath(run_id),
     )
     trainer.run_federated_training(
-        env_file_path=None, run_id=run_id, device_name=device_name
+        env_file_path=None,
+        run_id=run_id,
+        device_name=device_name,
+        manual_seed=manual_seed,
     )
     logging.info(f"Training for {run_id} finished successfully.")
 

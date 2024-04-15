@@ -42,7 +42,9 @@ def get_optimizer_and_scheduler(
 
 
 def get_data_loaders(
-    modelling_specs: ModellingSpecs, training_specs: FederatedTrainingSpecs
+    modelling_specs: ModellingSpecs,
+    training_specs: FederatedTrainingSpecs,
+    manual_seed: int,
 ) -> Tuple[Dict[int, DataLoader], Dict[int, DataLoader]]:
     training_data_loader, labels_train = get_federated_data_loaders(
         labels_file_path=Config.train_labels_file_path,
@@ -52,6 +54,7 @@ def get_data_loaders(
         augmentations=modelling_specs.augmentation_specs.transformations_list,
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
+        manual_seed=manual_seed,
     )
     validation_data_loader, labels_validation = get_federated_data_loaders(
         labels_file_path=Config.validation_labels_file_path,
@@ -60,6 +63,7 @@ def get_data_loaders(
         training_specs=training_specs,
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
+        manual_seed=manual_seed,
     )
     return training_data_loader, validation_data_loader
 
@@ -69,13 +73,18 @@ def get_partitions(
     partitioning_mode: str,
     n_partitions: int,
     partitioning_config: Optional[Dict] = None,
-    manual_seed: int = 123
+    manual_seed: int = 123,
 ) -> Dict[int, Tuple[int, ...]]:
     if partitioning_mode == "uniform":
-        partitions = get_uniform_client_partitions(samples_df["labels"], n_partitions, manual_seed)
+        partitions = get_uniform_client_partitions(
+            samples_df["labels"], n_partitions, manual_seed
+        )
     elif partitioning_mode == "ks_stat":
         partitions = get_best_split_with_given_ks_stat(
-            samples_df["labels"], partitioning_config["desired_ks_stat"], n_partitions, manual_seed=manual_seed
+            samples_df["labels"],
+            partitioning_config["desired_ks_stat"],
+            n_partitions,
+            manual_seed=manual_seed,
         )
     else:
         raise ValueError(f"Invalid partitioning mode: {partitioning_mode}")
@@ -90,6 +99,7 @@ def get_federated_data_loaders(
     augmentations: Optional[Sequence[transforms.Transform]] = None,
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     class_mapping: Optional[Dict[int, int]] = None,
+    manual_seed: int = 123,
 ) -> Tuple[Dict[int, DataLoader], List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path, class_mapping
@@ -100,6 +110,7 @@ def get_federated_data_loaders(
         training_specs.partitioning_mode,
         training_specs.number_of_clients,
         training_specs.partitioning_settings,
+        manual_seed=manual_seed,
     )
     data_loaders = {}
     for client_id, indexes in partitions.items():
