@@ -13,11 +13,8 @@ from meningioma_dl.data_loading.data_loader import (
     get_data_loader,
     TransformationsMode,
 )
-from meningioma_dl.experiments_specs.augmentation_specs import AugmentationSpecs
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
-from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
-from meningioma_dl.experiments_specs.scheduler_specs import SchedulerSpecs
 from meningioma_dl.experiments_specs.training_specs import (
     CentralizedTrainingSpecs,
     get_training_specs,
@@ -25,7 +22,6 @@ from meningioma_dl.experiments_specs.training_specs import (
 from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet
 from meningioma_dl.training_utils import (
     get_model_predictions,
-    _convert_simple_labels_to_torch_format,
 )
 from meningioma_dl.utils import (
     select_device,
@@ -37,6 +33,9 @@ from meningioma_dl.visualizations.images_visualization import (
 from meningioma_dl.visualizations.results_visualizations import (
     create_evaluation_report,
     ValidationMetrics,
+)
+from meningioma_dl.federated_learning.federated_training_utils import (
+    load_best_model,
 )
 
 
@@ -70,17 +69,18 @@ def evaluate(
         class_mapping=model_specs.class_mapping,
     )
 
-    saved_model = torch.load(trained_model_path, map_location=device)
+    # saved_model = torch.load(trained_model_path, map_location=device)
     no_cuda = False if device == torch.device("cuda") else True
     model = RESNET_MODELS_MAP[model_specs.model_depth](
         shortcut_type=model_specs.resnet_shortcut_type,
         no_cuda=no_cuda,
         num_classes=model_specs.number_of_classes,
     ).to(device)
-    state_dict = {
-        k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
-    }
-    model.load_state_dict(state_dict)
+    # state_dict = {
+    #     k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
+    # }
+    # model.load_state_dict(state_dict)
+    model = load_best_model(model, trained_model_path, device)
 
     f_score, _ = evaluate_model(
         data_loader,

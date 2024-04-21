@@ -14,8 +14,7 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv39
 
 training_run_id="$1"
-model_base_dir="$2"
-trained_model_path="${base_dir}/data/meningioma/optuna/trials/models/$model_base_dir/epoch_-1.pth"
+trained_model_path="${base_dir}/data/meningioma/optuna/trials/models/$training_run_id/epoch_-1.pth.tar"
 preprocessing_specs="no_resize"
 model_specs="class_2_and_3_together_3_unfreezed"
 run_id="eval_${training_run_id}_${SLURM_JOBID}"
