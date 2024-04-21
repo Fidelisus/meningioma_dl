@@ -14,6 +14,7 @@ base_dir=/home/cir/lsobocinski
 venv_path=${base_dir}/meningioma_dl/venv39
 
 training_run_id="$1"
+use_test_data="$2"
 trained_model_path="${base_dir}/data/meningioma/optuna/trials/models/$training_run_id/epoch_-1.pth.tar"
 preprocessing_specs="no_resize"
 model_specs="class_2_and_3_together_3_unfreezed"
@@ -33,4 +34,4 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --run_id="${run_id}" \
   --device_name="cuda" \
   --preprocessing_specs_name="${preprocessing_specs}" \
-  --model_specs_name="${model_specs}"
+  --model_specs_name="${model_specs}" --use_test_data="${use_test_data}" 

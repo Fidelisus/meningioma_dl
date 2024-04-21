@@ -49,6 +49,7 @@ def evaluate(
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     training_specs: CentralizedTrainingSpecs = CentralizedTrainingSpecs(),
     logger: Callable[[str], None] = logging.info,
+    use_test_data: bool = False,
 ) -> float:
     if type(visualizations_folder) is str:
         visualizations_folder = Path(visualizations_folder)
@@ -58,10 +59,19 @@ def evaluate(
     device = select_device(device_name)
     torch.manual_seed(manual_seed)
 
+
+    if use_test_data:
+        labels_file = Config.test_labels_file_path
+    else:
+        labels_file = (
+            Config.train_labels_file_path
+            if training_specs.use_training_data_for_validation
+            else Config.validation_labels_file_path
+        )
+    logger(f"Samples to be used are read from {labels_file}")
+
     data_loader, labels = get_data_loader(
-        Config.train_labels_file_path
-        if training_specs.use_training_data_for_validation
-        else Config.validation_labels_file_path,
+        labels_file,
         Config.data_directory,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=training_specs.batch_size,
@@ -69,18 +79,21 @@ def evaluate(
         class_mapping=model_specs.class_mapping,
     )
 
-    # saved_model = torch.load(trained_model_path, map_location=device)
+    saved_model = torch.load(trained_model_path, map_location=device)
     no_cuda = False if device == torch.device("cuda") else True
     model = RESNET_MODELS_MAP[model_specs.model_depth](
         shortcut_type=model_specs.resnet_shortcut_type,
         no_cuda=no_cuda,
         num_classes=model_specs.number_of_classes,
     ).to(device)
-    # state_dict = {
-    #     k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
-    # }
-    # model.load_state_dict(state_dict)
-    model = load_best_model(model, trained_model_path, device)
+    # TODO don't use hasattr
+    if hasattr(saved_model["state_dict"], "items"):
+        state_dict = {
+            k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
+        }
+        model.load_state_dict(state_dict)
+    else:
+        model = load_best_model(model, trained_model_path, device)
 
     f_score, _ = evaluate_model(
         data_loader,
@@ -167,6 +180,7 @@ def run_standalone_evaluate(
     device_name: str = "cpu",
     preprocessing_specs_name: str = "no_resize",
     model_specs_name: str = "resnet_10_0_unfreezed",
+    use_test_data: bool = False,
 ):
     Config.load_env_variables(env_file_path, run_id)
     setup_logging(Config.log_file_path)
@@ -179,6 +193,7 @@ def run_standalone_evaluate(
         model_specs=ModelSpecs.get_from_name(model_specs_name),
         preprocessing_specs=PreprocessingSpecs.get_from_name(preprocessing_specs_name),
         training_specs=get_training_specs("evaluation"),
+        use_test_data=use_test_data
     )
 
 
