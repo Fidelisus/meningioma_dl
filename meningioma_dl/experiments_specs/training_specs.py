@@ -24,6 +24,7 @@ class FederatedTrainingSpecs:
 
 
 TRAINING_SPECS = {
+    "evaluation": {"training_mode": "centralized", "epochs": 1},
     "central_1_epochs": {"training_mode": "centralized", "epochs": 1},
     "central_2_epochs": {"training_mode": "centralized", "epochs": 2},
     "central_100_epochs": {"training_mode": "centralized", "epochs": 100},

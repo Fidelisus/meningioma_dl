@@ -59,7 +59,8 @@ def run_study(
             trained_model_path=trained_model_path,
             device_name=device_name,
             visualizations_folder=visualizations_folder,
-            modelling_specs=modelling_spec,
+            model_specs=modelling_spec.model_specs,
+            preprocessing_specs=modelling_spec.preprocessing_specs,
             training_specs=training_spec,
         )
         return f_score_of_the_best_model

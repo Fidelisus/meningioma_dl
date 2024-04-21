@@ -12,6 +12,7 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 
+from meningioma_dl.experiments_specs.model_specs import ModelSpecs
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 
 
@@ -53,10 +54,10 @@ def create_evaluation_report(
     predictions: np.array,
     save_path: Path,
     run_id: str,
-    modelling_specs: ModellingSpecs,
+    model_specs: ModelSpecs,
     training_specs: Any,
+    n_classes: int,
 ) -> None:
-    n_classes = modelling_specs.model_specs.number_of_classes
     report = classification_report(true, predictions, output_dict=True)
 
     fig = make_subplots(
@@ -144,7 +145,7 @@ def create_evaluation_report(
             cells=dict(
                 values=[
                     ["Modelling specification", "Training specification"],
-                    [str(modelling_specs), str(training_specs)],
+                    [str(model_specs), str(training_specs)],
                 ],
                 align="center",
             ),

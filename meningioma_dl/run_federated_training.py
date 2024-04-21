@@ -114,7 +114,7 @@ class FederatedTraining:
         )
         self.evaluation_function = partial(
             evaluate_model,
-            modelling_specs=self.modelling_specs,
+            model_specs=self.modelling_specs.model_specs,
             training_specs=self.training_specs,
             device=self.device,
             run_id=run_id,
@@ -160,7 +160,7 @@ class FederatedTraining:
         evaluate_model(
             model=self.model,
             data_loader=validation_data_loader,
-            modelling_specs=self.modelling_specs,
+            model_specs=self.modelling_specs.model_specs,
             training_specs=self.training_specs,
             device=self.device,
             run_id=run_id,
