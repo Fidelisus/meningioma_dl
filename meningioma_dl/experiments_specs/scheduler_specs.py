@@ -12,10 +12,20 @@ SCHEDULER_SPECS: Dict[str, Dict[str, Any]] = {
         "learning_rate": 0.001,
         "gamma": 0.99,
     },
+    "0003_lr_099_gamma": {
+        "scheduler": "exponential",
+        "learning_rate": 0.003,
+        "gamma": 0.99,
+    },
     "001_lr_099_gamma": {
         "scheduler": "exponential",
         "learning_rate": 0.01,
         "gamma": 0.99,
+    },
+    "001_lr_0999_gamma": {
+        "scheduler": "exponential",
+        "learning_rate": 0.01,
+        "gamma": 0.999,
     },
     "002_lr_099_gamma": {
         "scheduler": "exponential",
