@@ -27,6 +27,7 @@ fl_strategy_specs="${6:-fed_avg_default}"
 run_id="${7:-playground}_${fl_strategy_specs}_${training_specs}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_${SLURM_JOBID}"
 script_name="${8:-run_optuna_study.py}"
 seed="${9:-123}"
+cv_fold="${10:-None}"
 
 module add Python/3.9.5-GCCcore-8.2.0
 module add PyTorch/1.9.0-foss-2019a
@@ -50,4 +51,5 @@ ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meni
   --model_specs_name="${model_specs}" \
   --training_specs_name="${training_specs}" \
   --fl_strategy_specs_name="${fl_strategy_specs}" \
-  --manual_seed="${seed}"
+  --manual_seed="${seed}" \
+  --cv_fold="${cv_fold}"
