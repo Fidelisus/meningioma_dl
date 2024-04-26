@@ -26,6 +26,7 @@ from meningioma_dl.training_utils import (
 from meningioma_dl.utils import (
     select_device,
     setup_logging,
+    setup_run,
 )
 from meningioma_dl.visualizations.images_visualization import (
     create_images_errors_report,
@@ -42,8 +43,8 @@ from meningioma_dl.federated_learning.federated_training_utils import (
 def evaluate(
     trained_model_path: str,
     run_id: Optional[str] = None,
-    manual_seed: int = Config.random_seed,
-    device_name: str = "cpu",
+    manual_seed: int = 123,
+    device: torch.device = torch.device("cpu"),
     visualizations_folder: Union[str, Path] = Path("."),
     model_specs: ModelSpecs = ModelSpecs(),
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
@@ -55,10 +56,7 @@ def evaluate(
         visualizations_folder = Path(visualizations_folder)
 
     logger("Starting model evaluation")
-
-    device = select_device(device_name)
     torch.manual_seed(manual_seed)
-
 
     if use_test_data:
         labels_file = Config.test_labels_file_path
@@ -181,19 +179,20 @@ def run_standalone_evaluate(
     preprocessing_specs_name: str = "no_resize",
     model_specs_name: str = "resnet_10_0_unfreezed",
     use_test_data: bool = False,
+    cv_fold: Optional[int] = None,
+    manual_seed: int = 123,
 ):
-    Config.load_env_variables(env_file_path, run_id)
-    setup_logging(Config.log_file_path)
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, cv_fold)
 
     visualizations_folder = Config.visualizations_directory.joinpath(run_id)
     evaluate(
         trained_model_path=trained_model_path,
-        device_name=device_name,
+        device=device,
         visualizations_folder=visualizations_folder,
         model_specs=ModelSpecs.get_from_name(model_specs_name),
         preprocessing_specs=PreprocessingSpecs.get_from_name(preprocessing_specs_name),
         training_specs=get_training_specs("evaluation"),
-        use_test_data=use_test_data
+        use_test_data=use_test_data,
     )
 
 

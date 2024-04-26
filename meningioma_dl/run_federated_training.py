@@ -170,13 +170,12 @@ class FederatedTraining:
 
     def run_federated_training(
         self,
-        env_file_path: Optional[str] = None,
         run_id: Optional[str] = None,
-        manual_seed: int = Config.random_seed,
-        device_name: str = "cpu",
+        manual_seed: int = 123,
+        device: torch.device = torch.device("cpu"),
     ) -> History:
+        self.device = device
         self._init_instance_variables()
-        self.device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
         setup_flower_logger()
 
         torch.manual_seed(manual_seed)
@@ -245,12 +244,9 @@ def main(
     training_specs_name: str = "federated_local_run",
     fl_strategy_specs_name: str = "fed_avg_default",
     manual_seed: int = 123,
+    cv_fold: Optional[int] = None,
 ):
-    if run_id is None:
-        run_id = generate_run_id()
-
-    Config.load_env_variables(env_file_path, run_id)
-    setup_logging(Config.log_file_path)
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, cv_fold)
 
     modelling_spec = ModellingSpecs(
         PreprocessingSpecs.get_from_name(preprocessing_specs_name),
@@ -276,9 +272,8 @@ def main(
         saved_models_folder=Config.saved_models_directory.joinpath(run_id),
     )
     trainer.run_federated_training(
-        env_file_path=None,
         run_id=run_id,
-        device_name=device_name,
+        device=device,
         manual_seed=manual_seed,
     )
     logging.info(f"Training for {run_id} finished successfully.")

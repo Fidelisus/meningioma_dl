@@ -21,7 +21,7 @@ from meningioma_dl.experiments_specs.training_specs import (
     CentralizedTrainingSpecs,
 )
 from meningioma_dl.train import train
-from meningioma_dl.utils import generate_run_id, setup_logging
+from meningioma_dl.utils import generate_run_id, setup_logging, setup_run
 
 
 #  optuna-dashboard sqlite:///C:\Users\Lenovo\Desktop\meningioma_project\meningioma_dl\data\optuna\optuna_store.db
@@ -38,13 +38,13 @@ def run_study(
     scheduler_specs_name: str = "05_lr_099_gamma",
     model_specs_name: str = "resnet_10_2_unfreezed",
     training_specs_name: str = "central_1_epochs",
+    manual_seed: int = 123,
+    cv_fold: Optional[int] = None,
 ):
     def objective(trial: Trial):
         visualizations_folder = Config.visualizations_directory.joinpath(run_id)
         _, trained_model_path = train(
-            env_file_path=None,
-            run_id=run_id,
-            device_name=device_name,
+            device=device,
             validation_interval=validation_interval,
             visualizations_folder=visualizations_folder,
             saved_models_folder=Config.saved_models_directory.joinpath(run_id),
@@ -57,7 +57,7 @@ def run_study(
         f_score_of_the_best_model = evaluate(
             run_id=run_id,
             trained_model_path=trained_model_path,
-            device_name=device_name,
+            device=device,
             visualizations_folder=visualizations_folder,
             model_specs=modelling_spec.model_specs,
             preprocessing_specs=modelling_spec.preprocessing_specs,
@@ -65,11 +65,7 @@ def run_study(
         )
         return f_score_of_the_best_model
 
-    if run_id is None:
-        run_id = generate_run_id()
-
-    Config.load_env_variables(env_file_path, run_id)
-    setup_logging(Config.log_file_path)
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, cv_fold)
 
     modelling_spec = ModellingSpecs(
         PreprocessingSpecs.get_from_name(preprocessing_specs_name),

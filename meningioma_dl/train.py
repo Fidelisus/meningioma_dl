@@ -17,29 +17,30 @@ from meningioma_dl.models.resnet import create_resnet_model, freeze_layers
 from meningioma_dl.training_utils import training_loop
 from meningioma_dl.utils import (
     get_loss_function_class_weights,
-    setup_run,
 )
 
 
 def train(
-    env_file_path: Optional[str] = None,
-    run_id: Optional[str] = None,
-    manual_seed: int = Config.random_seed,
+    manual_seed: int = 123,
     validation_interval: int = 1,
-    device_name: str = "cpu",
+    device: torch.device = torch.device("cpu"),
     saved_models_folder: Path = Path("."),
     visualizations_folder: Path = Path("."),
     modelling_specs: ModellingSpecs = ModellingSpecs(),
     training_specs: CentralizedTrainingSpecs = CentralizedTrainingSpecs(),
 ) -> Tuple[float, Optional[str]]:
-    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name)
-
     logging.info(
         f"Starting training with {modelling_specs.model_specs.number_of_classes} classes"
     )
     torch.manual_seed(manual_seed)
+    train_labels_file_path = Config.train_labels_file_path
+    validation_labels_file_path = (
+        Config.train_labels_file_path
+        if training_specs.use_training_data_for_validation
+        else Config.validation_labels_file_path
+    )
     training_data_loader, labels_train = get_data_loader(
-        Config.train_labels_file_path,
+        train_labels_file_path,
         Config.data_directory,
         transformations_mode=TransformationsMode.AUGMENT,
         batch_size=training_specs.batch_size,
@@ -47,16 +48,16 @@ def train(
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
     )
+    logging.info(f"Training data loaded from {train_labels_file_path}")
     validation_data_loader, labels_validation = get_data_loader(
-        Config.train_labels_file_path
-        if training_specs.use_training_data_for_validation
-        else Config.validation_labels_file_path,
+        validation_labels_file_path,
         Config.data_directory,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         batch_size=training_specs.batch_size,
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
     )
+    logging.info(f"Validation data loaded from {validation_labels_file_path}")
 
     model, pretrained_model_state_dict = create_resnet_model(
         modelling_specs.model_specs.model_depth,

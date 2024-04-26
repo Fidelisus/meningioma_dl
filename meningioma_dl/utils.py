@@ -70,11 +70,12 @@ def setup_run(
     run_id: Optional[str],
     manual_seed: int,
     device_name: str,
+    cv_fold: Optional[int],
 ) -> Tuple[torch.device, str]:
     if run_id is None:
         run_id = generate_run_id()
     if env_file_path is not None:
-        Config.load_env_variables(env_file_path, run_id)
+        Config.load_env_variables(env_file_path, run_id, cv_fold)
         setup_logging(Config.log_file_path)
     device = get_device(device_name)
     torch.manual_seed(manual_seed)

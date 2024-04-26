@@ -1,3 +1,4 @@
+import logging
 from collections import OrderedDict
 from pathlib import Path
 from typing import List, Tuple, Any, Dict, Optional, Sequence, Callable
@@ -46,8 +47,10 @@ def get_data_loaders(
     training_specs: FederatedTrainingSpecs,
     manual_seed: int,
 ) -> Tuple[Dict[int, DataLoader], Dict[int, DataLoader]]:
+    train_labels_file_path = Config.train_labels_file_path
+    validation_labels_file_path = Config.validation_labels_file_path
     training_data_loader, labels_train = get_federated_data_loaders(
-        labels_file_path=Config.train_labels_file_path,
+        labels_file_path=train_labels_file_path,
         data_root_directory=Config.data_directory,
         transformations_mode=TransformationsMode.AUGMENT,
         training_specs=training_specs,
@@ -56,8 +59,9 @@ def get_data_loaders(
         class_mapping=modelling_specs.model_specs.class_mapping,
         manual_seed=manual_seed,
     )
+    logging.info(f"Training data loaded from {train_labels_file_path}")
     validation_data_loader, labels_validation = get_federated_data_loaders(
-        labels_file_path=Config.validation_labels_file_path,
+        labels_file_path=validation_labels_file_path,
         data_root_directory=Config.data_directory,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         training_specs=training_specs,
@@ -65,6 +69,7 @@ def get_data_loaders(
         class_mapping=modelling_specs.model_specs.class_mapping,
         manual_seed=manual_seed,
     )
+    logging.info(f"Validation data loaded from {validation_labels_file_path}")
     return training_data_loader, validation_data_loader
 
 
