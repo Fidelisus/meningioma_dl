@@ -29,16 +29,13 @@ script_name="${8:-run_optuna_study.py}"
 seed="${9:-123}"
 cv_fold="${10:-None}"
 
-module add Python/3.9.5-GCCcore-8.2.0
-module add PyTorch/1.9.0-foss-2019a
-# module add Python/3.7.3-foss-2019a
-# module add PyTorch/1.6.0-foss-2019a-Python-3.7.3
+module add "Python/3.9.5-GCCcore-8.2.0"
+module add "PyTorch/1.9.0-foss-2019a"
 # virtualenv --system-site-packages ${venv_path}
 source ${venv_path}/bin/activate
 
 echo "Running Slurm job with id $SLURM_JOBID and name $run_id"
 echo "venv path: $venv_path"
-# python -m pip freeze
 
 #lddpython is needed to load a newer glibc
 ${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/"$script_name" \
