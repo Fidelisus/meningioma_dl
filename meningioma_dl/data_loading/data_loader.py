@@ -1,5 +1,4 @@
 import logging
-import math
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Tuple, Sequence, Set, Dict
@@ -8,6 +7,7 @@ import monai
 import torch
 from monai import transforms
 from monai.data import DataLoader
+from monai.utils import set_determinism
 
 from meningioma_dl.data_loading.labels_loading import get_images_with_labels
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
@@ -85,6 +85,7 @@ def init_data_loader(
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     bounding_box_of_segmentation: int = 129,
 ) -> DataLoader:
+    set_determinism(seed=123)
     file_label_map = [
         {"img": img, "mask": mask, "label": label - 1}
         for img, label, mask in zip(images, labels, masks)
