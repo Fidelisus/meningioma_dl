@@ -24,10 +24,11 @@ preprocessing_specs="${3:-no_resize}"
 training_specs="${4:-central_2_epochs}"
 model_specs="${5:-resnet_10_2_unfreezed}"
 fl_strategy_specs="${6:-fed_avg_default}"
-run_id="${7:-playground}_${fl_strategy_specs}_${training_specs}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_${SLURM_JOBID}"
 script_name="${8:-run_optuna_study.py}"
 seed="${9:-123}"
 cv_fold="${10:-None}"
+
+run_id="${7:-playground}_${fl_strategy_specs}_${training_specs}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_fold${cv_fold}_${SLURM_JOBID}"
 
 module add "Python/3.9.5-GCCcore-8.2.0"
 module add "PyTorch/1.9.0-foss-2019a"

@@ -16,13 +16,12 @@ venv_path=${base_dir}/meningioma_dl/venv39
 training_run_id="$1"
 use_test_data="$2"
 trained_model_path="${base_dir}/data/meningioma/optuna/trials/models/$training_run_id/epoch_-1.pth.tar"
+# preprocessing_specs="70_padding"
 preprocessing_specs="no_resize"
 model_specs="class_2_and_3_together_3_unfreezed"
 # model_specs="resnet_10_3_unfreezed"
 run_id="eval_${training_run_id}_${SLURM_JOBID}"
 
-# module "add Python/3.9.5-GCCcore-8.2.0"
-# echo lol1
 module add "PyTorch/1.9.0-foss-2019a"
 source ${venv_path}/bin/activate
 
