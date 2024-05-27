@@ -74,9 +74,9 @@ TRAINING_SPECS = {
     "federated_ci_run": create_fl_parameters(
         global_epochs=4, epochs_per_round=10, number_of_clients=4
     ),
-    **create_fl_specs("federated_300r_1e_3c"),
-    **create_fl_specs("federated_100r_2e_5c"),
+    **create_fl_specs("federated_200r_1e_3c"),
     **create_fl_specs("federated_100r_2e_3c"),
+    **create_fl_specs("federated_100r_2e_5c"),
     **create_fl_specs("federated_200r_2e_3c"),
     **create_fl_specs("federated_200r_2e_5c"),
     **create_fl_specs("federated_40r_5e_3c"),
