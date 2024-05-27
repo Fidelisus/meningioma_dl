@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 
 
 @dataclass
@@ -23,6 +23,29 @@ class FederatedTrainingSpecs:
     partitioning_settings: Optional[Dict[str, Any]] = None
 
 
+def create_fl_parameters(
+    global_epochs: int, epochs_per_round: int, number_of_clients: int = 3
+) -> Dict[str, Union[str, int]]:
+    return {
+        "training_mode": "federated",
+        "global_epochs": global_epochs,
+        "epochs_per_round": epochs_per_round,
+        "number_of_clients": number_of_clients,
+    }
+
+
+def create_fl_specs(run_name: str) -> Dict[str, Dict[str, Union[str, int]]]:
+    run_name_tokens = run_name.split("_")
+    epochs_per_round = int(run_name_tokens[1][:-1])
+    global_epochs = int(run_name_tokens[2][:-1])
+    number_of_clients = int(run_name_tokens[3][:-1])
+    return {
+        run_name: create_fl_parameters(
+            global_epochs, epochs_per_round, number_of_clients
+        )
+    }
+
+
 TRAINING_SPECS = {
     "evaluation": {"training_mode": "centralized", "epochs": 1},
     "central_1_epochs": {"training_mode": "centralized", "epochs": 1},
@@ -32,104 +55,46 @@ TRAINING_SPECS = {
     "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
     "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
     "central_400_epochs": {"training_mode": "centralized", "epochs": 400},
-    "200_epochs_training_data_validation": {"training_mode": "centralized", "epochs": 200, "use_training_data_for_validation": True},
-    "300_epochs_training_data_validation": {"training_mode": "centralized", "epochs": 300, "use_training_data_for_validation": True},
-    "federated_local_run": {
-        "training_mode": "federated",
-        "global_epochs": 2,
-        "epochs_per_round": 2,
-        "number_of_clients": 2,
+    "200_epochs_training_data_validation": {
+        "training_mode": "centralized",
+        "epochs": 200,
+        "use_training_data_for_validation": True,
     },
-    "federated_local_run_longer": {
-        "training_mode": "federated",
-        "global_epochs": 3,
-        "epochs_per_round": 4,
-        "number_of_clients": 2,
+    "300_epochs_training_data_validation": {
+        "training_mode": "centralized",
+        "epochs": 300,
+        "use_training_data_for_validation": True,
     },
-    "federated_ci_run": {
-        "training_mode": "federated",
-        "global_epochs": 4,
-        "epochs_per_round": 10,
-        "number_of_clients": 4,
-    },
-    "federated_20r_20e_5c": {
-        "training_mode": "federated",
-        "global_epochs": 20,
-        "epochs_per_round": 20,
-        "number_of_clients": 5,
-    },
-    "federated_10r_40e_5c": {
-        "training_mode": "federated",
-        "global_epochs": 10,
-        "epochs_per_round": 40,
-        "number_of_clients": 5,
-    },
-    "federated_10r_40e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 10,
-        "epochs_per_round": 40,
-        "number_of_clients": 3,
-    },
+    "federated_local_run": create_fl_parameters(
+        global_epochs=2, epochs_per_round=2, number_of_clients=2
+    ),
+    "federated_local_run_longer": create_fl_parameters(
+        global_epochs=3, epochs_per_round=4, number_of_clients=2
+    ),
+    "federated_ci_run": create_fl_parameters(
+        global_epochs=4, epochs_per_round=10, number_of_clients=4
+    ),
+    **create_fl_specs("federated_300r_1e_3c"),
+    **create_fl_specs("federated_100r_2e_5c"),
+    **create_fl_specs("federated_100r_2e_3c"),
+    **create_fl_specs("federated_200r_2e_3c"),
+    **create_fl_specs("federated_200r_2e_5c"),
+    **create_fl_specs("federated_40r_5e_3c"),
+    **create_fl_specs("federated_40r_5e_5c"),
+    **create_fl_specs("federated_80r_5e_3c"),
+    **create_fl_specs("federated_80r_5e_5c"),
+    **create_fl_specs("federated_20r_20e_3c"),
+    **create_fl_specs("federated_20r_20e_5c"),
     "federated_80r_5e_3c_training_data_validation": {
-        "training_mode": "federated",
-        "global_epochs": 80,
-        "epochs_per_round": 5,
-        "number_of_clients": 3,
-        "use_training_data_for_validation": True
-    },
-    "federated_40r_5e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 40,
-        "epochs_per_round": 5,
-        "number_of_clients": 3,
-    },
-    "federated_40r_10e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 40,
-        "epochs_per_round": 10,
-        "number_of_clients": 3,
-    },
-    "federated_40r_10e_5c": {
-        "training_mode": "federated",
-        "global_epochs": 40,
-        "epochs_per_round": 10,
-        "number_of_clients": 5,
-    },
-    "federated_20r_20e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 20,
-        "epochs_per_round": 20,
-        "number_of_clients": 3,
-    },
-    "federated_80r_10e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 80,
-        "epochs_per_round": 10,
-        "number_of_clients": 3,
-    },
-    "federated_80r_5e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 80,
-        "epochs_per_round": 5,
-        "number_of_clients": 3,
-    },
-    "federated_80r_2e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 80,
-        "epochs_per_round": 2,
-        "number_of_clients": 3,
-    },
-    "federated_300r_1e_3c": {
-        "training_mode": "federated",
-        "global_epochs": 300,
-        "epochs_per_round": 1,
-        "number_of_clients": 3,
+        **create_fl_parameters(
+            global_epochs=80, epochs_per_round=5, number_of_clients=3
+        ),
+        "use_training_data_for_validation": True,
     },
     "ks05_local_run": {
-        "training_mode": "federated",
-        "global_epochs": 2,
-        "epochs_per_round": 2,
-        "number_of_clients": 2,
+        **create_fl_parameters(
+            global_epochs=2, epochs_per_round=2, number_of_clients=2
+        ),
         "partitioning_mode": "ks_stat",
         "partitioning_settings": {"desired_ks_stat": 0.5},
     },
