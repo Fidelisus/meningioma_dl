@@ -57,7 +57,15 @@ class ClassicalFLClient(fl.client.NumPyClient):
 
     def get_parameters(self):
         logging.info(f"[Client {self.cid}] get_parameters")
-        return get_model_parameters(self.model)
+        try:
+            parameters = get_model_parameters(self.model)
+        except Exception as e:
+            logging.error(
+                f"Getting model parameters at client {self.cid} failed with error {e}",
+                exc_info=True,
+            )
+            raise e
+        return parameters
 
     def fit(
         self, parameters, config: Dict[str, Scalar]
@@ -76,15 +84,21 @@ class ClassicalFLClient(fl.client.NumPyClient):
         )
         loss_function = nn.CrossEntropyLoss().to(self.device)
 
-        _, _, training_metrics = self.training_function(
-            training_data_loader=self.training_data_loader,
-            model=self.model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            loss_function=loss_function,
-            visualizations_folder=self.visualizations_folder,
-            proximal_mu=config.get("proximal_mu", None),
-        )
+        try:
+            _, _, training_metrics = self.training_function(
+                training_data_loader=self.training_data_loader,
+                model=self.model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                loss_function=loss_function,
+                visualizations_folder=self.visualizations_folder,
+                proximal_mu=config.get("proximal_mu", None),
+            )
+        except Exception as e:
+            logging.error(
+                f"Fitting at client {self.cid} failed with error {e}", exc_info=True
+            )
+            raise e
         return (
             get_model_parameters(self.model),
             len(self.training_data_loader),
@@ -97,12 +111,18 @@ class ClassicalFLClient(fl.client.NumPyClient):
         logging.info(f"[Client {self.cid}] evaluate, config: {config}")
         set_model_parameters(self.model, parameters)
 
-        f1_score, validation_metrics = self.evaluation_function(
-            data_loader=self.validation_data_loader,
-            model=self.model,
-            loss_function=nn.CrossEntropyLoss().to(self.device),
-            visualizations_folder=self.visualizations_folder,
-        )
+        try:
+            f1_score, validation_metrics = self.evaluation_function(
+                data_loader=self.validation_data_loader,
+                model=self.model,
+                loss_function=nn.CrossEntropyLoss().to(self.device),
+                visualizations_folder=self.visualizations_folder,
+            )
+        except Exception as e:
+            logging.error(
+                f"Validation at client {self.cid} failed with error {e}", exc_info=True
+            )
+            raise e
         return (
             float(f1_score),
             len(self.validation_data_loader),
