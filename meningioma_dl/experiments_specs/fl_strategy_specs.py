@@ -11,23 +11,35 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
     },
     "fed_prox_1": {
         "name": "fed_prox",
-        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 1.0},
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 1.0},
     },
     "fed_prox_01": {
         "name": "fed_prox",
-        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 0.1},
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.1},
     },
     "fed_prox_001": {
         "name": "fed_prox",
-        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 0.01},
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.01},
     },
     "fed_prox_0001": {
         "name": "fed_prox",
-        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0, "proximal_mu": 0.001},
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.001},
+    },
+    "fed_prox_0003": {
+        "name": "fed_prox",
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.0003},
+    },
+    "fed_prox_00001": {
+        "name": "fed_prox",
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.0001},
+    },
+    "fed_prox_000001": {
+        "name": "fed_prox",
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.00001},
     },
     "fed_avg_05_fraction": {
         "name": "fed_avg",
-        "config": {"fraction_fit": 0.5, "fraction_eval": 1.0},
+        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0},
     },
 }
 

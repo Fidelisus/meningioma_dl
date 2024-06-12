@@ -36,8 +36,8 @@ def create_fl_parameters(
 
 def create_fl_specs(run_name: str) -> Dict[str, Dict[str, Union[str, int]]]:
     run_name_tokens = run_name.split("_")
-    epochs_per_round = int(run_name_tokens[1][:-1])
-    global_epochs = int(run_name_tokens[2][:-1])
+    global_epochs = int(run_name_tokens[1][:-1])
+    epochs_per_round = int(run_name_tokens[2][:-1])
     number_of_clients = int(run_name_tokens[3][:-1])
     return {
         run_name: create_fl_parameters(
@@ -75,14 +75,12 @@ TRAINING_SPECS = {
         global_epochs=4, epochs_per_round=10, number_of_clients=4
     ),
     **create_fl_specs("federated_200r_1e_3c"),
+    **create_fl_specs("federated_300r_1e_3c"),
+    **create_fl_specs("federated_200r_1e_5c"),
     **create_fl_specs("federated_100r_2e_3c"),
     **create_fl_specs("federated_100r_2e_5c"),
-    **create_fl_specs("federated_200r_2e_3c"),
-    **create_fl_specs("federated_200r_2e_5c"),
     **create_fl_specs("federated_40r_5e_3c"),
     **create_fl_specs("federated_40r_5e_5c"),
-    **create_fl_specs("federated_80r_5e_3c"),
-    **create_fl_specs("federated_80r_5e_5c"),
     **create_fl_specs("federated_20r_20e_3c"),
     **create_fl_specs("federated_20r_20e_5c"),
     "federated_80r_5e_3c_training_data_validation": {
@@ -94,6 +92,13 @@ TRAINING_SPECS = {
     "ks05_local_run": {
         **create_fl_parameters(
             global_epochs=2, epochs_per_round=2, number_of_clients=2
+        ),
+        "partitioning_mode": "ks_stat",
+        "partitioning_settings": {"desired_ks_stat": 0.5},
+    },
+    "ks05_300r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=300, epochs_per_round=1, number_of_clients=3
         ),
         "partitioning_mode": "ks_stat",
         "partitioning_settings": {"desired_ks_stat": 0.5},
