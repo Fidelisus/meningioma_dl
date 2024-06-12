@@ -16,7 +16,6 @@ def get_test_samples_df() -> pd.DataFrame:
 
 def get_samples_df(labels_file: Path) -> pd.DataFrame:
     labels = pd.read_csv(labels_file, sep="\t")
-    assert set(labels.columns) == {"file_path", "label_path", "who_grading"}
     return labels
 
 

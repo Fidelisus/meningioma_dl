@@ -66,14 +66,6 @@ MODELS = {
         "class_mapping": {1: 1, 2: 2, 3: 2},
         "evaluation_metric_weighting": "macro",
     },
-    "class_2_and_3_together_2_unfreezed": {
-        "model_depth": 10,
-        "resnet_shortcut_type": "B",
-        "number_of_layers_to_unfreeze": 2,
-        "number_of_classes": 2,
-        "class_mapping": {1: 1, 2: 2, 3: 2},
-        "evaluation_metric_weighting": "macro",
-    },
     "class_2_and_3_together_3_unfreezed": {
         "model_depth": 10,
         "resnet_shortcut_type": "B",

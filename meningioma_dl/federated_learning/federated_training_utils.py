@@ -12,7 +12,10 @@ from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import TransformationsMode, init_data_loader
-from meningioma_dl.data_loading.labels_loading import get_images_with_labels
+from meningioma_dl.data_loading.labels_loading import (
+    get_images_with_labels,
+    get_samples_df,
+)
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
@@ -20,6 +23,7 @@ from meningioma_dl.experiments_specs.training_specs import FederatedTrainingSpec
 from meningioma_dl.federated_learning.create_federated_data_splits import (
     get_best_split_with_given_ks_stat,
     get_uniform_client_partitions,
+    get_non_iid_partitions,
 )
 from meningioma_dl.federated_learning.server import SaveModelFedAvg, FedProx
 from meningioma_dl.models.resnet import ResNet
@@ -73,30 +77,6 @@ def get_data_loaders(
     return training_data_loader, validation_data_loader
 
 
-def get_partitions(
-    samples_df: pd.DataFrame,
-    partitioning_mode: str,
-    n_partitions: int,
-    partitioning_config: Optional[Dict] = None,
-    manual_seed: int = 123,
-) -> Dict[int, Tuple[int, ...]]:
-    if partitioning_mode == "uniform":
-        partitions = get_uniform_client_partitions(
-            samples_df["labels"], n_partitions, manual_seed
-        )
-    elif partitioning_mode == "ks_stat":
-        partitions = get_best_split_with_given_ks_stat(
-            samples_df["labels"],
-            partitioning_config["desired_ks_stat"],
-            n_partitions,
-            manual_seed=manual_seed,
-        )
-        logging.info(f"Partitions: {partitions}")
-    else:
-        raise ValueError(f"Invalid partitioning mode: {partitioning_mode}")
-    return partitions
-
-
 def get_federated_data_loaders(
     labels_file_path: Path,
     data_root_directory: Path,
@@ -111,13 +91,23 @@ def get_federated_data_loaders(
         data_root_directory, labels_file_path, class_mapping
     )
     samples_df = pd.DataFrame({"images": images, "masks": masks, "labels": labels})
-    partitions = get_partitions(
-        samples_df,
-        training_specs.partitioning_mode,
-        training_specs.number_of_clients,
-        training_specs.partitioning_settings,
-        manual_seed=manual_seed,
-    )
+    if training_specs.partitioning_mode == "uniform":
+        partitions = get_uniform_client_partitions(
+            samples_df["labels"], training_specs.number_of_clients, manual_seed
+        )
+    elif training_specs.partitioning_mode == "ks_stat":
+        partitions = get_non_iid_partitions(
+            labels_file_path.parent.joinpath(
+                f"{labels_file_path.name.split('.')[0]}_"
+                f"{training_specs.partitioning_settings['file_name']}.tsv"
+            ),
+            training_specs.number_of_clients,
+        )
+        logging.info(f"Partitions: {partitions}")
+    else:
+        raise ValueError(
+            f"Invalid partitioning mode: {training_specs.partitioning_mode}"
+        )
     data_loaders = {}
     for client_id, indexes in partitions.items():
         data_loaders[client_id] = init_data_loader(

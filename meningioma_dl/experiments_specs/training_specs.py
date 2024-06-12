@@ -91,17 +91,31 @@ TRAINING_SPECS = {
     },
     "ks05_local_run": {
         **create_fl_parameters(
-            global_epochs=2, epochs_per_round=2, number_of_clients=2
+            global_epochs=2, epochs_per_round=2, number_of_clients=3
         ),
         "partitioning_mode": "ks_stat",
-        "partitioning_settings": {"desired_ks_stat": 0.5},
+        "partitioning_settings": {"file_name": "ks_stat_01_3c"},
     },
-    "ks05_300r_1e_3c": {
+    "ks04_200r_1e_3c": {
         **create_fl_parameters(
-            global_epochs=300, epochs_per_round=1, number_of_clients=3
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
         "partitioning_mode": "ks_stat",
-        "partitioning_settings": {"desired_ks_stat": 0.5},
+        "partitioning_settings": {"file_name": "ks_stat_04_3c"},
+    },
+    "ks024_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "ks_stat",
+        "partitioning_settings": {"file_name": "ks_stat_024_3c"},
+    },
+    "ks01_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "ks_stat",
+        "partitioning_settings": {"file_name": "ks_stat_01_3c"},
     },
 }
 
