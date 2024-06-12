@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence, Any, Optional, List
@@ -13,7 +14,6 @@ from sklearn.metrics import (
 )
 
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
-from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 
 
 @dataclass
@@ -44,8 +44,13 @@ def calculate_sensitivity_and_specificity(
             pos_label=True,
             average=None,
         )
-        sensitivities[str(label)] = recall[1]
-        specificities[str(label)] = recall[0]
+        logging.info(recall)
+        if len(recall) < 2:
+            sensitivities[str(label)] = 1.0
+            specificities[str(label)] = 1.0
+        else:
+            sensitivities[str(label)] = recall[1]
+            specificities[str(label)] = recall[0]
     return sensitivities, specificities
 
 
