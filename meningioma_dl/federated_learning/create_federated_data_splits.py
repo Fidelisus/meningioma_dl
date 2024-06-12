@@ -21,7 +21,7 @@ def calculate_ks_stat_between_all_clients(
                 continue
             statistic, p_value = ks_2samp(first_client_sample, second_client_sample)
             ks_stats.append(statistic)
-    return np.mean(ks_stats)
+    return np.max(ks_stats)
 
 
 def _append_label(
@@ -70,7 +70,7 @@ def get_best_split_with_given_ks_stat(
     labels_series: pd.Series,
     desired_ks_stat: float,
     n_partitions: int,
-    bootstrap_rounds: int = 100,
+    bootstrap_rounds: int = 1000,
     manual_seed: int = 123
 ):
     best_ks_stat_diff = 1.0
@@ -85,7 +85,7 @@ def get_best_split_with_given_ks_stat(
             best_ks_stat_diff = ks_stat_diff
             best_partitions = partitions
     logging.info(
-        f"KS stat of the datasets is {best_ks_stat_diff}. "
+        f"KS stat of the datasets is {best_ks_stat_diff+desired_ks_stat}. "
         f"Desired KS stat was {desired_ks_stat}"
     )
     return best_partitions

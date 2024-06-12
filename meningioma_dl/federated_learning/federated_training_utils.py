@@ -91,6 +91,7 @@ def get_partitions(
             n_partitions,
             manual_seed=manual_seed,
         )
+        logging.info(f"Partitions: {partitions}")
     else:
         raise ValueError(f"Invalid partitioning mode: {partitioning_mode}")
     return partitions
