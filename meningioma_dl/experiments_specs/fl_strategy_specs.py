@@ -37,7 +37,7 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
         "name": "fed_prox",
         "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.00001},
     },
-    "fed_avg_05_fraction": {
+    "fed_avg": {
         "name": "fed_avg",
         "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0},
     },
