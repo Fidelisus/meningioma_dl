@@ -6,7 +6,6 @@ from typing import Optional, Dict, Any, Union
 class CentralizedTrainingSpecs:
     epochs: int = 100
     batch_size: int = 4
-    use_training_data_for_validation: bool = False
     training_mode: str = "centralized"
 
 
@@ -15,7 +14,6 @@ class FederatedTrainingSpecs:
     global_epochs: int = 3
     epochs_per_round: int = 4
     batch_size: int = 1
-    use_training_data_for_validation: bool = False
     training_mode: str = "federated"
     number_of_clients: int = 2
     partitioning_mode: str = "uniform"
@@ -55,16 +53,6 @@ TRAINING_SPECS = {
     "central_200_epochs": {"training_mode": "centralized", "epochs": 200},
     "central_300_epochs": {"training_mode": "centralized", "epochs": 300},
     "central_400_epochs": {"training_mode": "centralized", "epochs": 400},
-    "200_epochs_training_data_validation": {
-        "training_mode": "centralized",
-        "epochs": 200,
-        "use_training_data_for_validation": True,
-    },
-    "300_epochs_training_data_validation": {
-        "training_mode": "centralized",
-        "epochs": 300,
-        "use_training_data_for_validation": True,
-    },
     "federated_local_run": create_fl_parameters(
         global_epochs=2, epochs_per_round=2, number_of_clients=2
     ),
@@ -83,12 +71,6 @@ TRAINING_SPECS = {
     **create_fl_specs("federated_40r_5e_5c"),
     **create_fl_specs("federated_20r_20e_3c"),
     **create_fl_specs("federated_20r_20e_5c"),
-    "federated_80r_5e_3c_training_data_validation": {
-        **create_fl_parameters(
-            global_epochs=80, epochs_per_round=5, number_of_clients=3
-        ),
-        "use_training_data_for_validation": True,
-    },
     "ks05_local_run": {
         **create_fl_parameters(
             global_epochs=2, epochs_per_round=2, number_of_clients=3

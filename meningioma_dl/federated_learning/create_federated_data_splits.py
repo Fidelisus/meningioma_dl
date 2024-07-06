@@ -85,7 +85,7 @@ def get_best_split_with_given_ks_stat(
     labels_series: pd.Series,
     desired_ks_stat: float,
     n_partitions: int,
-    bootstrap_rounds: int = 10000,
+    bootstrap_rounds: int = 1000,
     manual_seed: int = 123,
 ) -> Dict[int, np.ndarray]:
     best_ks_stat_diff = 1.0

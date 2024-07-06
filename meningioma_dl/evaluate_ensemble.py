@@ -3,7 +3,7 @@ import torch
 
 import logging
 from pathlib import Path
-from typing import Optional, Union, Any, Callable, Tuple
+from typing import Optional, Union, Any, Callable, Tuple, List
 
 import fire
 from torch.utils.data import DataLoader
@@ -13,6 +13,7 @@ from meningioma_dl.data_loading.data_loader import (
     get_data_loader,
     TransformationsMode,
 )
+from meningioma_dl.evaluate import calculate_basic_metrics, load_model_for_evaluation
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import (
@@ -40,8 +41,24 @@ from meningioma_dl.federated_learning.federated_training_utils import (
 )
 
 
-def evaluate(
-    trained_model_path: str,
+AVAILABLE_ENSEMBLES = {
+    "centralized": (
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6376843",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold1_6376844",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6376845",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold3_6376846",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6376847",
+    ),
+    "local": (
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6376843",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold1_6376844",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6376845",
+    ),
+}
+
+
+def evaluate_ensemble(
+    trained_model_paths: List[str],
     test_data_path: Path,
     run_id: Optional[str] = None,
     manual_seed: int = 123,
@@ -52,7 +69,9 @@ def evaluate(
     training_specs: CentralizedTrainingSpecs = CentralizedTrainingSpecs(),
     logger: Callable[[str], None] = logging.info,
 ) -> float:
-    logger("Starting model evaluation")
+    logger(
+        f"Starting enseble model evaluation using the models from {trained_model_paths}"
+    )
     torch.manual_seed(manual_seed)
 
     logger(f"Samples to be used are read from {test_data_path}")
@@ -65,11 +84,16 @@ def evaluate(
         class_mapping=model_specs.class_mapping,
     )
 
-    model = load_model_for_evaluation(trained_model_path, model_specs, device)
+    models: List[ResNet] = []
+    for trained_model_path in trained_model_paths:
+        model = load_model_for_evaluation(
+            trained_model_path, model_specs, torch.device("cpu")
+        )
+        models.append(model)
 
     f_score, _ = evaluate_model(
         data_loader,
-        model,
+        models,
         model_specs,
         training_specs,
         device,
@@ -83,7 +107,7 @@ def evaluate(
 
 def evaluate_model(
     data_loader: DataLoader,
-    model: ResNet,
+    models: List[ResNet],
     model_specs: ModelSpecs,
     training_specs: Any,
     device: torch.device,
@@ -95,21 +119,31 @@ def evaluate_model(
 ) -> Tuple[float, ValidationMetrics]:
     loss = None
 
-    model.eval()
-    with torch.no_grad():
-        labels, predictions, images_paths = get_model_predictions(
-            data_loader, model, device
-        )
-        if loss_function is not None:
-            loss = loss_function(
-                predictions.to(torch.float64),
-                labels.to(torch.int64).to(device),
-            ).cpu()
-    labels_cpu = labels.cpu()
-    predictions_flat = predictions.cpu().argmax(dim=1)
+    if not models:
+        raise ValueError("More than one model is needed to evaluate an ensemble.")
+
+    all_predictions = []
+    for i, model in enumerate(models):
+        model.to(device)
+        model.eval()
+        with torch.no_grad():
+            labels, predictions, images_paths = get_model_predictions(
+                data_loader, model, device
+            )
+            if loss_function is not None:
+                loss = loss_function(
+                    predictions.to(torch.float64),
+                    labels.to(torch.int64).to(device),
+                ).cpu()
+        model.cpu()
+        labels_cpu = labels.cpu()
+        all_predictions.append(predictions.cpu().argmax(dim=1))
+
+    predictions_flat = torch.stack(all_predictions).mode(dim=0).values
     f_score = calculate_basic_metrics(
         labels_cpu, predictions_flat, model_specs.evaluation_metric_weighting, logger
     )
+
     if visualizations_folder is not None:
         create_evaluation_report(
             labels_cpu,
@@ -130,86 +164,34 @@ def evaluate_model(
     return f_score, ValidationMetrics(f_score, loss, labels_cpu, predictions_flat)
 
 
-def load_model_for_evaluation(
-    trained_model_path: str, model_specs: ModelSpecs, device: torch.device
-) -> ResNet:
-    saved_model = torch.load(trained_model_path, map_location=device)
-    no_cuda = False if device == torch.device("cuda") else True
-    model = RESNET_MODELS_MAP[model_specs.model_depth](
-        shortcut_type=model_specs.resnet_shortcut_type,
-        no_cuda=no_cuda,
-        num_classes=model_specs.number_of_classes,
-    ).to(device)
-    # TODO don't use hasattr
-    if hasattr(saved_model["state_dict"], "items"):
-        state_dict = {
-            k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
-        }
-        model.load_state_dict(state_dict)
-    else:
-        model = load_best_model(model, trained_model_path, device)
-    return model
-
-
-def calculate_basic_metrics(
-    labels_cpu: torch.Tensor,
-    predictions_flat: torch.Tensor,
-    evaluation_metric_weighting: str,
-    logger: Callable[[str], None] = logging.info,
-) -> float:
-    f_score = f1_score(
-        labels_cpu,
-        predictions_flat,
-        average=evaluation_metric_weighting,
-    )
-    recall = recall_score(
-        labels_cpu,
-        predictions_flat,
-        average=evaluation_metric_weighting,
-    )
-    precision = precision_score(
-        labels_cpu,
-        predictions_flat,
-        average=evaluation_metric_weighting,
-    )
-    logger(f"Evaluation f-score: {f_score}")
-    logger(f"Evaluation recall: {recall}")
-    logger(f"Evaluation precision: {precision}")
-    return f_score
-
-
-def run_standalone_evaluate(
-    trained_model_path: str,
+def run_ensemble_evaluate(
+    ensemble_id: str,
     env_file_path: Optional[str] = None,
     run_id: Optional[str] = None,
     device_name: str = "cpu",
     preprocessing_specs_name: str = "no_resize",
-    model_specs_name: str = "resnet_10_0_unfreezed",
-    use_test_data: bool = False,
-    cv_fold: Optional[int] = None,
+    model_specs_name: str = "class_2_and_3_together_4_unfreezed",
     manual_seed: int = 123,
 ):
-    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, cv_fold)
-
-    labels_file = (
-        Config.test_labels_file_path
-        if use_test_data
-        else Config.validation_labels_file_path
-    )
-    visualizations_folder = Config.visualizations_directory.joinpath(run_id)
-    evaluate(
-        trained_model_path=trained_model_path,
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, None)
+    trained_model_paths = []
+    for model_id in AVAILABLE_ENSEMBLES[ensemble_id]:
+        trained_model_paths.append(
+            str(Config.saved_models_directory.joinpath(model_id, "epoch_-1.pth.tar"))
+        )
+    evaluate_ensemble(
+        trained_model_paths=trained_model_paths,
         device=device,
-        visualizations_folder=visualizations_folder,
+        visualizations_folder=Config.visualizations_directory.joinpath(run_id),
         model_specs=ModelSpecs.get_from_name(model_specs_name),
         preprocessing_specs=PreprocessingSpecs.get_from_name(preprocessing_specs_name),
         training_specs=get_training_specs("evaluation"),
-        test_data_path=labels_file,
+        test_data_path=Config.test_labels_file_path,
     )
 
 
 if __name__ == "__main__":
     try:
-        fire.Fire(run_standalone_evaluate)
+        fire.Fire(run_ensemble_evaluate)
     except Exception as e:
         logging.error(f"An unexpected error occured {e}", exc_info=True)

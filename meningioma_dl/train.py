@@ -34,11 +34,7 @@ def train(
     )
     torch.manual_seed(manual_seed)
     train_labels_file_path = Config.train_labels_file_path
-    validation_labels_file_path = (
-        Config.train_labels_file_path
-        if training_specs.use_training_data_for_validation
-        else Config.validation_labels_file_path
-    )
+    validation_labels_file_path = Config.validation_labels_file_path
     training_data_loader, labels_train = get_data_loader(
         train_labels_file_path,
         Config.data_directory,

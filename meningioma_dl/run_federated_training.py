@@ -148,9 +148,7 @@ class FederatedTraining:
     def _evaluate_best_model(self, trained_model_path: Path, run_id: str):
         self.model = load_best_model(self.model, trained_model_path, self.device)
         validation_data_loader, _ = get_data_loader(
-            Config.train_labels_file_path
-            if self.training_specs.use_training_data_for_validation
-            else Config.validation_labels_file_path,
+            Config.validation_labels_file_path,
             Config.data_directory,
             transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
             batch_size=self.training_specs.batch_size,

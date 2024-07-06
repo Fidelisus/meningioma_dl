@@ -55,6 +55,7 @@ def run_study(
             raise ValueError("No model was created during training, aborting.")
 
         f_score_of_the_best_model = evaluate(
+            test_data_path=Config.validation_labels_file_path,
             run_id=run_id,
             trained_model_path=trained_model_path,
             device=device,
