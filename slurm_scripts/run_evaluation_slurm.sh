@@ -1,6 +1,6 @@
 use_test_data="True"
 fold=4
-ensemble_id="False"
+ensemble_id="centralized_3_classes"
 
 module add "Python/3.9.5-GCCcore-8.2.0"
 module add "PyTorch/1.9.0-foss-2019a"
