@@ -195,7 +195,7 @@ AUGMENTATIONS = {
 @dataclass
 class AugmentationSpecs:
     name: str = "basic_05p"
-    transformations_list: Sequence[transforms.Transform] = ()
+    transformations_list: List[transforms.Transform] = ()
 
     @classmethod
     def get_from_name(cls, name: str) -> Self:

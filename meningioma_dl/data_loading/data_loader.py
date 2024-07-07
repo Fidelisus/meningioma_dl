@@ -162,8 +162,29 @@ def init_data_loader(
                         keys=["mask"],
                         zoom=preprocessing_specs.tissue_around_tumour_zoom,
                     ),
-                    transforms.MaskIntensityd(keys=["img"], mask_key="mask"),
                 ]
+            )
+            if preprocessing_specs.histogram_shift_num_control_points is not None:
+                transformations.append(
+                    transforms.RandHistogramShiftd(
+                        keys=["img"],
+                        prob=1.0,
+                        num_control_points=preprocessing_specs.histogram_shift_num_control_points,
+                    )
+                )
+            if preprocessing_specs.bias_field_coeff is not None:
+                transformations.append(
+                    transforms.RandBiasFieldd(
+                        keys=["img"],
+                        prob=1.0,
+                        coeff_range=(
+                            preprocessing_specs.bias_field_coeff,
+                            preprocessing_specs.bias_field_coeff + 0.000001,
+                        ),
+                    )
+                )
+            transformations.append(
+                transforms.MaskIntensityd(keys=["img"], mask_key="mask")
             )
     if transformations_mode.value == TransformationsMode.AUGMENT.value:
         if augmentations is None:

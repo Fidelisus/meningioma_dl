@@ -120,7 +120,7 @@ class FederatedTraining:
             run_id=run_id,
             logger=clients_logging_function,
             visualizations_folder=self.visualizations_folder,
-            save_images=False,
+            save_images=True,
         )
 
     def on_fit_config_fn(self, _) -> Dict[str, float]:

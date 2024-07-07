@@ -59,7 +59,7 @@ def get_data_loaders(
         transformations_mode=TransformationsMode.AUGMENT,
         training_specs=training_specs,
         augmentations=modelling_specs.augmentation_specs.transformations_list,
-        preprocessing_specs=modelling_specs.preprocessing_specs,
+        default_preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
         manual_seed=manual_seed,
     )
@@ -69,7 +69,7 @@ def get_data_loaders(
         data_root_directory=Config.data_directory,
         transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
         training_specs=training_specs,
-        preprocessing_specs=modelling_specs.preprocessing_specs,
+        default_preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
         manual_seed=manual_seed,
     )
@@ -82,8 +82,8 @@ def get_federated_data_loaders(
     data_root_directory: Path,
     training_specs: FederatedTrainingSpecs = FederatedTrainingSpecs(),
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
-    augmentations: Optional[Sequence[transforms.Transform]] = None,
-    preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
+    augmentations: Optional[List[transforms.Transform]] = None,
+    default_preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     class_mapping: Optional[Dict[int, int]] = None,
     manual_seed: int = 123,
 ) -> Tuple[Dict[int, DataLoader], List[int]]:
@@ -110,6 +110,15 @@ def get_federated_data_loaders(
         )
     data_loaders = {}
     for client_id, indexes in partitions.items():
+        preprocessing = default_preprocessing_specs
+        if training_specs.client_specific_preprocessing is not None:
+            client_specific_preprocessing = (
+                training_specs.client_specific_preprocessing[client_id]
+            )
+            if client_specific_preprocessing is not None:
+                preprocessing = PreprocessingSpecs.get_from_name(
+                    client_specific_preprocessing
+                )
         data_loaders[client_id] = init_data_loader(
             samples_df.images.iloc[indexes].values,
             samples_df.masks.iloc[indexes].values,
@@ -117,7 +126,7 @@ def get_federated_data_loaders(
             batch_size=training_specs.batch_size,
             transformations_mode=transformations_mode,
             augmentations=augmentations,
-            preprocessing_specs=preprocessing_specs,
+            preprocessing_specs=preprocessing,
         )
     return data_loaders, labels
 

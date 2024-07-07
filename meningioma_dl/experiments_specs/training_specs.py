@@ -19,6 +19,7 @@ class FederatedTrainingSpecs:
     partitioning_mode: str = "uniform"
     reset_learning_rate_every_round: bool = False
     partitioning_settings: Optional[Dict[str, Any]] = None
+    client_specific_preprocessing: Optional[Dict[int, Optional[str]]] = None
 
 
 def create_fl_parameters(
@@ -112,6 +113,28 @@ TRAINING_SPECS = {
         ),
         "partitioning_mode": "ks_stat",
         "partitioning_settings": {"file_name": "ks_stat_01_3c"},
+    },
+    "augment_per_client_1r_1e_2c": {
+        **create_fl_parameters(
+            global_epochs=1, epochs_per_round=1, number_of_clients=2
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": {
+            0: "histogram_shift_5",
+            1: "histogram_shift_10",
+            2: None,
+        },
+    },
+    "augment_per_client_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": {
+            0: "histogram_shift_5",
+            1: "histogram_shift_10",
+            2: None,
+        },
     },
 }
 
