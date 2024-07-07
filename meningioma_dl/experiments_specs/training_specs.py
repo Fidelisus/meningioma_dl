@@ -114,7 +114,7 @@ TRAINING_SPECS = {
         "partitioning_mode": "ks_stat",
         "partitioning_settings": {"file_name": "ks_stat_01_3c"},
     },
-    "augment_per_client_1r_1e_2c": {
+    "histogram_shifts_1r_1e_2c": {
         **create_fl_parameters(
             global_epochs=1, epochs_per_round=1, number_of_clients=2
         ),
@@ -125,7 +125,7 @@ TRAINING_SPECS = {
             2: None,
         },
     },
-    "augment_per_client_200r_1e_3c": {
+    "histogram_shifts_200r_1e_3c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
