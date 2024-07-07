@@ -42,12 +42,19 @@ from meningioma_dl.federated_learning.federated_training_utils import (
 
 
 AVAILABLE_ENSEMBLES = {
-    "centralized": (
+    "centralized_2_classes": (
         "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6376843",
         "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold1_6376844",
         "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6376845",
         "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold3_6376846",
         "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6376847",
+    ),
+    "centralized_3_classes": (
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_08p_0001_lr_099_gamma_resnet_10_4_unfreezed_fold0_6376848",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_08p_0001_lr_099_gamma_resnet_10_4_unfreezed_fold1_6376849",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_08p_0001_lr_099_gamma_resnet_10_4_unfreezed_fold2_6384955",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_08p_0001_lr_099_gamma_resnet_10_4_unfreezed_fold3_6384956",
+        "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_08p_0001_lr_099_gamma_resnet_10_4_unfreezed_fold4_6384957",
     ),
     "local": (
         "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6376843",
