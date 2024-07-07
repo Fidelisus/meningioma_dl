@@ -39,7 +39,8 @@ PREPROCESSING_SPECS: Dict[str, Dict[str, Any]] = {
     "histogram_shift_10": {"histogram_shift_num_control_points": 10},
     "bias_field_03": {"bias_field_coeff": 0.3},
     "bias_field_05": {"bias_field_coeff": 0.5},
-    "bias_field_01": {"bias_field_coeff": 0.1},
+    "bias_field_08": {"bias_field_coeff": 0.8},
+    "bias_field_1": {"bias_field_coeff": 1.0},
     "bias_field_3": {"bias_field_coeff": 3.0},
     "no_resize_no_tissue_around_tumour": {
         "final_resize_mode": None,

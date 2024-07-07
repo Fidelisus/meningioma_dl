@@ -136,6 +136,17 @@ TRAINING_SPECS = {
             2: None,
         },
     },
+    "bias_field_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": {
+            0: "bias_field_05",
+            1: "bias_field_08",
+            2: None,
+        },
+    },
 }
 
 
