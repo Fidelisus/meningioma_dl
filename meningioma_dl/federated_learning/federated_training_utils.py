@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import List, Tuple, Any, Dict, Optional, Sequence, Callable
+from typing import List, Tuple, Any, Dict, Optional, Callable
 
 import numpy as np
 import pandas as pd
@@ -11,17 +11,18 @@ from monai import transforms
 from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
-from meningioma_dl.data_loading.data_loader import TransformationsMode, init_data_loader
+from meningioma_dl.data_loading.data_loader import (
+    TransformationsMode,
+    get_client_specific_preprocessing_datasets,
+)
 from meningioma_dl.data_loading.labels_loading import (
     get_images_with_labels,
-    get_samples_df,
 )
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import FederatedTrainingSpecs
 from meningioma_dl.federated_learning.create_federated_data_splits import (
-    get_best_split_with_given_ks_stat,
     get_uniform_client_partitions,
     get_non_iid_partitions,
 )
@@ -47,9 +48,7 @@ def get_optimizer_and_scheduler(
 
 
 def get_data_loaders(
-    modelling_specs: ModellingSpecs,
-    training_specs: FederatedTrainingSpecs,
-    manual_seed: int,
+    modelling_specs: ModellingSpecs, training_specs: FederatedTrainingSpecs
 ) -> Tuple[Dict[int, DataLoader], Dict[int, DataLoader]]:
     train_labels_file_path = Config.train_labels_file_path
     validation_labels_file_path = Config.validation_labels_file_path
@@ -61,7 +60,6 @@ def get_data_loaders(
         augmentations=modelling_specs.augmentation_specs.transformations_list,
         default_preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
-        manual_seed=manual_seed,
     )
     logging.info(f"Training data loaded from {train_labels_file_path}")
     validation_data_loader, labels_validation = get_federated_data_loaders(
@@ -71,7 +69,6 @@ def get_data_loaders(
         training_specs=training_specs,
         default_preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
-        manual_seed=manual_seed,
     )
     logging.info(f"Validation data loaded from {validation_labels_file_path}")
     return training_data_loader, validation_data_loader
@@ -108,25 +105,21 @@ def get_federated_data_loaders(
         raise ValueError(
             f"Invalid partitioning mode: {training_specs.partitioning_mode}"
         )
+    datasets = get_client_specific_preprocessing_datasets(
+        samples_df,
+        partitions,
+        training_specs.client_specific_preprocessing,
+        default_preprocessing_specs,
+        augmentations,
+        transformations_mode,
+    )
     data_loaders = {}
-    for client_id, indexes in partitions.items():
-        preprocessing = default_preprocessing_specs
-        if training_specs.client_specific_preprocessing is not None:
-            client_specific_preprocessing = (
-                training_specs.client_specific_preprocessing[client_id]
-            )
-            if client_specific_preprocessing is not None:
-                preprocessing = PreprocessingSpecs.get_from_name(
-                    client_specific_preprocessing
-                )
-        data_loaders[client_id] = init_data_loader(
-            samples_df.images.iloc[indexes].values,
-            samples_df.masks.iloc[indexes].values,
-            samples_df.labels.iloc[indexes].values,
+    for client_id in partitions:
+        data_loaders[client_id] = DataLoader(
+            datasets[client_id],
             batch_size=training_specs.batch_size,
-            transformations_mode=transformations_mode,
-            augmentations=augmentations,
-            preprocessing_specs=preprocessing,
+            pin_memory=torch.cuda.is_available(),
+            shuffle=True,
         )
     return data_loaders, labels
 

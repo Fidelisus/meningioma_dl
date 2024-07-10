@@ -43,6 +43,7 @@ def train(
         augmentations=modelling_specs.augmentation_specs.transformations_list,
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
+        client_specific_preprocessing=training_specs.client_specific_preprocessing,
     )
     logging.info(f"Training data loaded from {train_labels_file_path}")
     validation_data_loader, labels_validation = get_data_loader(
@@ -52,6 +53,7 @@ def train(
         batch_size=training_specs.batch_size,
         preprocessing_specs=modelling_specs.preprocessing_specs,
         class_mapping=modelling_specs.model_specs.class_mapping,
+        client_specific_preprocessing=training_specs.client_specific_preprocessing,
     )
     logging.info(f"Validation data loaded from {validation_labels_file_path}")
 

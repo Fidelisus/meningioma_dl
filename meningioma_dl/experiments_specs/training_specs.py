@@ -7,6 +7,7 @@ class CentralizedTrainingSpecs:
     epochs: int = 100
     batch_size: int = 4
     training_mode: str = "centralized"
+    client_specific_preprocessing: Optional[Dict[int, Optional[str]]] = None
 
 
 @dataclass
@@ -141,6 +142,32 @@ TRAINING_SPECS = {
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
+        "client_specific_preprocessing": {
+            0: "bias_field_05",
+            1: "bias_field_08",
+            2: None,
+        },
+    },
+    "noniid_ci_run_central_400e": {
+        "training_mode": "centralized",
+        "epochs": 2,
+        "client_specific_preprocessing": {
+            0: "histogram_shift_5",
+            1: "histogram_shift_10",
+        },
+    },
+    "histogram_shifts_central_400e": {
+        "training_mode": "centralized",
+        "epochs": 400,
+        "client_specific_preprocessing": {
+            0: "histogram_shift_5",
+            1: "histogram_shift_10",
+            2: None,
+        },
+    },
+    "bias_field_central_400e": {
+        "training_mode": "centralized",
+        "epochs": 400,
         "client_specific_preprocessing": {
             0: "bias_field_05",
             1: "bias_field_08",

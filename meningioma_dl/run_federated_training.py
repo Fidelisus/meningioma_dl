@@ -181,7 +181,7 @@ class FederatedTraining:
         (
             self.training_data_loaders,
             self.validation_data_loaders,
-        ) = get_data_loaders(self.modelling_specs, self.training_specs, manual_seed)
+        ) = get_data_loaders(self.modelling_specs, self.training_specs)
         self.model, self.pretrained_model_state_dict = create_resnet_model(
             self.modelling_specs.model_specs.model_depth,
             self.modelling_specs.model_specs.resnet_shortcut_type,

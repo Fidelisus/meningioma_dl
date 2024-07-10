@@ -1,16 +1,24 @@
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Tuple, Sequence, Set, Dict
+from typing import List, Optional, Tuple, Sequence, Set, Dict, Any
 
 import monai
+import pandas as pd
 import torch
 from monai import transforms
-from monai.data import DataLoader
+from monai.data import Dataset
 from monai.utils import set_determinism
+from torch.utils.data import DataLoader, ConcatDataset
 
-from meningioma_dl.data_loading.labels_loading import get_images_with_labels
+from meningioma_dl.data_loading.labels_loading import (
+    get_images_with_labels,
+    get_samples_df,
+)
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
+from meningioma_dl.federated_learning.create_federated_data_splits import (
+    get_uniform_client_partitions,
+)
 
 """
 In order to make Cropforegroundd work you have to add the following code to 
@@ -58,33 +66,55 @@ def get_data_loader(
     augmentations: Optional[Sequence[transforms.Transform]] = None,
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     class_mapping: Optional[Dict[int, int]] = None,
+    client_specific_preprocessing: Optional[Dict[int, Optional[str]]] = None,
+    manual_seed: int = 123,
 ) -> Tuple[DataLoader, List[int]]:
     images, masks, labels = get_images_with_labels(
         data_root_directory, labels_file_path, class_mapping
     )
-
-    data_loader = init_data_loader(
-        images,
-        masks,
-        labels,
+    if client_specific_preprocessing is not None:
+        samples_df = pd.DataFrame({"images": images, "masks": masks, "labels": labels})
+        partitions = get_uniform_client_partitions(
+            samples_df["labels"],
+            len(client_specific_preprocessing.keys()),
+            manual_seed,
+        )
+        datasets = get_client_specific_preprocessing_datasets(
+            samples_df,
+            partitions,
+            client_specific_preprocessing,
+            preprocessing_specs,
+            augmentations,
+            transformations_mode,
+        )
+        dataset = ConcatDataset(datasets.values())
+    else:
+        dataset = init_dataset(
+            images,
+            masks,
+            labels,
+            transformations_mode=transformations_mode,
+            augmentations=augmentations,
+            preprocessing_specs=preprocessing_specs,
+        )
+    data_loader = DataLoader(
+        dataset,
         batch_size=batch_size,
-        transformations_mode=transformations_mode,
-        augmentations=augmentations,
-        preprocessing_specs=preprocessing_specs,
+        pin_memory=torch.cuda.is_available(),
+        shuffle=True,
     )
     return data_loader, labels
 
 
-def init_data_loader(
+def init_dataset(
     images: List[str],
     masks: List[str],
     labels: List[int],
-    batch_size: int,
     transformations_mode: TransformationsMode = TransformationsMode.AUGMENT,
     augmentations: Optional[List[transforms.Transform]] = None,
     preprocessing_specs: PreprocessingSpecs = PreprocessingSpecs(),
     bounding_box_of_segmentation: int = 129,
-) -> DataLoader:
+) -> Dataset:
     set_determinism(seed=123)
     file_label_map = [
         {"img": img, "mask": mask, "label": label - 1}
@@ -231,14 +261,40 @@ def init_data_loader(
             transforms.ScaleIntensityd(keys=["img"], minv=0.0, maxv=1.0)
         )
 
-    dataset = monai.data.Dataset(
+    dataset = Dataset(
         data=file_label_map, transform=transforms.Compose(transformations)
     )
-    data_loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        pin_memory=torch.cuda.is_available(),
-        shuffle=True,
-    )
+    return dataset
 
-    return data_loader
+
+def get_client_specific_preprocessing_datasets(
+    samples_df: pd.DataFrame,
+    partitions: Dict[int, Any],
+    client_specific_preprocessings: Optional[Dict[int, Optional[str]]],
+    default_preprocessing_specs: PreprocessingSpecs,
+    augmentations: Optional[List[transforms.Transform]],
+    transformations_mode: TransformationsMode,
+) -> Dict[int, Dataset]:
+    datasets = {}
+    for client_id, indexes in partitions.items():
+        preprocessing = default_preprocessing_specs
+        client_specific_preprocessing = None
+        if client_specific_preprocessings is not None:
+            client_specific_preprocessing = client_specific_preprocessings[client_id]
+            if client_specific_preprocessing is not None:
+                preprocessing = PreprocessingSpecs.get_from_name(
+                    client_specific_preprocessing
+                )
+        datasets[client_id] = init_dataset(
+            samples_df.images.iloc[indexes].values,
+            samples_df.masks.iloc[indexes].values,
+            samples_df.labels.iloc[indexes].values,
+            transformations_mode=transformations_mode,
+            augmentations=augmentations,
+            preprocessing_specs=preprocessing,
+        )
+        logging.info(
+            f"Client: {client_id}, preprocessing: {client_specific_preprocessing}, "
+            f"images: {[file[-26:-10] for file in samples_df.images.iloc[indexes].values]}"
+        )
+    return datasets

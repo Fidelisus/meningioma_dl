@@ -63,6 +63,7 @@ def evaluate(
         batch_size=training_specs.batch_size,
         preprocessing_specs=preprocessing_specs,
         class_mapping=model_specs.class_mapping,
+        client_specific_preprocessing=training_specs.client_specific_preprocessing,
     )
 
     model = load_model_for_evaluation(trained_model_path, model_specs, device)
