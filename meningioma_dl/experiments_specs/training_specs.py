@@ -156,54 +156,54 @@ TRAINING_SPECS = {
             1: "histogram_shift_10",
         },
     },
-    "histogram_shifts_central_400e": {
+    "histogram_shifts_central_200e": {
         "training_mode": "centralized",
-        "epochs": 400,
+        "epochs": 200,
         "client_specific_preprocessing": {
             0: "histogram_shift_5",
             1: "histogram_shift_10",
             2: None,
         },
     },
-    "bias_field_central_400e": {
+    "bias_field_central_200e": {
         "training_mode": "centralized",
-        "epochs": 400,
+        "epochs": 200,
         "client_specific_preprocessing": {
             0: "bias_field_05",
             1: "bias_field_08",
             2: None,
         },
     },
-    "histogram_shifts_central1_400e": {
+    "histogram_shifts_central1_200e": {
         "training_mode": "centralized",
-        "epochs": 400,
+        "epochs": 200,
         "client_specific_preprocessing": {
             0: "histogram_shift_20",
             1: "histogram_shift_40",
             2: None,
         },
     },
-    "histogram_shifts_central2_400e": {
+    "histogram_shifts_central2_200e": {
         "training_mode": "centralized",
-        "epochs": 400,
+        "epochs": 200,
         "client_specific_preprocessing": {
             0: "histogram_shift_50",
             1: "histogram_shift_100",
             2: None,
         },
     },
-    "bias_field_central1_400e": {
+    "bias_field_central1_200e": {
         "training_mode": "centralized",
-        "epochs": 400,
+        "epochs": 200,
         "client_specific_preprocessing": {
             0: "bias_field_015",
             1: "bias_field_03",
             2: None,
         },
     },
-    "bias_field_central2_400e": {
+    "bias_field_central2_200e": {
         "training_mode": "centralized",
-        "epochs": 400,
+        "epochs": 200,
         "client_specific_preprocessing": {
             0: "bias_field_01",
             1: "bias_field_02",
