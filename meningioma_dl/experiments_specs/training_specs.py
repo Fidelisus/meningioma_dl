@@ -174,6 +174,42 @@ TRAINING_SPECS = {
             2: None,
         },
     },
+    "histogram_shifts_central1_400e": {
+        "training_mode": "centralized",
+        "epochs": 400,
+        "client_specific_preprocessing": {
+            0: "histogram_shift_20",
+            1: "histogram_shift_40",
+            2: None,
+        },
+    },
+    "histogram_shifts_central2_400e": {
+        "training_mode": "centralized",
+        "epochs": 400,
+        "client_specific_preprocessing": {
+            0: "histogram_shift_50",
+            1: "histogram_shift_100",
+            2: None,
+        },
+    },
+    "bias_field_central1_400e": {
+        "training_mode": "centralized",
+        "epochs": 400,
+        "client_specific_preprocessing": {
+            0: "bias_field_015",
+            1: "bias_field_03",
+            2: None,
+        },
+    },
+    "bias_field_central2_400e": {
+        "training_mode": "centralized",
+        "epochs": 400,
+        "client_specific_preprocessing": {
+            0: "bias_field_01",
+            1: "bias_field_02",
+            2: None,
+        },
+    },
 }
 
 
