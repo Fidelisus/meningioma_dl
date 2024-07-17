@@ -46,6 +46,39 @@ def create_fl_specs(run_name: str) -> Dict[str, Dict[str, Union[str, int]]]:
     }
 
 
+CLIENT_SPECIFIC_PREPROCESSINGS = {
+    "histogram_shifts_high": {
+        0: "histogram_shift_5",
+        1: "histogram_shift_10",
+        2: None,
+    },
+    "histogram_shifts_medium": {
+        0: "histogram_shift_20",
+        1: "histogram_shift_40",
+        2: None,
+    },
+    "histogram_shifts_low": {
+        0: "histogram_shift_50",
+        1: "histogram_shift_100",
+        2: None,
+    },
+    "bias_field_high": {
+        0: "bias_field_05",
+        1: "bias_field_08",
+        2: None,
+    },
+    "bias_field_medium": {
+        0: "bias_field_015",
+        1: "bias_field_03",
+        2: None,
+    },
+    "bias_field_low": {
+        0: "bias_field_01",
+        1: "bias_field_02",
+        2: None,
+    },
+}
+
 TRAINING_SPECS = {
     "evaluation": {"training_mode": "centralized", "epochs": 1},
     "central_1_epochs": {"training_mode": "centralized", "epochs": 1},
@@ -126,27 +159,59 @@ TRAINING_SPECS = {
             2: None,
         },
     },
-    "histogram_shifts_200r_1e_3c": {
+    "histogram_shifts_high_200r_1e_3c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
-        "client_specific_preprocessing": {
-            0: "histogram_shift_5",
-            1: "histogram_shift_10",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_high"
+        ],
     },
-    "bias_field_200r_1e_3c": {
+    "histogram_shifts_medium_200r_1e_3c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
-        "client_specific_preprocessing": {
-            0: "bias_field_05",
-            1: "bias_field_08",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_medium"
+        ],
+    },
+    "histogram_shifts_low_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_low"
+        ],
+    },
+    "bias_field_high_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_high"
+        ],
+    },
+    "bias_field_medium_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_medium"
+        ],
+    },
+    "bias_field_low_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_low"
+        ],
     },
     "noniid_ci_run_central_400e": {
         "training_mode": "centralized",
@@ -159,57 +224,48 @@ TRAINING_SPECS = {
     "histogram_shifts_central_200e": {
         "training_mode": "centralized",
         "epochs": 200,
-        "client_specific_preprocessing": {
-            0: "histogram_shift_5",
-            1: "histogram_shift_10",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_high"
+        ],
     },
     "bias_field_central_200e": {
         "training_mode": "centralized",
         "epochs": 200,
-        "client_specific_preprocessing": {
-            0: "bias_field_05",
-            1: "bias_field_08",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_high"
+        ],
     },
     "histogram_shifts_central1_200e": {
         "training_mode": "centralized",
         "epochs": 200,
-        "client_specific_preprocessing": {
-            0: "histogram_shift_20",
-            1: "histogram_shift_40",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_medium"
+        ],
     },
     "histogram_shifts_central2_200e": {
         "training_mode": "centralized",
         "epochs": 200,
-        "client_specific_preprocessing": {
-            0: "histogram_shift_50",
-            1: "histogram_shift_100",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_low"
+        ],
     },
     "bias_field_central1_200e": {
         "training_mode": "centralized",
         "epochs": 200,
-        "client_specific_preprocessing": {
-            0: "bias_field_015",
-            1: "bias_field_03",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_medium"
+        ],
     },
     "bias_field_central2_200e": {
         "training_mode": "centralized",
         "epochs": 200,
-        "client_specific_preprocessing": {
-            0: "bias_field_01",
-            1: "bias_field_02",
-            2: None,
-        },
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_low"
+        ],
     },
+    **create_fl_specs("federated_1r_1e_2c"),
+    **create_fl_specs("federated_1r_2e_3c"),
+    **create_fl_specs("federated_1r_100e_3c"),
 }
 
 
