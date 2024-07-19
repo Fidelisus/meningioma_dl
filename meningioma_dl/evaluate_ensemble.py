@@ -1,9 +1,12 @@
+import json
+
+import numpy as np
 from sklearn.metrics import f1_score, recall_score, precision_score
 import torch
 
 import logging
 from pathlib import Path
-from typing import Optional, Union, Any, Callable, Tuple, List
+from typing import Optional, Union, Any, Callable, Tuple, List, Dict
 
 import fire
 from torch.utils.data import DataLoader
@@ -20,7 +23,7 @@ from meningioma_dl.experiments_specs.training_specs import (
     CentralizedTrainingSpecs,
     get_training_specs,
 )
-from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet
+from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet, load_best_model
 from meningioma_dl.training_utils import (
     get_model_predictions,
 )
@@ -36,10 +39,6 @@ from meningioma_dl.visualizations.results_visualizations import (
     create_evaluation_report,
     ValidationMetrics,
 )
-from meningioma_dl.federated_learning.federated_training_utils import (
-    load_best_model,
-)
-
 
 AVAILABLE_ENSEMBLES = {
     "centralized_2_classes": (
@@ -64,7 +63,7 @@ AVAILABLE_ENSEMBLES = {
 }
 
 
-def evaluate_ensemble(
+def evaluate_ensemble_model(
     trained_model_paths: List[str],
     test_data_path: Path,
     run_id: Optional[str] = None,
@@ -99,7 +98,7 @@ def evaluate_ensemble(
         )
         models.append(model)
 
-    f_score, _ = evaluate_model(
+    f_score, _ = evaluate_ensemble(
         data_loader,
         models,
         model_specs,
@@ -113,7 +112,15 @@ def evaluate_ensemble(
     return f_score
 
 
-def evaluate_model(
+def load_json(visualizations_folder: Path, file_name: str) -> Dict:
+    with open(
+        visualizations_folder.joinpath(file_name),
+        "r",
+    ) as f:
+        return json.load(f)
+
+
+def evaluate_ensemble(
     data_loader: DataLoader,
     models: List[ResNet],
     model_specs: ModelSpecs,
@@ -124,13 +131,14 @@ def evaluate_model(
     logger: Callable[[str], None] = logging.info,
     loss_function: Optional[Callable] = None,
     save_images: bool = True,
+    ensemble_models_weights: Optional[np.ndarray] = None,
 ) -> Tuple[float, ValidationMetrics]:
     loss = None
 
     if not models:
         raise ValueError("More than one model is needed to evaluate an ensemble.")
 
-    all_predictions = []
+    all_predictions = {}
     for i, model in enumerate(models):
         model.to(device)
         model.eval()
@@ -145,9 +153,12 @@ def evaluate_model(
                 ).cpu()
         model.cpu()
         labels_cpu = labels.cpu()
-        all_predictions.append(predictions.cpu().argmax(dim=1))
+        all_predictions[i] = predictions.cpu()
 
-    predictions_flat = torch.stack(all_predictions).mode(dim=0).values
+    predictions_matrix = torch.stack(list(all_predictions.values()))
+    if ensemble_models_weights is not None:
+        predictions_matrix = predictions_matrix * ensemble_models_weights[:, None, None]
+    predictions_flat = predictions_matrix.argmax(dim=2).mode(dim=0).values
     f_score = calculate_basic_metrics(
         labels_cpu, predictions_flat, model_specs.evaluation_metric_weighting, logger
     )
@@ -187,7 +198,7 @@ def run_ensemble_evaluate(
         trained_model_paths.append(
             str(Config.saved_models_directory.joinpath(model_id, "epoch_-1.pth.tar"))
         )
-    evaluate_ensemble(
+    evaluate_ensemble_model(
         trained_model_paths=trained_model_paths,
         device=device,
         visualizations_folder=Config.visualizations_directory.joinpath(run_id),

@@ -1,23 +1,25 @@
-import numpy as np
-import torch
-
 import copy
+import json
 import logging
-from collections import OrderedDict
+from collections import defaultdict
 from functools import partial
 from logging import INFO
 from pathlib import Path
-from typing import Tuple, Optional, Callable, List, Dict
+from typing import Tuple, Optional, Callable, List, Dict, Any
 
 import fire
 import flwr as fl
+import numpy as np
+import torch
 from flwr.common import Metrics
 from flwr.common.logger import log
 from flwr.server import History
+from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import TransformationsMode, get_data_loader
-from meningioma_dl.evaluate import evaluate_model
+from meningioma_dl.evaluate import evaluate_model, calculate_basic_metrics
+from meningioma_dl.evaluate_ensemble import evaluate_ensemble
 from meningioma_dl.experiments_specs.augmentation_specs import AugmentationSpecs
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
@@ -33,14 +35,15 @@ from meningioma_dl.federated_learning.federated_training_utils import (
     get_data_loaders,
     visualize_federated_learning_metrics,
     create_strategy,
+)
+from meningioma_dl.models.resnet import (
+    create_resnet_model,
+    ResNet,
     load_best_model,
 )
-from meningioma_dl.models.resnet import create_resnet_model, ResNet, freeze_layers
-from meningioma_dl.training_utils import training_loop
+from meningioma_dl.training_utils import training_loop, get_model_predictions
 from meningioma_dl.utils import (
     setup_run,
-    setup_logging,
-    generate_run_id,
     setup_flower_logger,
 )
 
@@ -145,16 +148,10 @@ class FederatedTraining:
             visualizations_folder=self.visualizations_folder.joinpath(f"client_{cid}"),
         )
 
-    def _evaluate_best_model(self, trained_model_path: Path, run_id: str):
+    def _evaluate_best_model(
+        self, validation_data_loader: DataLoader, trained_model_path: Path, run_id: str
+    ):
         self.model = load_best_model(self.model, trained_model_path, self.device)
-        validation_data_loader, _ = get_data_loader(
-            Config.validation_labels_file_path,
-            Config.data_directory,
-            transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
-            batch_size=self.training_specs.batch_size,
-            preprocessing_specs=self.modelling_specs.preprocessing_specs,
-            class_mapping=self.modelling_specs.model_specs.class_mapping,
-        )
         evaluate_model(
             model=self.model,
             data_loader=validation_data_loader,
@@ -182,6 +179,7 @@ class FederatedTraining:
             self.training_data_loaders,
             self.validation_data_loaders,
         ) = get_data_loaders(self.modelling_specs, self.training_specs)
+
         self.model, self.pretrained_model_state_dict = create_resnet_model(
             self.modelling_specs.model_specs.model_depth,
             self.modelling_specs.model_specs.resnet_shortcut_type,
@@ -189,6 +187,15 @@ class FederatedTraining:
             Config.pretrained_models_directory,
             self.device,
         )
+        pretrained_model_run_id = self.fl_strategy_specs.config.get(
+            "pretrained_model_run_id"
+        )
+        if pretrained_model_run_id is not None:
+            pretrained_model_file = self.saved_models_folder.parent.joinpath(
+                pretrained_model_run_id, "epoch_-1.pth.tar"
+            )
+            self.model = load_best_model(self.model, pretrained_model_file, device)
+
         self._set_clients_train_and_eval_functions(run_id)
         self.last_lr = self.modelling_specs.scheduler_specs.learning_rate
 
@@ -220,9 +227,156 @@ class FederatedTraining:
             # }
         )
 
-        self._evaluate_best_model(strategy.trained_model_path, run_id)
+        validation_data_loader, _ = get_data_loader(
+            Config.validation_labels_file_path,
+            Config.data_directory,
+            transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
+            batch_size=self.training_specs.batch_size,
+            preprocessing_specs=self.modelling_specs.preprocessing_specs,
+            class_mapping=self.modelling_specs.model_specs.class_mapping,
+        )
+        if self.fl_strategy_specs.name == "fed_ensemble":
+            (
+                clients_models,
+                local_models_vs_clients_f_scores,
+            ) = self.get_local_models_vs_clients_f_scores(
+                strategy.saved_models_folder, device
+            )
+            self._save_as_json(
+                "local_models_vs_clients_f_scores.json",
+                local_models_vs_clients_f_scores,
+            )
+
+            global_ensemble_weights = self.get_global_ensemble_weights(
+                local_models_vs_clients_f_scores
+            )
+            local_ensemble_weights = self.get_local_ensemble_weights(
+                local_models_vs_clients_f_scores
+            )
+            self._save_as_json("global_ensemble_weights.json", global_ensemble_weights)
+            for client_id in local_ensemble_weights:
+                self._save_as_json(
+                    f"local_ensemble_weights_{client_id}.json",
+                    local_ensemble_weights[client_id],
+                )
+            f_score, _ = evaluate_ensemble(
+                validation_data_loader,
+                list(clients_models.values()),
+                self.modelling_specs.model_specs,
+                self.training_specs,
+                device,
+                run_id,
+                self.visualizations_folder,
+                ensemble_models_weights=np.array(
+                    list(global_ensemble_weights.values())
+                ),
+            )
+
+        else:
+            trained_model_path = strategy.trained_model_path
+            self._evaluate_best_model(
+                validation_data_loader, trained_model_path, run_id
+            )
 
         return training_history
+
+    def _save_as_json(self, file_name: str, object_to_save: Any) -> None:
+        with open(
+            self.visualizations_folder.joinpath(file_name),
+            "w",
+        ) as f:
+            json.dump(object_to_save, f)
+
+    def get_global_ensemble_weights(
+        self,
+        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]],
+    ) -> Dict[int, float]:
+        local_models_vs_clients_f_scores_matrix = (
+            self.local_models_vs_clients_f_scores_to_matrix(
+                local_models_vs_clients_f_scores
+            )
+        )
+        mean_weight_for_each_model_vector: np.ndarray = self.normalize_weights(
+            np.mean(local_models_vs_clients_f_scores_matrix, axis=1)
+        )
+        mean_weight_for_each_model = {
+            client_id: mean_weight
+            for client_id, mean_weight in enumerate(mean_weight_for_each_model_vector)
+        }
+        return mean_weight_for_each_model
+
+    def get_local_ensemble_weights(
+        self,
+        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]],
+    ) -> Dict[int, Dict[int, float]]:
+        local_models_vs_clients_f_scores_matrix = (
+            self.local_models_vs_clients_f_scores_to_matrix(
+                local_models_vs_clients_f_scores
+            )
+        )
+        mean_weight_for_each_model: Dict[int, Dict[int, float]] = {}
+        for client_id in local_models_vs_clients_f_scores:
+            mean_weight_for_each_model_vector: np.ndarray = self.normalize_weights(
+                local_models_vs_clients_f_scores_matrix[:, int(client_id)]
+            )
+            mean_weight_for_each_model[client_id] = {
+                client_id: mean_weight
+                for client_id, mean_weight in enumerate(
+                    mean_weight_for_each_model_vector
+                )
+            }
+        return mean_weight_for_each_model
+
+    @staticmethod
+    def normalize_weights(weights: np.ndarray) -> np.ndarray:
+        return weights / weights.sum()
+
+    @staticmethod
+    def local_models_vs_clients_f_scores_to_matrix(
+        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]]
+    ) -> np.ndarray:
+        local_models_vs_clients_f_scores_matrix = np.array(
+            [
+                list(local_models_vs_clients_f_scores[local_model_id].values())
+                for local_model_id in sorted(local_models_vs_clients_f_scores.keys())
+            ]
+        )
+        return local_models_vs_clients_f_scores_matrix
+
+    def get_local_models_vs_clients_f_scores(
+        self, saved_models_folder: Path, device: torch.device
+    ) -> Tuple[Dict[int, ResNet], Dict[int, Dict[int, float]]]:
+        clients_models: Dict[int, ResNet] = {}
+        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]] = defaultdict(
+            dict
+        )
+        for client_id in range(self.training_specs.number_of_clients):
+            client_model = load_best_model(
+                self.model,
+                saved_models_folder.joinpath(f"epoch_{client_id}.pth.tar"),
+                torch.device("cpu"),
+            )
+            clients_models[client_id] = client_model
+            for client_id_to_validate_on in range(
+                self.training_specs.number_of_clients
+            ):
+                data_loader = self.validation_data_loaders[client_id_to_validate_on]
+                client_model.eval()
+                with torch.no_grad():
+                    labels, predictions, images_paths = get_model_predictions(
+                        data_loader, client_model, device
+                    )
+                predictions_flat = predictions.cpu().argmax(dim=1)
+                f_score = calculate_basic_metrics(
+                    labels.cpu(),
+                    predictions_flat,
+                    self.modelling_specs.model_specs.evaluation_metric_weighting,
+                    logging.info,
+                )
+                local_models_vs_clients_f_scores[client_id][
+                    client_id_to_validate_on
+                ] = f_score
+        return clients_models, local_models_vs_clients_f_scores
 
     def _get_client_resources(self):
         client_resources = {"num_gpus": 0, "num_cpus": 4}

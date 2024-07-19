@@ -90,6 +90,30 @@ MODELS = {
         "class_mapping": {1: 1, 2: 2, 3: 2},
         "evaluation_metric_weighting": "macro",
     },
+    "fed_ensemble_model_1_2_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": (1, 2),
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 2, 3: 2},
+        "evaluation_metric_weighting": "macro",
+    },
+    "fed_ensemble_model_3_4_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": (3, 4),
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 2, 3: 2},
+        "evaluation_metric_weighting": "macro",
+    },
+    "fed_ensemble_model_all_unfreezed": {
+        "model_depth": 10,
+        "resnet_shortcut_type": "B",
+        "number_of_layers_to_unfreeze": 4,
+        "number_of_classes": 2,
+        "class_mapping": {1: 1, 2: 2, 3: 2},
+        "evaluation_metric_weighting": "macro",
+    },
 }
 
 
