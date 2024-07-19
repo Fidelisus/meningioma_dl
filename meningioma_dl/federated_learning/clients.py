@@ -1,32 +1,23 @@
-from collections import OrderedDict
 from dataclasses import asdict
 from pathlib import Path
-from typing import Tuple, List, Dict, Callable, Optional, Any
+from typing import Tuple, Dict, Callable, Optional, Any
 
 import logging
 import flwr as fl
 import torch
 from flwr.common import Scalar
 from torch import nn
-from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
-from meningioma_dl.models.resnet import ResNet, freeze_layers
+from meningioma_dl.models.resnet import ResNet, freeze_layers, set_model_parameters
 from meningioma_dl.federated_learning.federated_training_utils import (
     get_optimizer_and_scheduler,
 )
-from meningioma_dl.visualizations.results_visualizations import TrainingMetrics
 
 
 def get_model_parameters(model: ResNet):
     return [val.cpu().numpy() for _, val in model.state_dict().items()]
-
-
-def set_model_parameters(model: ResNet, parameters):
-    params_dict = zip(model.state_dict().keys(), parameters)
-    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
-    model.load_state_dict(state_dict, strict=True)
 
 
 class ClassicalFLClient(fl.client.NumPyClient):
@@ -71,20 +62,19 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self, parameters, config: Dict[str, Scalar]
     ) -> Tuple[Any, int, Dict[str, Scalar]]:
         logging.info(f"[Client {self.cid}] fit, config: {config}")
-        set_model_parameters(self.model, parameters)
-        _, parameters_to_fine_tune = freeze_layers(
-            self.model,
-            self.modelling_specs.model_specs.number_of_layers_to_unfreeze,
-            self.pretrained_model_state_dict,
-        )
-        optimizer, scheduler = get_optimizer_and_scheduler(
-            parameters_to_fine_tune,
-            self.modelling_specs,
-            config["last_lr"],
-        )
-        loss_function = nn.CrossEntropyLoss().to(self.device)
-
         try:
+            set_model_parameters(self.model, parameters)
+            _, parameters_to_fine_tune = freeze_layers(
+                self.model,
+                self.modelling_specs.model_specs.number_of_layers_to_unfreeze,
+                self.pretrained_model_state_dict,
+            )
+            optimizer, scheduler = get_optimizer_and_scheduler(
+                parameters_to_fine_tune,
+                self.modelling_specs,
+                config["last_lr"],
+            )
+            loss_function = nn.CrossEntropyLoss().to(self.device)
             _, _, training_metrics = self.training_function(
                 training_data_loader=self.training_data_loader,
                 model=self.model,

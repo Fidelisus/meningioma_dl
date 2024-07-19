@@ -35,11 +35,27 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
     },
     "fed_prox_000001": {
         "name": "fed_prox",
-        "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0, "proximal_mu": 0.00001},
+        "config": {
+            "fraction_fit": 0.6666,
+            "fraction_eval": 1.0,
+            "proximal_mu": 0.00001,
+        },
     },
     "fed_avg": {
         "name": "fed_avg",
         "config": {"fraction_fit": 0.6666, "fraction_eval": 1.0},
+    },
+    "fed_ensemble_ci_run": {
+        "name": "fed_ensemble",
+        "config": {
+            "pretrained_model_run_id": "12-07-24_20-48-54_TwfUXeNniWL4TjwdJVoVXu"
+        },
+    },
+    "fed_ensemble_pretrained1": {
+        "name": "fed_ensemble",
+        "config": {
+            "pretrained_model_run_id": "pretrained_model_centralized_central_100_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6520422"
+        },
     },
 }
 

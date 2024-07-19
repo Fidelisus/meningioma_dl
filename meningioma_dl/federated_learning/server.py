@@ -1,10 +1,24 @@
 import logging
+from logging import WARNING
 from pathlib import Path
-from typing import Dict, Optional, Tuple, List, Callable
+from typing import Callable, Dict, List, Optional, Tuple
+from typing import Sequence
 
 import flwr as fl
 import numpy as np
-from flwr.common import Scalar, Parameters, EvaluateRes, MetricsAggregationFn, FitIns
+from flwr.common import (
+    EvaluateRes,
+    FitIns,
+    FitRes,
+    MetricsAggregationFn,
+    Parameters,
+    Scalar,
+    Weights,
+    parameters_to_weights,
+    weights_to_parameters,
+)
+from flwr.common import Scalar
+from flwr.common.logger import log
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 
@@ -41,7 +55,9 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
         loss_aggregated, metrics_aggregated = super().aggregate_evaluate(
             rnd, results, failures
         )
-        logging.info(f"Round {rnd} finished with fscore of {metrics_aggregated['f_score']}")
+        logging.info(
+            f"Round {rnd} finished with fscore of {metrics_aggregated['f_score']}"
+        )
         if metrics_aggregated["f_score"] > self.best_model_f_score:
             self.best_model_f_score = metrics_aggregated["f_score"]
             aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_weights(
@@ -57,6 +73,59 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
                 -1,  # -1 used to override previous best model
             )
         return loss_aggregated, metrics_aggregated
+
+
+class FedEnsemble(fl.server.server.FedAvg):
+    saved_models_folder: Path
+
+    def __repr__(self) -> str:
+        return "FedEnsemble()"
+
+    def aggregate_fit(
+        self,
+        rnd: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[BaseException],
+    ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        if not results:
+            return None, {}
+        # Do not aggregate if there are failures and failures are not accepted
+        if not self.accept_failures and failures:
+            raise RuntimeError(
+                f"There are failures during fitting, aborting {failures}"
+            )
+
+        weights_results = [
+            (parameters_to_weights(fit_res.parameters), fit_res.num_examples)
+            for _, fit_res in results
+        ]
+        clients_parameters: Dict[int, Parameters] = {}
+        for client_id, weights in enumerate(weights_results):
+            parameters = weights_to_parameters(weights[0])
+            clients_parameters[client_id] = parameters
+
+        logging.info(
+            f"Saving best models for {len(weights_results)} clients. "
+            f"Saving it at {self.saved_models_folder}"
+        )
+        for client_id, parameters in clients_parameters.items():
+            aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_weights(
+                parameters
+            )
+            _save_model(
+                aggregated_ndarrays,
+                self.saved_models_folder,
+                client_id,  # TODO make it more explicit
+            )
+
+        metrics_aggregated = {}
+        if self.fit_metrics_aggregation_fn:
+            fit_metrics = [(res.num_examples, res.metrics) for _, res in results]
+            metrics_aggregated = self.fit_metrics_aggregation_fn(fit_metrics)
+        elif rnd == 1:
+            log(WARNING, "No fit_metrics_aggregation_fn provided")
+
+        return None, metrics_aggregated
 
 
 class FedProx(SaveModelFedAvg):

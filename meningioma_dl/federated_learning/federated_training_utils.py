@@ -1,5 +1,4 @@
 import logging
-from collections import OrderedDict
 from pathlib import Path
 from typing import List, Tuple, Any, Dict, Optional, Callable
 
@@ -26,8 +25,11 @@ from meningioma_dl.federated_learning.create_federated_data_splits import (
     get_uniform_client_partitions,
     get_non_iid_partitions,
 )
-from meningioma_dl.federated_learning.server import SaveModelFedAvg, FedProx
-from meningioma_dl.models.resnet import ResNet
+from meningioma_dl.federated_learning.server import (
+    SaveModelFedAvg,
+    FedProx,
+    FedEnsemble,
+)
 from meningioma_dl.visualizations.results_visualizations import plot_fl_training_curve
 
 
@@ -175,16 +177,6 @@ def visualize_federated_learning_metrics(
     return {}
 
 
-def load_best_model(
-    model: ResNet, trained_model_path: Path, device: torch.device
-) -> ResNet:
-    saved_parameters = torch.load(trained_model_path, map_location=device)["state_dict"]
-    params_dict = zip(model.state_dict().keys(), saved_parameters)
-    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
-    model.load_state_dict(state_dict, strict=True)
-    return model
-
-
 def create_strategy(
     fl_strategy_specs: FLStrategySpecs,
     saved_models_folder: Path,
@@ -218,6 +210,14 @@ def create_strategy(
             evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
             on_fit_config_fn=on_fit_config_fn,
             proximal_mu=fl_strategy_specs.config["proximal_mu"],
+        )
+    elif fl_strategy_specs.name == "fed_ensemble":
+        strategy = FedEnsemble(
+            fraction_fit=1.0,
+            fraction_eval=0.0,
+            accept_failures=False,
+            fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
+            on_fit_config_fn=on_fit_config_fn,
         )
     else:
         raise KeyError(f"Strategy named {fl_strategy_specs.name} not supported")

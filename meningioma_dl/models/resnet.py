@@ -1,9 +1,11 @@
 import logging
 import os
+from collections import OrderedDict
 from functools import partial
 from pathlib import Path
-from typing import Type, Union, List, Dict, Callable, Tuple, Set
+from typing import Type, Union, List, Dict, Callable, Tuple, Set, Optional
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -275,7 +277,6 @@ def create_resnet_model(
     number_of_classes: int,
     pretrained_model_path: Path,
     device: torch.device,
-    use_23_dataset_pretrained_model: bool = False,
 ) -> Tuple[Union[ResNet, nn.DataParallel], Dict]:
     assert model_depth in RESNET_MODELS_MAP
     assert resnet_shortcut_type in ["A", "B"]
@@ -309,11 +310,7 @@ def create_resnet_model(
     # load pretrained model
     logging.info(f"Loading pretrained model {pretrained_model_path}")
     pretrain: ResNet = torch.load(
-        pretrained_model_path.joinpath(
-            f"resnet_{model_depth}"
-            f"{'' if not use_23_dataset_pretrained_model else '23dataset'}.pth"
-        ),
-        map_location=device,
+        pretrained_model_path.joinpath(f"resnet_{model_depth}.pth"), map_location=device
     )
 
     if device == torch.device("cpu"):
@@ -333,7 +330,9 @@ def create_resnet_model(
 
 
 def freeze_layers(
-    model: ResNet, number_of_layers_to_unfreeze: int, pretrained_model_state_dict: Dict
+    model: ResNet,
+    number_of_layers_to_unfreeze: Union[int, Tuple[int]],
+    pretrained_model_state_dict: Dict,
 ) -> Tuple[List[str], List[torch.Tensor]]:
     parameters_names_to_fine_tune = list()
     parameters_to_fine_tune = list()
@@ -342,7 +341,16 @@ def freeze_layers(
             if number_of_layers_to_unfreeze == 0:
                 p.requires_grad = False
             else:
-                for i in range(1, 4 - number_of_layers_to_unfreeze + 1):
+                # Layers are like 1->2->3->4->classifier
+                # TODO make it not that ugly
+                if isinstance(number_of_layers_to_unfreeze, int):
+                    layers_to_freeze = range(1, 4 - number_of_layers_to_unfreeze + 1)
+                else:
+                    layers_to_freeze = list(
+                        set(range(1, 5)) - set(number_of_layers_to_unfreeze)
+                    )
+                logging.info(f"layers_to_freeze: {layers_to_freeze}")
+                for i in layers_to_freeze:
                     if f"layer{i}" in pname or pname in [
                         "conv1.weight",
                         "bn1.weight",
@@ -357,3 +365,25 @@ def freeze_layers(
             parameters_names_to_fine_tune.append(pname)
             parameters_to_fine_tune.append(p)
     return parameters_names_to_fine_tune, parameters_to_fine_tune
+
+
+def load_best_model(
+    model: ResNet, trained_model_path: Path, device: torch.device
+) -> ResNet:
+    saved_parameters = torch.load(trained_model_path, map_location=device)["state_dict"]
+    return set_model_parameters(model, saved_parameters)
+
+
+def set_model_parameters(model: ResNet, parameters) -> ResNet:
+    params_dict = zip(model.state_dict().keys(), parameters)
+    if model.no_cuda:
+        state_dict = OrderedDict()
+        for k, v in params_dict:
+            if v.size == 1:
+                v = np.array([v])
+            state_dict[k] = torch.Tensor(v)
+    else:
+        state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
+
+    model.load_state_dict(state_dict, strict=True)
+    return model

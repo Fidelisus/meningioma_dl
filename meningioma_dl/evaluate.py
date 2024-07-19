@@ -19,7 +19,7 @@ from meningioma_dl.experiments_specs.training_specs import (
     CentralizedTrainingSpecs,
     get_training_specs,
 )
-from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet
+from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet, load_best_model
 from meningioma_dl.training_utils import (
     get_model_predictions,
 )
@@ -34,9 +34,6 @@ from meningioma_dl.visualizations.images_visualization import (
 from meningioma_dl.visualizations.results_visualizations import (
     create_evaluation_report,
     ValidationMetrics,
-)
-from meningioma_dl.federated_learning.federated_training_utils import (
-    load_best_model,
 )
 
 
