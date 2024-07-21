@@ -48,7 +48,7 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
     "fed_ensemble_ci_run": {
         "name": "fed_ensemble",
         "config": {
-            "pretrained_model_run_id": "12-07-24_20-48-54_TwfUXeNniWL4TjwdJVoVXu"
+            "pretrained_model_run_id": "cv_final_model_centralized_central_300_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6376845"
         },
     },
     "fed_ensemble_pretrained1": {

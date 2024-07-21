@@ -266,6 +266,7 @@ TRAINING_SPECS = {
     **create_fl_specs("federated_1r_1e_2c"),
     **create_fl_specs("federated_1r_2e_3c"),
     **create_fl_specs("federated_1r_100e_3c"),
+    **create_fl_specs("federated_1r_2e_3c"),
 }
 
 

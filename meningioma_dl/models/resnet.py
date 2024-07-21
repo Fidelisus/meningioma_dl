@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from torch import nn
 from torch.autograd import Variable
 
+from meningioma_dl.experiments_specs.model_specs import ModelSpecs
+
 
 def conv3x3x3(in_planes, out_planes, stride=1, dilation=1):
     # 3x3x3 convolution with padding
@@ -367,16 +369,30 @@ def freeze_layers(
     return parameters_names_to_fine_tune, parameters_to_fine_tune
 
 
-def load_best_model(
-    model: ResNet, trained_model_path: Path, device: torch.device
+def load_model_from_file(
+    trained_model_path: Union[Path, str], model_specs: ModelSpecs, device: torch.device
 ) -> ResNet:
-    saved_parameters = torch.load(trained_model_path, map_location=device)["state_dict"]
-    return set_model_parameters(model, saved_parameters)
+    saved_model = torch.load(trained_model_path, map_location=device)
+    no_cuda = False if device == torch.device("cuda") else True
+    model = RESNET_MODELS_MAP[model_specs.model_depth](
+        shortcut_type=model_specs.resnet_shortcut_type,
+        no_cuda=no_cuda,
+        num_classes=model_specs.number_of_classes,
+    ).to(device)
+
+    state_dict = saved_model["state_dict"]
+    # TODO don't use hasattr
+    if hasattr(state_dict, "items"):
+        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+        model.load_state_dict(state_dict)
+    else:
+        model = set_model_parameters(model, state_dict)
+    return model
 
 
 def set_model_parameters(model: ResNet, parameters) -> ResNet:
     params_dict = zip(model.state_dict().keys(), parameters)
-    if model.no_cuda:
+    if isinstance(model, ResNet):
         state_dict = OrderedDict()
         for k, v in params_dict:
             if v.size == 1:

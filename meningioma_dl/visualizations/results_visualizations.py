@@ -26,10 +26,26 @@ class TrainingMetrics:
 
 @dataclass
 class ValidationMetrics:
-    f_score: float
-    loss: float
+    f_score: Optional[float]
+    loss: Optional[float]
     true: np.array
     predictions: np.array
+
+
+def merge_validation_metrics_true_and_pred(
+    validation_metrics: List[ValidationMetrics],
+) -> ValidationMetrics:
+    true = []
+    predictions = []
+    for metrics in validation_metrics:
+        true.append(metrics.true)
+        predictions.append(metrics.predictions)
+    return ValidationMetrics(
+        f_score=None,
+        loss=None,
+        true=np.hstack(true),
+        predictions=np.hstack(predictions),
+    )
 
 
 def calculate_sensitivity_and_specificity(

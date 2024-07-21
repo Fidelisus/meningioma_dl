@@ -36,10 +36,15 @@ from meningioma_dl.federated_learning.federated_training_utils import (
     visualize_federated_learning_metrics,
     create_strategy,
 )
+from meningioma_dl.federated_learning.ensemble_fl import (
+    get_local_ensemble_weights,
+    get_global_ensemble_weights,
+    ensemble_weights_to_numpy,
+)
 from meningioma_dl.models.resnet import (
     create_resnet_model,
     ResNet,
-    load_best_model,
+    load_model_from_file,
 )
 from meningioma_dl.training_utils import training_loop, get_model_predictions
 from meningioma_dl.utils import (
@@ -151,7 +156,9 @@ class FederatedTraining:
     def _evaluate_best_model(
         self, validation_data_loader: DataLoader, trained_model_path: Path, run_id: str
     ):
-        self.model = load_best_model(self.model, trained_model_path, self.device)
+        self.model = load_model_from_file(
+            trained_model_path, self.modelling_specs.model_specs, self.device
+        )
         evaluate_model(
             model=self.model,
             data_loader=validation_data_loader,
@@ -194,7 +201,9 @@ class FederatedTraining:
             pretrained_model_file = self.saved_models_folder.parent.joinpath(
                 pretrained_model_run_id, "epoch_-1.pth.tar"
             )
-            self.model = load_best_model(self.model, pretrained_model_file, device)
+            self.model = load_model_from_file(
+                pretrained_model_file, self.modelling_specs.model_specs, device
+            )
 
         self._set_clients_train_and_eval_functions(run_id)
         self.last_lr = self.modelling_specs.scheduler_specs.learning_rate
@@ -247,10 +256,10 @@ class FederatedTraining:
                 local_models_vs_clients_f_scores,
             )
 
-            global_ensemble_weights = self.get_global_ensemble_weights(
+            global_ensemble_weights = get_global_ensemble_weights(
                 local_models_vs_clients_f_scores
             )
-            local_ensemble_weights = self.get_local_ensemble_weights(
+            local_ensemble_weights = get_local_ensemble_weights(
                 local_models_vs_clients_f_scores
             )
             self._save_as_json("global_ensemble_weights.json", global_ensemble_weights)
@@ -267,8 +276,8 @@ class FederatedTraining:
                 device,
                 run_id,
                 self.visualizations_folder,
-                ensemble_models_weights=np.array(
-                    list(global_ensemble_weights.values())
+                ensemble_models_weights=ensemble_weights_to_numpy(
+                    global_ensemble_weights
                 ),
             )
 
@@ -287,62 +296,6 @@ class FederatedTraining:
         ) as f:
             json.dump(object_to_save, f)
 
-    def get_global_ensemble_weights(
-        self,
-        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]],
-    ) -> Dict[int, float]:
-        local_models_vs_clients_f_scores_matrix = (
-            self.local_models_vs_clients_f_scores_to_matrix(
-                local_models_vs_clients_f_scores
-            )
-        )
-        mean_weight_for_each_model_vector: np.ndarray = self.normalize_weights(
-            np.mean(local_models_vs_clients_f_scores_matrix, axis=1)
-        )
-        mean_weight_for_each_model = {
-            client_id: mean_weight
-            for client_id, mean_weight in enumerate(mean_weight_for_each_model_vector)
-        }
-        return mean_weight_for_each_model
-
-    def get_local_ensemble_weights(
-        self,
-        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]],
-    ) -> Dict[int, Dict[int, float]]:
-        local_models_vs_clients_f_scores_matrix = (
-            self.local_models_vs_clients_f_scores_to_matrix(
-                local_models_vs_clients_f_scores
-            )
-        )
-        mean_weight_for_each_model: Dict[int, Dict[int, float]] = {}
-        for client_id in local_models_vs_clients_f_scores:
-            mean_weight_for_each_model_vector: np.ndarray = self.normalize_weights(
-                local_models_vs_clients_f_scores_matrix[:, int(client_id)]
-            )
-            mean_weight_for_each_model[client_id] = {
-                client_id: mean_weight
-                for client_id, mean_weight in enumerate(
-                    mean_weight_for_each_model_vector
-                )
-            }
-        return mean_weight_for_each_model
-
-    @staticmethod
-    def normalize_weights(weights: np.ndarray) -> np.ndarray:
-        return weights / weights.sum()
-
-    @staticmethod
-    def local_models_vs_clients_f_scores_to_matrix(
-        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]]
-    ) -> np.ndarray:
-        local_models_vs_clients_f_scores_matrix = np.array(
-            [
-                list(local_models_vs_clients_f_scores[local_model_id].values())
-                for local_model_id in sorted(local_models_vs_clients_f_scores.keys())
-            ]
-        )
-        return local_models_vs_clients_f_scores_matrix
-
     def get_local_models_vs_clients_f_scores(
         self, saved_models_folder: Path, device: torch.device
     ) -> Tuple[Dict[int, ResNet], Dict[int, Dict[int, float]]]:
@@ -351,9 +304,9 @@ class FederatedTraining:
             dict
         )
         for client_id in range(self.training_specs.number_of_clients):
-            client_model = load_best_model(
-                self.model,
+            client_model = load_model_from_file(
                 saved_models_folder.joinpath(f"epoch_{client_id}.pth.tar"),
+                self.modelling_specs.model_specs,
                 torch.device("cpu"),
             )
             clients_models[client_id] = client_model
