@@ -186,9 +186,27 @@ TRAINING_SPECS = {
             "histogram_shifts_low"
         ],
     },
-    "bias_field_high_200r_1e_3c": {
+    "histogram_shifts_high_1r_200e_3c": {
         **create_fl_parameters(
-            global_epochs=200, epochs_per_round=1, number_of_clients=3
+            global_epochs=1, epochs_per_round=200, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_high"
+        ],
+    },
+    "histogram_shifts_low_1r_200e_3c": {
+        **create_fl_parameters(
+            global_epochs=1, epochs_per_round=200, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "histogram_shifts_low"
+        ],
+    },
+    "bias_field_high_1r_200e_3c": {
+        **create_fl_parameters(
+            global_epochs=1, epochs_per_round=200, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
         "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
@@ -266,6 +284,7 @@ TRAINING_SPECS = {
     **create_fl_specs("federated_1r_1e_2c"),
     **create_fl_specs("federated_1r_2e_3c"),
     **create_fl_specs("federated_1r_100e_3c"),
+    **create_fl_specs("federated_1r_2e_3c"),
 }
 
 

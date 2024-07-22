@@ -1,11 +1,10 @@
-from sklearn.metrics import f1_score, recall_score, precision_score
-import torch
-
 import logging
 from pathlib import Path
-from typing import Optional, Union, Any, Callable, Tuple
+from typing import Optional, Any, Callable, Tuple
 
 import fire
+import torch
+from sklearn.metrics import f1_score, recall_score, precision_score
 from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
@@ -19,13 +18,14 @@ from meningioma_dl.experiments_specs.training_specs import (
     CentralizedTrainingSpecs,
     get_training_specs,
 )
-from meningioma_dl.models.resnet import RESNET_MODELS_MAP, ResNet, load_best_model
+from meningioma_dl.models.resnet import (
+    ResNet,
+    load_model_from_file,
+)
 from meningioma_dl.training_utils import (
     get_model_predictions,
 )
 from meningioma_dl.utils import (
-    select_device,
-    setup_logging,
     setup_run,
 )
 from meningioma_dl.visualizations.images_visualization import (
@@ -63,7 +63,7 @@ def evaluate(
         client_specific_preprocessing=training_specs.client_specific_preprocessing,
     )
 
-    model = load_model_for_evaluation(trained_model_path, model_specs, device)
+    model = load_model_from_file(trained_model_path, model_specs, device)
 
     f_score, _ = evaluate_model(
         data_loader,
@@ -126,27 +126,6 @@ def evaluate_model(
                 visualizations_folder.joinpath("evaluation_images_with_predictions"),
             )
     return f_score, ValidationMetrics(f_score, loss, labels_cpu, predictions_flat)
-
-
-def load_model_for_evaluation(
-    trained_model_path: str, model_specs: ModelSpecs, device: torch.device
-) -> ResNet:
-    saved_model = torch.load(trained_model_path, map_location=device)
-    no_cuda = False if device == torch.device("cuda") else True
-    model = RESNET_MODELS_MAP[model_specs.model_depth](
-        shortcut_type=model_specs.resnet_shortcut_type,
-        no_cuda=no_cuda,
-        num_classes=model_specs.number_of_classes,
-    ).to(device)
-    # TODO don't use hasattr
-    if hasattr(saved_model["state_dict"], "items"):
-        state_dict = {
-            k.replace("module.", ""): v for k, v in saved_model["state_dict"].items()
-        }
-        model.load_state_dict(state_dict)
-    else:
-        model = load_best_model(model, trained_model_path, device)
-    return model
 
 
 def calculate_basic_metrics(
