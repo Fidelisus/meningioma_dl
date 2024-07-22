@@ -268,14 +268,11 @@ class FederatedTraining:
                     f"local_ensemble_weights_{client_id}.json",
                     local_ensemble_weights[client_id],
                 )
-            f_score, _ = evaluate_ensemble(
+            evaluate_ensemble(
                 validation_data_loader,
                 list(clients_models.values()),
                 self.modelling_specs.model_specs,
-                self.training_specs,
                 device,
-                run_id,
-                self.visualizations_folder,
                 ensemble_models_weights=ensemble_weights_to_numpy(
                     global_ensemble_weights
                 ),
