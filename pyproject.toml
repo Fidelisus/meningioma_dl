@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "meningioma_dl"
+version = "0.1.0"
+description = ""
+authors = ["Lukasz Sobocinski"]
+readme = "README.md"
+packages = [{include = "meningioma_dl"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = "^1.13.1"
+numpy = "^2.1.0"
+pandas = "^2.2.2"
+scipy = "^1.14.1"
+plotly = "^5.23.0"
+monai = "^1.3.2"
+python-dotenv = "^1.0.1"
+ray = "^2.34.0"
+fire = "^0.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
