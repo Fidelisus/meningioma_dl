@@ -168,3 +168,4 @@ venv1/
 venv39/
 slurm-*
 .vscode/
+*.sif

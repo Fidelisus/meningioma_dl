@@ -14,9 +14,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --job-name=meningioma_classification
 
-base_dir=/home/cir/lsobocinski
-# venv_path=${base_dir}/meningioma_dl/venv1
-venv_path=${base_dir}/meningioma_dl/venv39
+base_dir=/home/cir/lsobocinski/meningioma_dl/
 
 augmentation_specs="${1:-basic_01p}"
 scheduler_specs="${2:-05_lr_099_gamma}"
@@ -30,18 +28,13 @@ cv_fold="${10:-None}"
 
 run_id="${7:-playground}_${fl_strategy_specs}_${training_specs}_${preprocessing_specs}_${augmentation_specs}_${scheduler_specs}_${model_specs}_fold${cv_fold}_${SLURM_JOBID}"
 
-module add "Python/3.9.5-GCCcore-8.2.0"
-module add "PyTorch/1.9.0-foss-2019a"
-# virtualenv --system-site-packages ${venv_path}
-source ${venv_path}/bin/activate
+module add cuDNN/7.6.5.32-CUDA-10.1.243 > /dev/null 2>&1
 
 echo "Running Slurm job with id $SLURM_JOBID and name $run_id"
-echo "venv path: $venv_path"
 
-#lddpython is needed to load a newer glibc
-${base_dir}/meningioma_dl/slurm_scripts/lddpython ${base_dir}/meningioma_dl/meningioma_dl/"$script_name" \
+singularity exec --nv ${base_dir}image.sif ${base_dir}entrypoint.sh ${base_dir}/meningioma_dl/"$script_name" \
   --device_name="cuda" \
-  --env_file_path=${base_dir}/meningioma_dl/envs/slurm.env \
+  --env_file_path=${base_dir}/envs/ci_run_cluster.env \
   --run_id="${run_id}" \
   --augmentations_specs_name="${augmentation_specs}" \
   --scheduler_specs_name="${scheduler_specs}" \

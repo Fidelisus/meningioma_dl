@@ -1,0 +1,14 @@
+Bootstrap: docker
+From: pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+%files
+    /home/cir/lsobocinski/meningioma_dl/meningioma_dl/requirements.txt requirements.txt
+%post
+    pip install -r requirements.txt
+%environment
+    export LC_ALL=C
+%runscript
+    #!/bin/bash
+    exec /bin/bash "$@"
+%startscript
+    #!/bin/bash
+    exec /bin/bash "$@"
