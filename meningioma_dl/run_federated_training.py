@@ -13,7 +13,7 @@ import numpy as np
 import torch
 from flwr.common import Metrics
 from flwr.common.logger import log
-from flwr.server import History
+from flwr.server import History, ServerConfig
 from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
@@ -223,7 +223,7 @@ class FederatedTraining:
         training_history = fl.simulation.start_simulation(
             client_fn=self.client_fn,
             num_clients=self.training_specs.number_of_clients,
-            num_rounds=self.training_specs.global_epochs,
+            config=ServerConfig(num_rounds=self.training_specs.global_epochs),
             strategy=strategy,
             client_resources=client_resources,
             # ray_init_args={

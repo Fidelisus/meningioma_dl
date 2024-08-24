@@ -189,7 +189,7 @@ def create_strategy(
             fraction_fit=fl_strategy_specs.config.get(
                 "fraction_fit", 1.0
             ),  # % of available clients for training
-            fraction_eval=fl_strategy_specs.config.get(
+            fraction_evaluate=fl_strategy_specs.config.get(
                 "fraction_eval", 1.0
             ),  # % of available clients for evaluation
             accept_failures=False,
@@ -202,7 +202,7 @@ def create_strategy(
             fraction_fit=fl_strategy_specs.config.get(
                 "fraction_fit", 1.0
             ),  # % of available clients for training
-            fraction_eval=fl_strategy_specs.config.get(
+            fraction_evaluate=fl_strategy_specs.config.get(
                 "fraction_eval", 1.0
             ),  # % of available clients for evaluation
             accept_failures=False,
@@ -214,7 +214,7 @@ def create_strategy(
     elif fl_strategy_specs.name == "fed_ensemble":
         strategy = FedEnsemble(
             fraction_fit=1.0,
-            fraction_eval=0.0,
+            fraction_evaluate=0.0,
             accept_failures=False,
             fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
             on_fit_config_fn=on_fit_config_fn,

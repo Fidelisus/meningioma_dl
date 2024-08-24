@@ -2,7 +2,6 @@ import logging
 from logging import WARNING
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
-from typing import Sequence
 
 import flwr as fl
 import numpy as np
@@ -12,10 +11,8 @@ from flwr.common import (
     FitRes,
     MetricsAggregationFn,
     Parameters,
-    Scalar,
-    Weights,
-    parameters_to_weights,
-    weights_to_parameters,
+    parameters_to_ndarrays,
+    ndarrays_to_parameters,
 )
 from flwr.common import Scalar
 from flwr.common.logger import log
@@ -96,12 +93,12 @@ class FedEnsemble(fl.server.server.FedAvg):
             )
 
         weights_results = [
-            (parameters_to_weights(fit_res.parameters), fit_res.num_examples)
+            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples)
             for _, fit_res in results
         ]
         clients_parameters: Dict[int, Parameters] = {}
         for client_id, weights in enumerate(weights_results):
-            parameters = weights_to_parameters(weights[0])
+            parameters = ndarrays_to_parameters(weights[0])
             clients_parameters[client_id] = parameters
 
         logging.info(
@@ -109,9 +106,7 @@ class FedEnsemble(fl.server.server.FedAvg):
             f"Saving it at {self.saved_models_folder}"
         )
         for client_id, parameters in clients_parameters.items():
-            aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_weights(
-                parameters
-            )
+            aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays(parameters)
             _save_model(
                 aggregated_ndarrays,
                 self.saved_models_folder,
@@ -207,7 +202,7 @@ class FedProx(SaveModelFedAvg):
         self,
         *,
         fraction_fit: float = 1.0,
-        fraction_eval: float = 1.0,
+        fraction_evaluate: float = 1.0,
         min_fit_clients: int = 2,
         on_fit_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
         on_evaluate_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
@@ -219,7 +214,7 @@ class FedProx(SaveModelFedAvg):
     ) -> None:
         super().__init__(
             fraction_fit=fraction_fit,
-            fraction_eval=fraction_eval,
+            fraction_evaluate=fraction_evaluate,
             min_fit_clients=min_fit_clients,
             on_fit_config_fn=on_fit_config_fn,
             on_evaluate_config_fn=on_evaluate_config_fn,

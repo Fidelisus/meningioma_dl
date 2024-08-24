@@ -12,5 +12,4 @@ scikit-learn
 shortuuid
 nibabel
 matplotlib
-ray
 grpcio

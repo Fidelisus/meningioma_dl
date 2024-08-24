@@ -5,7 +5,7 @@ from typing import Tuple, Dict, Callable, Optional, Any
 import logging
 import flwr as fl
 import torch
-from flwr.common import Scalar
+from flwr.common import Scalar, Config
 from torch import nn
 from torch.utils.data import DataLoader
 
@@ -46,7 +46,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
         self.training_function = training_function
         self.evaluation_function = evaluation_function
 
-    def get_parameters(self):
+    def get_parameters(self, config: Config):
         logging.info(f"[Client {self.cid}] get_parameters")
         try:
             parameters = get_model_parameters(self.model)

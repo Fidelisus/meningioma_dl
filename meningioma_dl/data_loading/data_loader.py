@@ -1,9 +1,8 @@
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Tuple, Sequence, Set, Dict, Any
+from typing import List, Optional, Tuple, Sequence, Dict, Any
 
-import monai
 import pandas as pd
 import torch
 from monai import transforms
@@ -13,7 +12,6 @@ from torch.utils.data import DataLoader, ConcatDataset
 
 from meningioma_dl.data_loading.labels_loading import (
     get_images_with_labels,
-    get_samples_df,
 )
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.federated_learning.create_federated_data_splits import (
@@ -126,19 +124,9 @@ def init_dataset(
             keys=["img", "mask"],
             meta_keys=["img_meta_dict", "mask_meta_dict"],
         ),
-        transforms.EnsureChannelFirstd(
-            keys=["img", "mask"], meta_keys=["img_meta_dict", "mask_meta_dict"]
-        ),
-        transforms.Orientationd(
-            keys=["img", "mask"],
-            meta_keys=["img_meta_dict", "mask_meta_dict"],
-            axcodes="PLI",
-        ),
-        transforms.Spacingd(
-            keys=["img", "mask"],
-            pixdim=(1.0, 1.0, 1.0),
-            meta_keys=["img_meta_dict", "mask_meta_dict"],
-        ),
+        transforms.EnsureChannelFirstd(keys=["img", "mask"]),
+        transforms.Orientationd(keys=["img", "mask"], axcodes="PLI"),
+        transforms.Spacingd(keys=["img", "mask"], pixdim=(1.0, 1.0, 1.0)),
     ]
 
     if transformations_mode.value in {
