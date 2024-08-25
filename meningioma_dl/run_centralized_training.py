@@ -1,23 +1,84 @@
 import logging
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import fire
 import torch
 from torch import nn
 
 from meningioma_dl.config import Config
-from meningioma_dl.data_loading.data_loader import (
-    get_data_loader,
-    TransformationsMode,
+from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
+from meningioma_dl.evaluate import evaluate
+from meningioma_dl.experiments_specs.augmentation_specs import AugmentationSpecs
+from meningioma_dl.experiments_specs.model_specs import ModelSpecs
+from meningioma_dl.experiments_specs.modelling_specs import (
+    ModellingSpecs,
 )
-from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
-from meningioma_dl.experiments_specs.training_specs import CentralizedTrainingSpecs
+from meningioma_dl.experiments_specs.preprocessing_specs import (
+    PreprocessingSpecs,
+)
+from meningioma_dl.experiments_specs.scheduler_specs import SchedulerSpecs
+from meningioma_dl.experiments_specs.training_specs import (
+    get_training_specs,
+    CentralizedTrainingSpecs,
+)
 from meningioma_dl.models.resnet import create_resnet_model, freeze_layers
 from meningioma_dl.training_utils import training_loop
-from meningioma_dl.utils import (
-    get_loss_function_class_weights,
-)
+from meningioma_dl.utils import setup_run, get_loss_function_class_weights
+
+
+def run_experiment(
+    env_file_path: str,
+    n_trials: int = 1,
+    run_id: Optional[str] = None,
+    device_name: str = "cpu",
+    validation_interval: int = 1,
+    preprocessing_specs_name: str = "no_resize",
+    augmentations_specs_name: str = "basic_01p",
+    scheduler_specs_name: str = "05_lr_099_gamma",
+    model_specs_name: str = "resnet_10_2_unfreezed",
+    training_specs_name: str = "central_1_epochs",
+    manual_seed: int = 123,
+    cv_fold: Optional[int] = None,
+):
+    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, cv_fold)
+
+    modelling_spec = ModellingSpecs(
+        PreprocessingSpecs.get_from_name(preprocessing_specs_name),
+        AugmentationSpecs.get_from_name(augmentations_specs_name),
+        SchedulerSpecs.get_from_name(scheduler_specs_name),
+        ModelSpecs.get_from_name(model_specs_name),
+    )
+    training_spec: CentralizedTrainingSpecs = get_training_specs(training_specs_name)
+    logging.info(f"run_id: {run_id}")
+    logging.info(f"Modelling specs: {modelling_spec}")
+    logging.info(f"Augmentations specs name: {augmentations_specs_name}")
+    logging.info(f"Training specs: {training_spec}")
+    logging.info(f"n_trials: {n_trials}, validation_interval: {validation_interval}")
+
+    visualizations_folder = Config.visualizations_directory.joinpath(run_id)
+    _, trained_model_path = train(
+        device=device,
+        validation_interval=validation_interval,
+        visualizations_folder=visualizations_folder,
+        saved_models_folder=Config.saved_models_directory.joinpath(run_id),
+        modelling_specs=modelling_spec,
+        training_specs=training_spec,
+    )
+    if trained_model_path is None:
+        raise ValueError("No model was created during training, aborting.")
+
+    f_score_of_the_best_model = evaluate(
+        test_data_path=Config.validation_labels_file_path,
+        run_id=run_id,
+        trained_model_path=trained_model_path,
+        device=device,
+        visualizations_folder=visualizations_folder,
+        model_specs=modelling_spec.model_specs,
+        preprocessing_specs=modelling_spec.preprocessing_specs,
+        training_specs=training_spec,
+    )
+    return f_score_of_the_best_model
 
 
 def train(
@@ -113,7 +174,7 @@ def train(
 
 if __name__ == "__main__":
     try:
-        fire.Fire(train)
+        fire.Fire(run_experiment)
     except Exception as e:
         logging.error(f"An unexpected error occured {e}", exc_info=True)
         raise

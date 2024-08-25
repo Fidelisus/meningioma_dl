@@ -13,9 +13,11 @@ from flwr.common import (
     Parameters,
     parameters_to_ndarrays,
     ndarrays_to_parameters,
+    RecordSet,
 )
 from flwr.common import Scalar
 from flwr.common.logger import log
+from flwr.common.typing import ConfigsRecordValues
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 
@@ -34,6 +36,8 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
         results,
         failures,
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        if len(failures) > 0:
+            raise RuntimeError(f"Received failures in fit {failures}")
         # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(
             server_round, results, failures
@@ -49,6 +53,8 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
         results: List[Tuple[ClientProxy, EvaluateRes]],
         failures: List[BaseException],
     ) -> Tuple[Optional[float], Dict[str, Scalar]]:
+        if len(failures) > 0:
+            raise RuntimeError(f"Received failures in evaluate {failures}")
         loss_aggregated, metrics_aggregated = super().aggregate_evaluate(
             rnd, results, failures
         )
@@ -57,7 +63,7 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
         )
         if metrics_aggregated["f_score"] > self.best_model_f_score:
             self.best_model_f_score = metrics_aggregated["f_score"]
-            aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_weights(
+            aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays(
                 self.last_model
             )
             logging.info(

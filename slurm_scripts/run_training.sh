@@ -22,7 +22,7 @@ preprocessing_specs="${3:-no_resize}"
 training_specs="${4:-central_2_epochs}"
 model_specs="${5:-resnet_10_2_unfreezed}"
 fl_strategy_specs="${6:-fed_avg_default}"
-script_name="${8:-run_optuna_study.py}"
+script_name="${8:-run_centralized_training.py}"
 seed="${9:-123}"
 cv_fold="${10:-None}"
 

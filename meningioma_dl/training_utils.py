@@ -196,9 +196,7 @@ def _save_batch_images(batch_data: Dict, directory: Path) -> None:
         directory,
         [
             f"{Path(file).stem.split('.')[0]}_label_{label.data+1}"
-            for file, label in zip(
-                batch_data["img_meta_dict"]["filename_or_obj"], batch_data["label"]
-            )
+            for file, label in zip(batch_data["img_path"], batch_data["label"])
         ],
     )
 
@@ -221,9 +219,7 @@ def get_model_predictions(
         ), validation_data["label"].to(device)
         predictions = torch.cat([predictions, model(validation_images)], dim=0)
         labels = torch.cat([labels, validation_labels], dim=0)
-        images_paths.extend(
-            Path(file) for file in validation_data["img_meta_dict"]["filename_or_obj"]
-        )
+        images_paths.extend(Path(file) for file in validation_data["img_path"])
     return labels, predictions, images_paths
 
 

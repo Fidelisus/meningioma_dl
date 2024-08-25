@@ -56,9 +56,7 @@ def create_images_errors_report(
     }
     for batch_data in data_loader:
         saved_images_paths = []
-        for file, label in zip(
-            batch_data["img_meta_dict"]["filename_or_obj"], batch_data["label"]
-        ):
+        for file, label in zip(batch_data["img_path"], batch_data["label"]):
             saved_images_paths.append(
                 Path(
                     f"label_{images_with_predictions[Path(file)]}",

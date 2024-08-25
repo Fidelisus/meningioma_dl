@@ -84,16 +84,16 @@ class ClassicalFLClient(fl.client.NumPyClient):
                 visualizations_folder=self.visualizations_folder,
                 proximal_mu=config.get("proximal_mu", None),
             )
+            return (
+                get_model_parameters(self.model),
+                len(self.training_data_loader),
+                training_metrics.as_serializable_dict(),
+            )
         except Exception as e:
             logging.error(
                 f"Fitting at client {self.cid} failed with error {e}", exc_info=True
             )
             raise e
-        return (
-            get_model_parameters(self.model),
-            len(self.training_data_loader),
-            asdict(training_metrics),
-        )
 
     def evaluate(
         self, parameters, config: Dict[str, Scalar]
@@ -108,13 +108,14 @@ class ClassicalFLClient(fl.client.NumPyClient):
                 loss_function=nn.CrossEntropyLoss().to(self.device),
                 visualizations_folder=self.visualizations_folder,
             )
+            logging.info(validation_metrics.as_serializable_dict())
+            return (
+                float(f1_score),
+                len(self.validation_data_loader),
+                validation_metrics.as_serializable_dict(),
+            )
         except Exception as e:
             logging.error(
                 f"Validation at client {self.cid} failed with error {e}", exc_info=True
             )
             raise e
-        return (
-            float(f1_score),
-            len(self.validation_data_loader),
-            asdict(validation_metrics),
-        )

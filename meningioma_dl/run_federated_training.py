@@ -1,6 +1,9 @@
 import copy
 import json
 import logging
+import re
+import warnings
+
 from collections import defaultdict
 from functools import partial
 from logging import INFO
@@ -11,7 +14,8 @@ import fire
 import flwr as fl
 import numpy as np
 import torch
-from flwr.common import Metrics
+from flwr.client import Client
+from flwr.common import Metrics, Context
 from flwr.common.logger import log
 from flwr.server import History, ServerConfig
 from torch.utils.data import DataLoader
@@ -51,6 +55,7 @@ from meningioma_dl.utils import (
     setup_run,
     setup_flower_logger,
 )
+from meningioma_dl.visualizations.results_visualizations import deserialize_value
 
 
 class FederatedTraining:
@@ -85,7 +90,7 @@ class FederatedTraining:
     ) -> Metrics:
         self.training_metrics.append(metrics_from_clients)
         if not self.training_specs.reset_learning_rate_every_round:
-            self.last_lr = metrics_from_clients[0][1]["learning_rates"][-1]
+            self.last_lr = metrics_from_clients[0][1]["last_lr"]
         return {}
 
     def _visualize_federated_learning_metrics(
@@ -102,7 +107,7 @@ class FederatedTraining:
         f_score_per_client = []
         for n_samples, metrics in validation_metrics_from_clients:
             n_samples_per_client.append(n_samples)
-            f_score_per_client.append(metrics["f_score"])
+            f_score_per_client.append(deserialize_value(metrics, "f_score"))
         weighted_f_score = np.average(f_score_per_client, weights=n_samples_per_client)
         return {"f_score": weighted_f_score}
 
@@ -134,14 +139,14 @@ class FederatedTraining:
     def on_fit_config_fn(self, _) -> Dict[str, float]:
         return {"last_lr": self.last_lr}
 
-    def client_fn(self, cid: str) -> ClassicalFLClient:
+    def client_fn(self, context: Context) -> Client:
         model = copy.deepcopy(self.model).to(self.device)
-
-        training_data_loader = self.training_data_loaders[int(cid)]
-        validation_data_loader = self.validation_data_loaders[int(cid)]
+        data_loader_id = int(context.node_config["partition-id"])
+        training_data_loader = self.training_data_loaders[data_loader_id]
+        validation_data_loader = self.validation_data_loaders[data_loader_id]
 
         return ClassicalFLClient(
-            cid=int(cid),
+            cid=data_loader_id,
             model=model,
             training_data_loader=training_data_loader,
             validation_data_loader=validation_data_loader,
@@ -150,8 +155,10 @@ class FederatedTraining:
             device=self.device,
             training_function=self.training_function,
             evaluation_function=self.evaluation_function,
-            visualizations_folder=self.visualizations_folder.joinpath(f"client_{cid}"),
-        )
+            visualizations_folder=self.visualizations_folder.joinpath(
+                f"client_{data_loader_id}"
+            ),
+        ).to_client()
 
     def _evaluate_best_model(
         self, validation_data_loader: DataLoader, trained_model_path: Path, run_id: str
@@ -382,6 +389,13 @@ def main(
 
 
 if __name__ == "__main__":
+    logging.captureWarnings(True)
+    warnings.filterwarnings(
+        "always",
+        category=DeprecationWarning,
+        module=r"^{0}\.".format(re.escape(__name__)),
+    )
+
     try:
         fire.Fire(main)
     except Exception as e:

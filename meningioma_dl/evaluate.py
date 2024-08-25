@@ -99,10 +99,14 @@ def evaluate_model(
             data_loader, model, device
         )
         if loss_function is not None:
-            loss = loss_function(
-                predictions.to(torch.float64),
-                labels.to(torch.int64).to(device),
-            ).cpu()
+            loss = (
+                loss_function(
+                    predictions.to(torch.float64),
+                    labels.to(torch.int64).to(device),
+                )
+                .cpu()
+                .item()
+            )
     labels_cpu = labels.cpu()
     predictions_flat = predictions.cpu().argmax(dim=1)
     f_score = calculate_basic_metrics(
@@ -125,7 +129,9 @@ def evaluate_model(
                 predictions_flat,
                 visualizations_folder.joinpath("evaluation_images_with_predictions"),
             )
-    return f_score, ValidationMetrics(f_score, loss, labels_cpu, predictions_flat)
+    return f_score, ValidationMetrics(
+        f_score, loss, labels_cpu.numpy(), predictions_flat.numpy()
+    )
 
 
 def calculate_basic_metrics(

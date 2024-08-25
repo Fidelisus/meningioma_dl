@@ -27,10 +27,6 @@ class Config:
     # visualizations
     visualizations_directory: Path
 
-    # optuna
-    results_storage_directory: Path
-    optuna_database_directory: str
-
     # model
     test_size: float = 0.2
     validation_size: float = 0.2
@@ -75,19 +71,13 @@ class Config:
             "test_labels.tsv"
         )
 
-        cls.results_storage_directory.mkdir(parents=True, exist_ok=True)
         cls.pretrained_models_directory.mkdir(parents=True, exist_ok=True)
         cls.saved_models_directory.mkdir(parents=True, exist_ok=True)
-        cls.optuna_database_directory: str = (
-            f"sqlite:///{cls.results_storage_directory.joinpath('optuna_store.db')}"
-        )
 
         logs_directory = Path(os.environ.get("LOGS_DIR", None))
         if logs_directory:
             cls.log_file_path = logs_directory.joinpath(run_id, "logs.log")
             cls.log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        cls.visualizations_directory: Path = (
-            logs_directory or cls.results_storage_directory.joinpath("viz")
-        )
+        cls.visualizations_directory: Path = logs_directory
         cls.visualizations_directory.mkdir(parents=True, exist_ok=True)

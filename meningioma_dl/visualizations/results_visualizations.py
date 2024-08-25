@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Sequence, Any, Optional, List
+from typing import Sequence, Any, Optional, List, Union
 from typing import Tuple, Dict
 
 import numpy as np
@@ -16,12 +16,67 @@ from sklearn.metrics import (
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
 
 
+def _serialize_series(
+    values: Sequence[Union[float, int, str]], name: str
+) -> Dict[str, Any]:
+    serialized = {}
+    if isinstance(values, np.ndarray):
+        values = values.tolist()
+    for idx in range(len(values)):
+        value = values[idx]
+        if value is not None:
+            serialized[f"{name}_{idx}"] = value
+    serialized[f"{name}_len"] = len(values)
+    return serialized
+
+
+def _serialize_to_dict(properties: Dict[str, Any]) -> Dict[str, Any]:
+    serialized_attributes = {}
+    for key, value in properties.items():
+        if value is None:
+            serialized_attributes[key] = float("-inf")
+        else:
+            if (
+                isinstance(value, float)
+                or isinstance(value, int)
+                or isinstance(value, str)
+            ):
+                serialized_attributes[key] = value
+            elif len(value) > 0:
+                serialized_attributes.update(_serialize_series(value, key))
+            else:
+                raise ValueError("Cannot serialize an empty array")
+    return serialized_attributes
+
+
+def deserialize_series(values: Dict[str, Any], name: str) -> List:
+    deserialized = []
+    series_length = values[f"{name}_len"]
+    for idx in range(series_length):
+        deserialized.append(values.get(f"{name}_{idx}", None))
+    return deserialized
+
+
+def deserialize_value(
+    values: Dict[str, Any], name: str
+) -> Optional[Union[float, int, str]]:
+    deserialized = values[name]
+    if deserialized == float("-inf"):
+        deserialized = None
+    return deserialized
+
+
 @dataclass
 class TrainingMetrics:
     validation_losses: Sequence[Optional[float]]
     training_losses: Sequence[Optional[float]]
     f_scores: Sequence[Optional[float]]
     learning_rates: Sequence[Optional[float]]
+
+    def as_serializable_dict(self) -> Dict[str, Any]:
+        class_attributes = _serialize_to_dict(asdict(self))
+        class_attributes["last_lr"] = self.learning_rates[-1]
+        return class_attributes
 
 
 @dataclass
@@ -30,6 +85,10 @@ class ValidationMetrics:
     loss: Optional[float]
     true: np.array
     predictions: np.array
+
+    def as_serializable_dict(self) -> Dict[str, Any]:
+        class_attributes = _serialize_to_dict(asdict(self))
+        return class_attributes
 
 
 def merge_validation_metrics_true_and_pred(

@@ -235,9 +235,7 @@ def evaluate_ensemble(
         model.to(device)
         model.eval()
         with torch.no_grad():
-            labels, predictions, images_paths = get_model_predictions(
-                data_loader, model, device
-            )
+            labels, predictions, _ = get_model_predictions(data_loader, model, device)
         model.cpu()
         labels_cpu = labels.cpu()
         all_predictions[i] = predictions.cpu()

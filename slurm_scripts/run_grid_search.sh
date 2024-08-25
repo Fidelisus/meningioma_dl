@@ -14,7 +14,7 @@ model_specs=("resnet_10_4_unfreezed")
 
 fl_strategy_specs=("centralized")
 training_settings=("central_300_epochs")
-script_name="run_optuna_study.py"
+script_name="run_centralized_training.py"
 runs_main_name="cv_final_model"
 
 # fl_strategy_specs=("fed_avg_05_fraction")

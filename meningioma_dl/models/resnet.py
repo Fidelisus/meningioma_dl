@@ -351,7 +351,6 @@ def freeze_layers(
                     layers_to_freeze = list(
                         set(range(1, 5)) - set(number_of_layers_to_unfreeze)
                     )
-                logging.info(f"layers_to_freeze: {layers_to_freeze}")
                 for i in layers_to_freeze:
                     if f"layer{i}" in pname or pname in [
                         "conv1.weight",

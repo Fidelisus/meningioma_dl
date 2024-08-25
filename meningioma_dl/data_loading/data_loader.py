@@ -115,15 +115,12 @@ def init_dataset(
 ) -> Dataset:
     set_determinism(seed=123)
     file_label_map = [
-        {"img": img, "mask": mask, "label": label - 1}
+        {"img": img, "mask": mask, "label": label - 1, "img_path": img}
         for img, label, mask in zip(images, labels, masks)
     ]
 
     transformations: List[transforms.Transform] = [
-        transforms.LoadImaged(
-            keys=["img", "mask"],
-            meta_keys=["img_meta_dict", "mask_meta_dict"],
-        ),
+        transforms.LoadImaged(keys=["img", "mask"]),
         transforms.EnsureChannelFirstd(keys=["img", "mask"]),
         transforms.Orientationd(keys=["img", "mask"], axcodes="PLI"),
         transforms.Spacingd(keys=["img", "mask"], pixdim=(1.0, 1.0, 1.0)),
