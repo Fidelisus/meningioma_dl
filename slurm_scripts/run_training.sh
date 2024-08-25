@@ -34,7 +34,7 @@ echo "Running Slurm job with id $SLURM_JOBID and name $run_id"
 
 singularity exec --nv ${base_dir}image.sif ${base_dir}entrypoint.sh ${base_dir}/meningioma_dl/"$script_name" \
   --device_name="cuda" \
-  --env_file_path=${base_dir}/envs/ci_run_cluster.env \
+  --env_file_path=${base_dir}/envs/slurm.env \
   --run_id="${run_id}" \
   --augmentations_specs_name="${augmentation_specs}" \
   --scheduler_specs_name="${scheduler_specs}" \

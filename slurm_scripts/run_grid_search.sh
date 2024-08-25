@@ -2,32 +2,29 @@
 
 slurm_script_path=/home/cir/lsobocinski/meningioma_dl/slurm_scripts/run_training.sh
 
-augmentation_specs=("with_bias_correction_08p")
-scheduler_specs=("0001_lr_099_gamma")
+augmentation_specs=("with_bias_correction_1p")
+scheduler_specs=("001_lr_099_gamma")
 preprocessing_specs=("no_resize")
 # preprocessing_specs=("70_padding")
 seed=123
-cv_folds=(0 1 2 3 4)
+cv_folds=(0)
 
-# model_specs=("class_2_and_3_together_4_unfreezed")
-model_specs=("resnet_10_4_unfreezed")
+model_specs=("class_2_and_3_together_4_unfreezed")
+# model_specs=("resnet_10_4_unfreezed")
 
-fl_strategy_specs=("centralized")
-training_settings=("central_300_epochs")
-script_name="run_centralized_training.py"
-runs_main_name="cv_final_model"
 
-# fl_strategy_specs=("fed_avg_05_fraction")
-# training_settings=("federated_80r_5e_3c")
-# script_name="run_federated_training.py"
-# runs_main_name="f1"
+# fl_strategy_specs=("centralized")
+# training_settings=("central_100_epochs" "central_100_epochs" "central_100_epochs")
+# script_name="run_centralized_training.py"
+# runs_main_name="cv_final_model"
+
+fl_strategy_specs=("fed_avg")
+training_settings=("federated_2r_1e_3c") # "federated_200r_1e_3c" "bias_field_high_200r_1e_3c" "bias_field_low_200r_1e_3c" "histogram_shifts_low_200r_1e_3c"
+script_name="run_federated_training.py"
+runs_main_name="big_cv4"
 
 # I can also try --exclude instead of --nodelist
-node="on5"
-
-# Those 2 need to be also here to avoid strange errors
-module add "Python/3.9.5-GCCcore-8.2.0"
-module add "PyTorch/1.9.0-foss-2019a"
+node="on3"
 
 for augmentation in "${augmentation_specs[@]}"; do
     for scheduler in "${scheduler_specs[@]}"; do
