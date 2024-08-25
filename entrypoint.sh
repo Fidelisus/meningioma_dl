@@ -1,4 +1,4 @@
 pip install -e . > /dev/null
-pip freeze
+pip install ray==2.10.0
 
 python "$@" 

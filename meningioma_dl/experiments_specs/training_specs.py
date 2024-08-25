@@ -97,6 +97,7 @@ TRAINING_SPECS = {
     "federated_ci_run": create_fl_parameters(
         global_epochs=4, epochs_per_round=10, number_of_clients=4
     ),
+    **create_fl_specs("federated_2r_1e_3c"),
     **create_fl_specs("federated_200r_1e_3c"),
     **create_fl_specs("federated_300r_1e_3c"),
     **create_fl_specs("federated_200r_1e_5c"),
@@ -186,31 +187,40 @@ TRAINING_SPECS = {
             "histogram_shifts_low"
         ],
     },
-    "histogram_shifts_high_1r_200e_3c": {
+    "histogram_shifts_high_1r_100e_3c": {
         **create_fl_parameters(
-            global_epochs=1, epochs_per_round=200, number_of_clients=3
+            global_epochs=1, epochs_per_round=100, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
         "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
             "histogram_shifts_high"
         ],
     },
-    "histogram_shifts_low_1r_200e_3c": {
+    "histogram_shifts_low_1r_100e_3c": {
         **create_fl_parameters(
-            global_epochs=1, epochs_per_round=200, number_of_clients=3
+            global_epochs=1, epochs_per_round=100, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
         "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
             "histogram_shifts_low"
         ],
     },
-    "bias_field_high_1r_200e_3c": {
+    "bias_field_high_1r_100e_3c": {
         **create_fl_parameters(
-            global_epochs=1, epochs_per_round=200, number_of_clients=3
+            global_epochs=1, epochs_per_round=100, number_of_clients=3
         ),
         "partitioning_mode": "uniform",
         "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
             "bias_field_high"
+        ],
+    },
+    "bias_field_low_1r_100e_3c": {
+        **create_fl_parameters(
+            global_epochs=1, epochs_per_round=100, number_of_clients=3
+        ),
+        "partitioning_mode": "uniform",
+        "client_specific_preprocessing": CLIENT_SPECIFIC_PREPROCESSINGS[
+            "bias_field_low"
         ],
     },
     "bias_field_medium_200r_1e_3c": {

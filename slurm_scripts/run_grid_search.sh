@@ -7,7 +7,7 @@ scheduler_specs=("001_lr_099_gamma")
 preprocessing_specs=("no_resize")
 # preprocessing_specs=("70_padding")
 seed=123
-cv_folds=(0)
+cv_folds=(0 1 2 3)
 
 model_specs=("class_2_and_3_together_4_unfreezed")
 # model_specs=("resnet_10_4_unfreezed")
@@ -19,12 +19,12 @@ model_specs=("class_2_and_3_together_4_unfreezed")
 # runs_main_name="cv_final_model"
 
 fl_strategy_specs=("fed_avg")
-training_settings=("federated_2r_1e_3c") # "federated_200r_1e_3c" "bias_field_high_200r_1e_3c" "bias_field_low_200r_1e_3c" "histogram_shifts_low_200r_1e_3c"
+training_settings=("federated_200r_1e_3c") # "histogram_shifts_low_200r_1e_3c" ks04_200r_1e_3c federated_200r_1e_3c histogram_shifts_high_200r_1e_3c 
 script_name="run_federated_training.py"
-runs_main_name="big_cv4"
+runs_main_name="10_runs_cv"
 
 # I can also try --exclude instead of --nodelist
-node="on3"
+node="on1"
 
 for augmentation in "${augmentation_specs[@]}"; do
     for scheduler in "${scheduler_specs[@]}"; do
@@ -45,7 +45,7 @@ for augmentation in "${augmentation_specs[@]}"; do
                             "$script_name" \
                             "$seed" \
                             "$cv_fold"
-                            sleep 30s
+                            sleep 60s
                         done
                     done
                 done

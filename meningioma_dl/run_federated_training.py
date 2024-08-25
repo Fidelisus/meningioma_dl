@@ -233,14 +233,14 @@ class FederatedTraining:
             config=ServerConfig(num_rounds=self.training_specs.global_epochs),
             strategy=strategy,
             client_resources=client_resources,
-            # ray_init_args={
-            #     "ignore_reinit_error": True,
-            #     # "local_mode": True,
-            #     "include_dashboard": False,
-            #     # "address": "127.0.0.1:10001",
-            #     "num_cpus": 8,
-            #     # "num_gpus":1
-            # }
+            ray_init_args={
+                "ignore_reinit_error": True,
+                # "local_mode": True,
+                "include_dashboard": False,
+                # "address": "127.0.0.1:10001",
+                "num_cpus": 6,
+                # "num_gpus":1
+            }
         )
 
         validation_data_loader, _ = get_data_loader(
@@ -338,7 +338,7 @@ class FederatedTraining:
     def _get_client_resources(self):
         client_resources = {"num_gpus": 0, "num_cpus": 4}
         if self.device.type == "cuda":
-            client_resources = {"num_gpus": 1, "num_cpus": 1}
+            client_resources = {"num_gpus": 1, "num_cpus": 2}
         return client_resources
 
 
