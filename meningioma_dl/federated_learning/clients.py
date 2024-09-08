@@ -77,6 +77,7 @@ class ClassicalFLClient(fl.client.NumPyClient):
             loss_function = nn.CrossEntropyLoss().to(self.device)
             _, _, training_metrics = self.training_function(
                 training_data_loader=self.training_data_loader,
+                validation_data_loader=self.validation_data_loader,
                 model=self.model,
                 optimizer=optimizer,
                 scheduler=scheduler,

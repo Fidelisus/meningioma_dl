@@ -113,11 +113,13 @@ class FederatedTraining:
 
     def _set_clients_train_and_eval_functions(self, run_id):
         clients_logging_function = partial(log, INFO)
+        validation_interval = (
+            1 if self.fl_strategy_specs.name == "fed_ensemble" else None
+        )
         self.training_function = partial(
             training_loop,
-            validation_data_loader=None,
             total_epochs=self.training_specs.epochs_per_round,
-            validation_interval=None,
+            validation_interval=validation_interval,
             model_save_folder=None,
             device=self.device,
             evaluation_metric_weighting=self.modelling_specs.model_specs.evaluation_metric_weighting,
@@ -240,7 +242,7 @@ class FederatedTraining:
                 # "address": "127.0.0.1:10001",
                 "num_cpus": 6,
                 # "num_gpus":1
-            }
+            },
         )
 
         validation_data_loader, _ = get_data_loader(

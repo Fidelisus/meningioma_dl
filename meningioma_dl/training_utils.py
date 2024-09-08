@@ -11,7 +11,7 @@ from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from meningioma_dl.models.resnet import ResNet
+from meningioma_dl.models.resnet import ResNet, set_model_parameters
 from meningioma_dl.visualizations.images_visualization import visualize_images
 from meningioma_dl.visualizations.results_visualizations import (
     plot_training_curve,
@@ -45,6 +45,7 @@ def training_loop(
     logger(
         f"total_epochs: {total_epochs} batches_per_epoch: {len(training_data_loader)}"
     )
+    best_model = copy.deepcopy(model.cpu())
 
     if proximal_mu is not None:
         global_params = copy.deepcopy(model)
@@ -124,20 +125,24 @@ def training_loop(
                     predictions.cpu().argmax(dim=1),
                     average=evaluation_metric_weighting,
                 )
-
-                if model_save_folder is not None and f_score > best_f_score:
-                    best_f_score = f_score
-                    if save_intermediate_models:
-                        trained_model_path = _save_model(
-                            model.state_dict(), model_save_folder, epoch
-                        )
-                    else:
-                        trained_model_path = _save_model(
-                            model.state_dict(),
-                            model_save_folder,
-                            -1,  # -1 used to override previous best model
-                        )
-                    logger(f"Model saved at {trained_model_path}")
+                if f_score > best_f_score:
+                    logger(
+                        f"A better model obtained. new f_score: {f_score}, old: {f_score}"
+                    )
+                    best_model = copy.deepcopy(model.cpu())
+                    if model_save_folder is not None:
+                        best_f_score = f_score
+                        if save_intermediate_models:
+                            trained_model_path = _save_model(
+                                model.state_dict(), model_save_folder, epoch
+                            )
+                        else:
+                            trained_model_path = _save_model(
+                                model.state_dict(),
+                                model_save_folder,
+                                -1,  # -1 used to override previous best model
+                            )
+                        logger(f"Model saved at {trained_model_path}")
                 logger(f"F1 score: {f_score}, validation loss: {loss_validation.data}")
 
                 validation_losses.append(float(loss_validation.cpu().data))
@@ -145,6 +150,7 @@ def training_loop(
         else:
             validation_losses.append(None)
             f_scores.append(None)
+            best_model = copy.deepcopy(model.cpu())
 
         training_metrics = TrainingMetrics(
             validation_losses,
@@ -160,6 +166,7 @@ def training_loop(
                 learning_rates,
                 visualizations_folder,
             )
+    set_model_parameters(model, best_model.state_dict().values())
     logger(
         f"Finished training, last f_score: {f_score}, "
         f"best f_score: {best_f_score}, "

@@ -244,7 +244,7 @@ def evaluate_ensemble(
     if ensemble_models_weights is not None:
         predictions_matrix = predictions_matrix * ensemble_models_weights[:, None, None]
 
-    predictions_flat = predictions_matrix.argmax(dim=2).mode(dim=0).values
+    predictions_flat = torch.Tensor(predictions_matrix).argmax(dim=2).mode(dim=0).values
     f_score = calculate_basic_metrics(
         labels_cpu, predictions_flat, model_specs.evaluation_metric_weighting, logger
     )
