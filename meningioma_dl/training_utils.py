@@ -45,7 +45,8 @@ def training_loop(
     logger(
         f"total_epochs: {total_epochs} batches_per_epoch: {len(training_data_loader)}"
     )
-    best_model = copy.deepcopy(model.cpu())
+    best_model = copy.deepcopy(model).cpu()
+    model = model.to(device)
 
     if proximal_mu is not None:
         global_params = copy.deepcopy(model)
@@ -129,7 +130,7 @@ def training_loop(
                     logger(
                         f"A better model obtained. new f_score: {f_score}, old: {f_score}"
                     )
-                    best_model = copy.deepcopy(model.cpu())
+                    best_model = copy.deepcopy(model).cpu()
                     if model_save_folder is not None:
                         best_f_score = f_score
                         if save_intermediate_models:
@@ -150,7 +151,7 @@ def training_loop(
         else:
             validation_losses.append(None)
             f_scores.append(None)
-            best_model = copy.deepcopy(model.cpu())
+            best_model = copy.deepcopy(model).cpu()
 
         training_metrics = TrainingMetrics(
             validation_losses,
@@ -166,7 +167,7 @@ def training_loop(
                 learning_rates,
                 visualizations_folder,
             )
-    set_model_parameters(model, best_model.state_dict().values())
+    set_model_parameters(model.cpu(), best_model.state_dict().values())
     logger(
         f"Finished training, last f_score: {f_score}, "
         f"best f_score: {best_f_score}, "

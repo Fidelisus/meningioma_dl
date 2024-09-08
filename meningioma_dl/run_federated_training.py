@@ -213,6 +213,7 @@ class FederatedTraining:
             self.model = load_model_from_file(
                 pretrained_model_file, self.modelling_specs.model_specs, device
             )
+            logging.info(f"Pretrained model loaded from {pretrained_model_file}")
 
         self._set_clients_train_and_eval_functions(run_id)
         self.last_lr = self.modelling_specs.scheduler_specs.learning_rate
