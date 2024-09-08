@@ -154,7 +154,7 @@ TRAINING_SPECS = {
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
         "partitioning_mode": "custom_partitions",
-        "partitioning_settings": {"file_name": "tumour_sizes"},
+        "partitioning_settings": {"file_name": "tumour_sizes_3c"},
     },
     "histogram_shifts_1r_1e_2c": {
         **create_fl_parameters(
