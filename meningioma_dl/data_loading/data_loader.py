@@ -18,21 +18,6 @@ from meningioma_dl.federated_learning.create_federated_data_splits import (
     get_uniform_client_partitions,
 )
 
-"""
-In order to make Cropforegroundd work you have to add the following code to 
-venv1/lib/python3.7/site-packages/monai/transforms/croppad/array.py CropForeground crop_pad()
-just after cropped = SpatialCrop(roi_start=box_start, roi_end=box_end)(img) and comment this line:
-
-        # cropped = SpatialCrop(roi_start=box_start, roi_end=box_end)(img)
-        # MY ADDITION START
-        slices = tuple(
-            slice(box_start[i], box_end[i])
-            for i in range(img.ndim-1)
-        )
-        cropped=np.array([img[0][slices]])
-        # MY ADDITION END
-"""
-
 
 class TransformationsMode(Enum):
     ONLY_LOAD = 0

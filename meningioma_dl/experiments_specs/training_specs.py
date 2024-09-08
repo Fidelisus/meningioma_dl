@@ -111,43 +111,50 @@ TRAINING_SPECS = {
         **create_fl_parameters(
             global_epochs=2, epochs_per_round=2, number_of_clients=3
         ),
-        "partitioning_mode": "ks_stat",
+        "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_01_3c"},
     },
     "ks04_200r_1e_3c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
-        "partitioning_mode": "ks_stat",
+        "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_04_3c"},
     },
     "ks04_200r_1e_5c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=5
         ),
-        "partitioning_mode": "ks_stat",
+        "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_04_5c"},
     },
     "ks024_200r_1e_3c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
-        "partitioning_mode": "ks_stat",
+        "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_024_3c"},
     },
     "ks024_200r_1e_5c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=5
         ),
-        "partitioning_mode": "ks_stat",
+        "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_024_5c"},
     },
     "ks01_200r_1e_3c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=3
         ),
-        "partitioning_mode": "ks_stat",
+        "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_01_3c"},
+    },
+    "tumour_sizes_200r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=200, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "custom_partitions",
+        "partitioning_settings": {"file_name": "tumour_sizes"},
     },
     "histogram_shifts_1r_1e_2c": {
         **create_fl_parameters(

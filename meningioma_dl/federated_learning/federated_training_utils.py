@@ -98,7 +98,7 @@ def get_federated_data_loaders(
         partitions = get_uniform_client_partitions(
             samples_df["labels"], training_specs.number_of_clients, manual_seed
         )
-    elif training_specs.partitioning_mode == "ks_stat":
+    elif training_specs.partitioning_mode == "custom_partitions":
         partitions = get_non_iid_partitions(
             labels_file_path.parent.joinpath(
                 f"{labels_file_path.name.split('.')[0]}_"
