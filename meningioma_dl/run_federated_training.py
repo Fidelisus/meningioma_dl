@@ -55,8 +55,10 @@ from meningioma_dl.utils import (
     setup_run,
     setup_flower_logger,
 )
-from meningioma_dl.visualizations.results_visualizations import deserialize_value
-
+from meningioma_dl.visualizations.results_visualizations import (
+    create_evaluation_report,
+    deserialize_value,
+)
 
 class FederatedTraining:
     device: Optional[torch.device]
@@ -278,7 +280,8 @@ class FederatedTraining:
                     f"local_ensemble_weights_{client_id}.json",
                     local_ensemble_weights[client_id],
                 )
-            evaluate_ensemble(
+            logging.info("Evaluating global ensemble: ")
+            _, validation_metrics = evaluate_ensemble(
                 validation_data_loader,
                 list(clients_models.values()),
                 self.modelling_specs.model_specs,
@@ -287,7 +290,15 @@ class FederatedTraining:
                     global_ensemble_weights
                 ),
             )
-
+            create_evaluation_report(
+                validation_metrics.true,
+                validation_metrics.predictions,
+                self.visualizations_folder,
+                run_id,
+                self.modelling_specs.model_specs,
+                self.training_specs,
+                self.modelling_specs.model_specs.number_of_classes,
+            )
         else:
             trained_model_path = strategy.trained_model_path
             self._evaluate_best_model(
@@ -322,6 +333,7 @@ class FederatedTraining:
             ):
                 data_loader = self.validation_data_loaders[client_id_to_validate_on]
                 client_model.eval()
+                client_model = client_model.to(device)
                 with torch.no_grad():
                     labels, predictions, images_paths = get_model_predictions(
                         data_loader, client_model, device

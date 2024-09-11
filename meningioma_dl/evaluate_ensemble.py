@@ -102,6 +102,24 @@ AVAILABLE_ENSEMBLES = {
         ("19-07-24_17-37-58_RSg3iQtVQvRCYQ35YgpDcV", 0),
         ("19-07-24_17-37-58_RSg3iQtVQvRCYQ35YgpDcV", 1),
     ),
+    "iid_fold_0a": (
+        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6657635", i) for i in range(3)
+    ),
+    "iid_fold_1a": (
+        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold1_6657636", i) for i in range(3)
+    ),
+    "iid_fold_2a": (
+        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6657639", i) for i in range(3)
+    ),
+    "iid_fold_3a": (
+        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold3_6657644", i) for i in range(3)
+    ),
+    "iid_fold_4a": (
+        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6657613", i) for i in range(3)
+    ),
+    "iid_fold_4b": (
+        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6657615", i) for i in range(3)
+    ),
 }
 
 
@@ -135,13 +153,11 @@ def evaluate_ensemble_model(
 
     if weights_folder is None:
         ensemble_models_weights = None
-    elif weights_folder:
+    else:
         ensemble_models_weights = load_json(
             weights_folder, "global_ensemble_weights.json"
         )
         ensemble_models_weights = ensemble_weights_to_numpy(ensemble_models_weights)
-    else:
-        raise NotImplemented(f"Ensemble weighting {ensemble_weighting} not implemented")
 
     f_score, validation_metrics = evaluate_ensemble(
         data_loader,
@@ -296,6 +312,7 @@ def run_ensemble_evaluate(
     logging.info(f"Samples to be used are read from {Config.test_labels_file_path}")
 
     if ensemble_weighting is not EnsembleWeighting.LOCAL_WEIGHTING:
+        logging.info(f"Using global model weighting with weights from {weights_folder}")
         validation_metrics = evaluate_ensemble_model(
             trained_model_paths=trained_model_paths,
             device=device,

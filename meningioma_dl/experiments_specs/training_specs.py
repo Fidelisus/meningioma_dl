@@ -121,6 +121,13 @@ TRAINING_SPECS = {
         "partitioning_mode": "custom_partitions",
         "partitioning_settings": {"file_name": "ks_stat_04_3c"},
     },
+    "ks04_100r_1e_3c": {
+        **create_fl_parameters(
+            global_epochs=100, epochs_per_round=1, number_of_clients=3
+        ),
+        "partitioning_mode": "custom_partitions",
+        "partitioning_settings": {"file_name": "ks_stat_04_3c"},
+    },
     "ks04_200r_1e_5c": {
         **create_fl_parameters(
             global_epochs=200, epochs_per_round=1, number_of_clients=5

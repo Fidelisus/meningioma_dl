@@ -16,6 +16,8 @@ training_run_id="$1"
 use_test_data="$2"
 cv_fold="$3"
 ensemble_id="$4"
+weights_folder="$5"
+ensemble_weighting="$6"
 if [ "$ensemble_id" = "False" ]; then
    trained_model_path="/home/cir/lsobocinski/data/meningioma/optuna/trials/models/$training_run_id/epoch_-1.pth.tar"
    script_name="evaluate.py"
@@ -41,4 +43,6 @@ singularity exec --nv ${base_dir}image.sif ${base_dir}entrypoint.sh ${base_dir}m
   --device_name="cuda" \
   --preprocessing_specs_name="${preprocessing_specs}" \
   --model_specs_name="${model_specs}" --use_test_data="${use_test_data}" \
-  --cv_fold="$cv_fold"
+  --cv_fold="$cv_fold" \
+  --ensemble_weighting="$ensemble_weighting" \
+  --weights_folder="$weights_folder"

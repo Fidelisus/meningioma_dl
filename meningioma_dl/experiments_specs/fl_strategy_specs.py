@@ -54,6 +54,7 @@ FL_STRATEGY_SPECS: Dict[str, Dict[str, Any]] = {
     "fed_ensemble_pretrained1": {
         "name": "fed_ensemble",
         "config": {
+            # TODO TODO it shouldn't be centralized...
             "pretrained_model_run_id": "pretrained_model_centralized_central_100_epochs_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6520422"
         },
     },
