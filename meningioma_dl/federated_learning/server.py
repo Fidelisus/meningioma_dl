@@ -1,7 +1,7 @@
 import logging
 from logging import WARNING
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import flwr as fl
 import numpy as np
@@ -33,8 +33,8 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
     def aggregate_fit(
         self,
         server_round: int,
-        results,
-        failures,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         if len(failures) > 0:
             raise RuntimeError(f"Received failures in fit {failures}")
@@ -86,9 +86,9 @@ class FedEnsemble(fl.server.server.FedAvg):
 
     def aggregate_fit(
         self,
-        rnd: int,
+        server_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         if not results:
             return None, {}
@@ -123,7 +123,7 @@ class FedEnsemble(fl.server.server.FedAvg):
         if self.fit_metrics_aggregation_fn:
             fit_metrics = [(res.num_examples, res.metrics) for _, res in results]
             metrics_aggregated = self.fit_metrics_aggregation_fn(fit_metrics)
-        elif rnd == 1:
+        elif server_round == 1:
             log(WARNING, "No fit_metrics_aggregation_fn provided")
 
         return None, metrics_aggregated
@@ -238,14 +238,16 @@ class FedProx(SaveModelFedAvg):
         )
 
     def configure_fit(
-        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
         """Configure the next round of training.
 
         Sends the proximal factor mu to the clients
         """
         # Get the standard client/config pairs from the FedAvg super-class
-        client_config_pairs = super().configure_fit(rnd, parameters, client_manager)
+        client_config_pairs = super().configure_fit(
+            server_round, parameters, client_manager
+        )
 
         # Return client/config pairs with the proximal factor mu added
         return [
