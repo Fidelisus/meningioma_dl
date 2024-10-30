@@ -1,5 +1,7 @@
 # How to setup the repo on the cluster
 
+# TODO update to the new deployment strategy
+
 1. Prepare modules:
 
 ```
