@@ -87,7 +87,6 @@ class FedEnsemble(fl.server.server.FedAvg):
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         if not results:
             return None, {}
-        # Do not aggregate if there are failures and failures are not accepted
         if not self.accept_failures and failures:
             raise RuntimeError(
                 f"There are failures during fitting, aborting {failures}"
@@ -107,11 +106,10 @@ class FedEnsemble(fl.server.server.FedAvg):
             f"Saving it at {self.saved_models_folder}"
         )
         for client_id, parameters in clients_parameters.items():
-            aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays(parameters)
             save_model(
-                aggregated_ndarrays,
-                self.saved_models_folder,
-                client_id,  # TODO TODO TODO make it more explicit
+                model=parameters_to_ndarrays(parameters),
+                model_save_folder=self.saved_models_folder,
+                file_name_suffix=str(client_id),
             )
 
         metrics_aggregated = {}
@@ -239,12 +237,9 @@ class FedProx(SaveModelFedAvg):
 
         Sends the proximal factor mu to the clients
         """
-        # Get the standard client/config pairs from the FedAvg super-class
         client_config_pairs = super().configure_fit(
             server_round, parameters, client_manager
         )
-
-        # Return client/config pairs with the proximal factor mu added
         return [
             (
                 client,

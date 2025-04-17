@@ -4,14 +4,13 @@ from typing import Literal
 
 import fire
 
-from meningioma_dl.config import Config
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import (
     get_training_specs,
 )
+from meningioma_dl.data_loading.experiments_setup import setup_run, generate_run_id
 from meningioma_dl.model_evaluation.centralized_evaluation import centralized_evaluation
-from meningioma_dl.jobs.experiments_setup import setup_run, generate_run_id
 
 
 def run_standalone_evaluate(
@@ -22,7 +21,7 @@ def run_standalone_evaluate(
     preprocessing_specs_name: str = "no_resize",
     model_specs_name: str = "resnet_10_0_unfreezed",
     use_test_data: bool = False,
-    cv_fold: int = None,
+    cv_fold: int = 0,
     manual_seed: int = 123,
 ):
     config = setup_run(
@@ -54,4 +53,4 @@ if __name__ == "__main__":
     try:
         fire.Fire(run_standalone_evaluate)
     except Exception as e:
-        logging.error(f"An unexpected error occured {e}", exc_info=True)
+        logging.error(f"An unexpected error occurred {e}", exc_info=True)

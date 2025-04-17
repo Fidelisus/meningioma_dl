@@ -186,8 +186,12 @@ def _convert_simple_labels_to_torch_format(
     return labels.to(torch.int64).to(device)
 
 
-def save_model(model, model_save_folder: Path) -> Path:
-    model_save_path = model_save_folder.joinpath(f"best_model.pth.tar")
+def save_model(
+    model: ResNet, model_save_folder: Path, file_name_suffix: str = ""
+) -> Path:
+    model_save_path = model_save_folder.joinpath(
+        f"best_model_{file_name_suffix}.pth.tar"
+    )
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {"state_dict": model},

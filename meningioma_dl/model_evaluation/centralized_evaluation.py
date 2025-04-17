@@ -26,7 +26,7 @@ def centralized_evaluation(
     trained_model_path: Path,
     test_data_path: Path,
     config: Config,
-    run_id: Optional[str] = None,
+    run_id: str,
     device: torch.device = torch.device("cpu"),
     visualizations_folder: Path = Path("."),
     model_specs: ModelSpecs = ModelSpecs(),

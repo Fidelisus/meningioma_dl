@@ -1,10 +1,11 @@
 from collections import Counter
-from typing import List, Callable
+from typing import List, Callable, Tuple, Any
 
 import numpy as np
 import torch
 from torch import nn
 
+from meningioma_dl.experiments_specs.scheduler_specs import SchedulerSpecs
 from meningioma_dl.models.resnet import ResNet
 
 
@@ -48,3 +49,18 @@ def get_loss_function(
     return nn.CrossEntropyLoss(
         weight=loss_function_weighting,
     )
+
+
+def get_optimizer_and_scheduler(
+    parameters_to_fine_tune: List[torch.Tensor],
+    scheduler_specs: SchedulerSpecs,
+) -> Tuple[torch.optim.Optimizer, Any]:
+    lr_params = [
+        {
+            "params": parameters_to_fine_tune,
+            "lr": scheduler_specs.learning_rate,
+        }
+    ]
+    optimizer = torch.optim.Adam(lr_params)
+    scheduler = scheduler_specs.get_scheduler(optimizer)
+    return optimizer, scheduler

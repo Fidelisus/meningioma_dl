@@ -24,12 +24,12 @@ from meningioma_dl.experiments_specs.training_specs import (
     FederatedTrainingSpecs,
 )
 from meningioma_dl.federated_learning.ensemble_fl import ensemble_weights_to_numpy
-from meningioma_dl.federated_learning.federated_training_utils import (
+from meningioma_dl.federated_learning.data_loading import (
     get_federated_data_loaders,
 )
 from meningioma_dl.models.resnet import ResNet
 from meningioma_dl.model_training.predictions import get_model_predictions
-from meningioma_dl.utils import (
+from meningioma_dl.data_loading.experiments_setup import (
     setup_run,
 )
 from meningioma_dl.visualizations.results_visualizations import (
@@ -145,6 +145,8 @@ AVAILABLE_ENSEMBLES = {
     ),
 }
 
+# TODO TODO fix the file
+
 
 class EnsembleWeighting(Enum):
     MAJORITY_VOTING = "majority_voting"
@@ -218,7 +220,6 @@ def evaluate_ensemble_model_local_weighting(
     for client_id, data_loader in test_data_loaders.items():
         models = load_models(trained_model_paths, model_specs)
 
-        # TODO TODO pass the location
         ensemble_models_weights = load_json(
             weights_folder, f"local_ensemble_weights_{client_id}.json"
         )
@@ -323,7 +324,7 @@ def run_ensemble_evaluate(
         trained_model_paths.append(
             str(
                 Config.saved_models_directory.joinpath(
-                    model_id, f"epoch_{client_id}.pth.tar"
+                    model_id, f"best_model{client_id}.pth.tar"
                 )
             )
         )

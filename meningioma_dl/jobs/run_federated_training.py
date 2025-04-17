@@ -5,7 +5,7 @@ from collections import defaultdict
 from functools import partial
 from logging import INFO
 from pathlib import Path
-from typing import Tuple, Optional, Callable, List, Dict, Any
+from typing import Tuple, Optional, Callable, List, Dict, Any, Literal
 
 import fire
 import flwr as fl
@@ -36,10 +36,12 @@ from meningioma_dl.federated_learning.ensemble_fl import (
     get_global_ensemble_weights,
     ensemble_weights_to_numpy,
 )
-from meningioma_dl.federated_learning.federated_training_utils import (
+from meningioma_dl.federated_learning.data_loading import (
     get_data_loaders,
+)
+from meningioma_dl.federated_learning.strategy import create_strategy
+from meningioma_dl.federated_learning.visualizations import (
     visualize_federated_learning_metrics,
-    create_strategy,
 )
 from meningioma_dl.model_evaluation.centralized_evaluation import evaluate
 from meningioma_dl.model_evaluation.metrics import calculate_basic_metrics
@@ -52,9 +54,10 @@ from meningioma_dl.models.resnet import (
     ResNet,
     load_model_from_file,
 )
-from meningioma_dl.utils import (
+from meningioma_dl.data_loading.experiments_setup import (
     setup_run,
     setup_flower_logger,
+    generate_run_id,
 )
 from meningioma_dl.visualizations.results_visualizations import (
     create_evaluation_report,
@@ -71,20 +74,18 @@ class FederatedTraining:
 
     def __init__(
         self,
+        config: Config,
         modelling_specs: ModellingSpecs = ModellingSpecs(),
         training_specs: FederatedTrainingSpecs = FederatedTrainingSpecs(),
         fl_strategy_specs: FLStrategySpecs = FLStrategySpecs(),
-        saved_models_folder: Path = Path("."),
-        visualizations_folder: Path = Path("."),
     ):
+        self.config = config
         self.modelling_specs: ModellingSpecs = modelling_specs
         self.training_specs: FederatedTrainingSpecs = training_specs
         self.fl_strategy_specs: FLStrategySpecs = fl_strategy_specs
-        self.visualizations_folder: Path = visualizations_folder
-        self.saved_models_folder: Path = saved_models_folder
-        self._init_instance_variables()
+        self._reset_instance_variables()
 
-    def _init_instance_variables(self):
+    def _reset_instance_variables(self):
         self.training_metrics = []
         self.validation_metrics = []
         self.last_lr: Optional[float] = None
@@ -115,38 +116,41 @@ class FederatedTraining:
         weighted_f_score = np.average(f_score_per_client, weights=n_samples_per_client)
         return {"f_score": weighted_f_score}
 
-    def _set_clients_train_and_eval_functions(self, run_id):
+    def _get_clients_train_and_eval_functions(
+        self, run_id: str
+    ) -> tuple[Callable, Callable]:
         clients_logging_function = partial(log, INFO)
         validation_interval = (
             1 if self.fl_strategy_specs.name == "fed_ensemble" else None
         )
-        self.training_function = partial(
+        training_function = partial(
             training_loop,
             total_epochs=self.training_specs.epochs_per_round,
             validation_interval=validation_interval,
             model_save_folder=None,
-            device=self.device,
+            device=self.config.device,
             evaluation_metric_weighting=self.modelling_specs.model_specs.evaluation_metric_weighting,
             logger=clients_logging_function,
             visualizations_folder=self.visualizations_folder,
             save_images=False,
         )
-        self.evaluation_function = partial(
+        evaluation_function = partial(
             evaluate,
             model_specs=self.modelling_specs.model_specs,
             training_specs=self.training_specs,
-            device=self.device,
+            device=self.config.device,
             run_id=run_id,
             logger=clients_logging_function,
             visualizations_folder=self.visualizations_folder,
             save_images=True,
         )
+        return training_function, evaluation_function
 
     def on_fit_config_fn(self, _) -> Dict[str, float]:
         return {"last_lr": self.last_lr}
 
     def client_fn(self, context: Context) -> Client:
-        model = copy.deepcopy(self.model).to(self.device)
+        model = copy.deepcopy(self.model).to(self.config.device)
         data_loader_id = int(context.node_config["partition-id"])
         training_data_loader = self.training_data_loaders[data_loader_id]
         validation_data_loader = self.validation_data_loaders[data_loader_id]
@@ -158,7 +162,7 @@ class FederatedTraining:
             validation_data_loader=validation_data_loader,
             modelling_specs=self.modelling_specs,
             pretrained_model_state_dict=self.pretrained_model_state_dict,
-            device=self.device,
+            device=self.config.device,
             training_function=self.training_function,
             evaluation_function=self.evaluation_function,
             visualizations_folder=self.visualizations_folder.joinpath(
@@ -166,148 +170,22 @@ class FederatedTraining:
             ),
         ).to_client()
 
-    def _evaluate_best_model(
+    def _evaluate_model(
         self, validation_data_loader: DataLoader, trained_model_path: Path, run_id: str
     ):
         self.model = load_model_from_file(
-            trained_model_path, self.modelling_specs.model_specs, self.device
+            trained_model_path, self.modelling_specs.model_specs, self.config.device
         )
         evaluate(
             model=self.model,
             data_loader=validation_data_loader,
             model_specs=self.modelling_specs.model_specs,
             training_specs=self.training_specs,
-            device=self.device,
+            device=self.config.device,
             run_id=run_id,
             logger=logging.info,
             visualizations_folder=self.visualizations_folder,
         )
-
-    def run_federated_training(
-        self,
-        run_id: Optional[str] = None,
-        manual_seed: int = 123,
-        device: torch.device = torch.device("cpu"),
-    ) -> History:
-        self.device = device
-        self._init_instance_variables()
-        setup_flower_logger()
-
-        torch.manual_seed(manual_seed)
-        logging.info("Starting federated training")
-        (
-            self.training_data_loaders,
-            self.validation_data_loaders,
-        ) = get_data_loaders(self.modelling_specs, self.training_specs)
-
-        self.model, self.pretrained_model_state_dict = create_resnet_model(
-            self.modelling_specs.model_specs.model_depth,
-            self.modelling_specs.model_specs.resnet_shortcut_type,
-            self.modelling_specs.model_specs.number_of_classes,
-            Config.pretrained_models_directory,
-            self.device,
-        )
-        pretrained_model_run_id = self.fl_strategy_specs.config.get(
-            "pretrained_model_run_id"
-        )
-        if pretrained_model_run_id is not None:
-            pretrained_model_file = self.saved_models_folder.parent.joinpath(
-                pretrained_model_run_id, "epoch_-1.pth.tar"
-            )
-            self.model = load_model_from_file(
-                pretrained_model_file, self.modelling_specs.model_specs, device
-            )
-            logging.info(f"Pretrained model loaded from {pretrained_model_file}")
-
-        self._set_clients_train_and_eval_functions(run_id)
-        self.last_lr = self.modelling_specs.scheduler_specs.learning_rate
-
-        logging.info("Global model initialized succesfully")
-
-        strategy = create_strategy(
-            fl_strategy_specs=self.fl_strategy_specs,
-            fit_metrics_aggregation_fn=self._save_fit_metrics,
-            evaluate_metrics_aggregation_fn=self._visualize_federated_learning_metrics,
-            saved_models_folder=self.saved_models_folder,
-            on_fit_config_fn=self.on_fit_config_fn,
-        )
-        client_resources = self._get_client_resources()
-
-        logging.info("Starting simulation")
-        training_history = fl.simulation.start_simulation(
-            client_fn=self.client_fn,
-            num_clients=self.training_specs.number_of_clients,
-            config=ServerConfig(num_rounds=self.training_specs.global_epochs),
-            strategy=strategy,
-            client_resources=client_resources,
-            ray_init_args={
-                "ignore_reinit_error": True,
-                # "local_mode": True,
-                "include_dashboard": False,
-                # "address": "127.0.0.1:10001",
-                "num_cpus": 6,
-                # "num_gpus":1
-            },
-        )
-
-        validation_data_loader, _ = get_data_loader(
-            Config.validation_labels_file_path,
-            Config.data_directory,
-            transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
-            batch_size=self.training_specs.batch_size,
-            preprocessing_specs=self.modelling_specs.preprocessing_specs,
-            class_mapping=self.modelling_specs.model_specs.class_mapping,
-        )
-        if self.fl_strategy_specs.name == "fed_ensemble":
-            (
-                clients_models,
-                local_models_vs_clients_f_scores,
-            ) = self.get_local_models_vs_clients_f_scores(
-                strategy.saved_models_folder, device
-            )
-            self._save_as_json(
-                "local_models_vs_clients_f_scores.json",
-                local_models_vs_clients_f_scores,
-            )
-
-            global_ensemble_weights = get_global_ensemble_weights(
-                local_models_vs_clients_f_scores
-            )
-            local_ensemble_weights = get_local_ensemble_weights(
-                local_models_vs_clients_f_scores
-            )
-            self._save_as_json("global_ensemble_weights.json", global_ensemble_weights)
-            for client_id in local_ensemble_weights:
-                self._save_as_json(
-                    f"local_ensemble_weights_{client_id}.json",
-                    local_ensemble_weights[client_id],
-                )
-            logging.info("Evaluating global ensemble: ")
-            _, validation_metrics = evaluate_ensemble(
-                validation_data_loader,
-                list(clients_models.values()),
-                self.modelling_specs.model_specs,
-                device,
-                ensemble_models_weights=ensemble_weights_to_numpy(
-                    global_ensemble_weights
-                ),
-            )
-            create_evaluation_report(
-                validation_metrics.true,
-                validation_metrics.predictions,
-                self.visualizations_folder,
-                run_id,
-                self.modelling_specs.model_specs,
-                self.training_specs,
-                self.modelling_specs.model_specs.number_of_classes,
-            )
-        else:
-            trained_model_path = strategy.trained_model_path
-            self._evaluate_best_model(
-                validation_data_loader, trained_model_path, run_id
-            )
-
-        return training_history
 
     def _save_as_json(self, file_name: str, object_to_save: Any) -> None:
         with open(
@@ -316,7 +194,8 @@ class FederatedTraining:
         ) as f:
             json.dump(object_to_save, f)
 
-    def get_local_models_vs_clients_f_scores(
+    # TODO TODO move to ensemble_fl
+    def _get_local_models_vs_clients_f_scores(
         self, saved_models_folder: Path, device: torch.device
     ) -> Tuple[Dict[int, ResNet], Dict[int, Dict[int, float]]]:
         clients_models: Dict[int, ResNet] = {}
@@ -325,7 +204,7 @@ class FederatedTraining:
         )
         for client_id in range(self.training_specs.number_of_clients):
             client_model = load_model_from_file(
-                saved_models_folder.joinpath(f"epoch_{client_id}.pth.tar"),
+                saved_models_folder.joinpath(f"best_model{client_id}.pth.tar"),
                 self.modelling_specs.model_specs,
                 torch.device("cpu"),
             )
@@ -354,15 +233,153 @@ class FederatedTraining:
 
     def _get_client_resources(self):
         client_resources = {"num_gpus": 0, "num_cpus": 4}
-        if self.device.type == "cuda":
+        if self.config.device.type == "cuda":
             client_resources = {"num_gpus": 1, "num_cpus": 2}
         return client_resources
 
+    def _setup_run(self, run_id: str, manual_seed: int) -> None:
+        self.visualizations_folder = self.config.visualizations_directory.joinpath(
+            run_id
+        )
+        self.saved_models_folder = self.config.saved_models_directory.joinpath(run_id)
+        self._reset_instance_variables()
+        setup_flower_logger()
+        torch.manual_seed(manual_seed)
 
-def main(
-    env_file_path: Optional[str] = None,
-    run_id: Optional[str] = None,
-    device_name: str = "cpu",
+    def _evaluate_fed_ensemble_model(
+        self, validation_data_loader: DataLoader, saved_models_folder: Path, run_id: str
+    ) -> None:
+        (
+            clients_models,
+            local_models_vs_clients_f_scores,
+        ) = self._get_local_models_vs_clients_f_scores(
+            saved_models_folder, self.config.device
+        )
+        self._save_as_json(
+            "local_models_vs_clients_f_scores.json",
+            local_models_vs_clients_f_scores,
+        )
+        global_ensemble_weights = get_global_ensemble_weights(
+            local_models_vs_clients_f_scores
+        )
+        local_ensemble_weights = get_local_ensemble_weights(
+            local_models_vs_clients_f_scores
+        )
+        self._save_as_json("global_ensemble_weights.json", global_ensemble_weights)
+        for client_id in local_ensemble_weights:
+            self._save_as_json(
+                f"local_ensemble_weights_{client_id}.json",
+                local_ensemble_weights[client_id],
+            )
+        logging.info("Evaluating global ensemble: ")
+        _, validation_metrics = evaluate_ensemble(
+            data_loader=validation_data_loader,
+            models=list(clients_models.values()),
+            model_specs=self.modelling_specs.model_specs,
+            device=self.config.device,
+            ensemble_models_weights=ensemble_weights_to_numpy(global_ensemble_weights),
+        )
+        create_evaluation_report(
+            true=validation_metrics.true,
+            predictions=validation_metrics.predictions,
+            visualizations_folder=self.visualizations_folder,
+            run_id=run_id,
+            model_specs=self.modelling_specs.model_specs,
+            training_specs=self.training_specs,
+            n_classes=self.modelling_specs.model_specs.number_of_classes,
+        )
+
+    def _evaluate_best_model(self, run_id, strategy):
+        final_model_validation_data_loader, _ = get_data_loader(
+            labels_file_path=self.config.validation_labels_file_path,
+            data_root_directory=self.config.data_directory,
+            transformations_mode=TransformationsMode.ONLY_PREPROCESSING,
+            batch_size=self.training_specs.batch_size,
+            preprocessing_specs=self.modelling_specs.preprocessing_specs,
+            class_mapping=self.modelling_specs.model_specs.class_mapping,
+        )
+        if self.fl_strategy_specs.name == "fed_ensemble":
+            self._evaluate_fed_ensemble_model(
+                final_model_validation_data_loader, strategy.saved_models_folder, run_id
+            )
+        else:
+            self._evaluate_model(
+                final_model_validation_data_loader, strategy.trained_model_path, run_id
+            )
+
+    def _load_user_pretrained_model(self, pretrained_model_run_id: str) -> ResNet:
+        pretrained_model_file = self.saved_models_folder.parent.joinpath(
+            pretrained_model_run_id, "best_model.pth.tar"
+        )
+        model = load_model_from_file(
+            pretrained_model_file,
+            self.modelling_specs.model_specs,
+            self.config.device,
+        )
+        logging.info(f"Pretrained model loaded from {pretrained_model_file}")
+        return model
+
+    def run_federated_training(self, run_id: str, manual_seed: int = 123) -> None:
+        self._setup_run(run_id, manual_seed)
+
+        logging.info("Starting federated training")
+        (
+            self.training_data_loaders,
+            self.validation_data_loaders,
+        ) = get_data_loaders(
+            modelling_specs=self.modelling_specs,
+            training_specs=self.training_specs,
+            train_labels_file_path=self.config.train_labels_file_path,
+            validation_labels_file_path=self.config.validation_labels_file_path,
+            data_directory=self.config.data_directory,
+        )
+
+        self.model, self.pretrained_model_state_dict = create_resnet_model(
+            model_depth=self.modelling_specs.model_specs.model_depth,
+            resnet_shortcut_type=self.modelling_specs.model_specs.resnet_shortcut_type,
+            number_of_classes=self.modelling_specs.model_specs.number_of_classes,
+            pretrained_models_directory=self.config.pretrained_models_directory,
+            device=self.config.device,
+        )
+        if pretrained_model_run_id := self.fl_strategy_specs.config.get(
+            "pretrained_model_run_id"
+        ):
+            self.model = self._load_user_pretrained_model(pretrained_model_run_id)
+
+        self.training_function, self.evaluation_function = (
+            self._get_clients_train_and_eval_functions(run_id)
+        )
+        self.last_lr = self.modelling_specs.scheduler_specs.learning_rate
+
+        strategy = create_strategy(
+            fl_strategy_specs=self.fl_strategy_specs,
+            fit_metrics_aggregation_fn=self._save_fit_metrics,
+            evaluate_metrics_aggregation_fn=self._visualize_federated_learning_metrics,
+            saved_models_folder=self.saved_models_folder,
+            on_fit_config_fn=self.on_fit_config_fn,
+        )
+        client_resources = self._get_client_resources()
+
+        logging.info("Starting simulation")
+        fl.simulation.start_simulation(
+            client_fn=self.client_fn,
+            num_clients=self.training_specs.number_of_clients,
+            config=ServerConfig(num_rounds=self.training_specs.global_epochs),
+            strategy=strategy,
+            client_resources=client_resources,
+            ray_init_args={
+                "ignore_reinit_error": True,
+                "include_dashboard": False,
+                "num_cpus": 4,
+            },
+        )
+        self._evaluate_best_model(run_id, strategy)
+
+
+def run_experiment(
+    env_file_path: str,
+    run_id: str = generate_run_id(),
+    device_name: Literal["cpu", "cuda"] = "cpu",
     preprocessing_specs_name: str = "no_resize",
     augmentations_specs_name: str = "basic_01p",
     scheduler_specs_name: str = "05_lr_099_gamma",
@@ -370,52 +387,43 @@ def main(
     training_specs_name: str = "federated_local_run",
     fl_strategy_specs_name: str = "fed_avg_default",
     manual_seed: int = 123,
-    cv_fold: Optional[int] = None,
+    cv_fold: int = 0,
 ):
-    device, run_id = setup_run(env_file_path, run_id, manual_seed, device_name, cv_fold)
-
-    modelling_spec = ModellingSpecs(
+    config = setup_run(
+        env_file_path=env_file_path,
+        manual_seed=manual_seed,
+        device_name=device_name,
+        cv_fold=cv_fold,
+    )
+    modelling_specs = ModellingSpecs(
         PreprocessingSpecs.get_from_name(preprocessing_specs_name),
         AugmentationSpecs.get_from_name(augmentations_specs_name),
         SchedulerSpecs.get_from_name(scheduler_specs_name),
         ModelSpecs.get_from_name(model_specs_name),
     )
-    training_spec: FederatedTrainingSpecs = get_training_specs(training_specs_name)
+    training_specs: FederatedTrainingSpecs = get_training_specs(training_specs_name)
     fl_strategy_specs: FLStrategySpecs = FLStrategySpecs.get_from_name(
         fl_strategy_specs_name
     )
     logging.info(f"run_id: {run_id}")
-    logging.info(f"Modelling specs: {modelling_spec}")
+    logging.info(f"Modelling specs: {modelling_specs}")
     logging.info(f"Augmentations specs name: {augmentations_specs_name}")
-    logging.info(f"Training specs: {training_spec}")
+    logging.info(f"Training specs: {training_specs}")
     logging.info(f"FL strategy specs: {fl_strategy_specs}")
 
     trainer = FederatedTraining(
-        modelling_spec,
-        training_spec,
-        fl_strategy_specs,
-        visualizations_folder=Config.visualizations_directory.joinpath(run_id),
-        saved_models_folder=Config.saved_models_directory.joinpath(run_id),
+        modelling_specs=modelling_specs,
+        training_specs=training_specs,
+        fl_strategy_specs=fl_strategy_specs,
+        config=config,
     )
-    trainer.run_federated_training(
-        run_id=run_id,
-        device=device,
-        manual_seed=manual_seed,
-    )
+    trainer.run_federated_training(run_id=run_id, manual_seed=manual_seed)
     logging.info(f"Training for {run_id} finished successfully.")
 
 
 if __name__ == "__main__":
-    # TODO
-    # logging.captureWarnings(True)
-    # warnings.filterwarnings(
-    #     "always",
-    #     category=DeprecationWarning,
-    #     module=r"^{0}\.".format(re.escape(__name__)),
-    # )
-
     try:
-        fire.Fire(main)
+        fire.Fire(run_experiment)
     except Exception as e:
         logging.error(f"An unexpected error occured {e}", exc_info=True)
         raise

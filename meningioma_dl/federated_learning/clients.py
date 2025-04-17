@@ -9,9 +9,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
-from meningioma_dl.federated_learning.federated_training_utils import (
-    get_optimizer_and_scheduler,
-)
+from meningioma_dl.model_training.loss import get_optimizer_and_scheduler
 from meningioma_dl.models.resnet import (
     ResNet,
     freeze_resnet_layers,
@@ -73,11 +71,16 @@ class ClassicalFLClient(fl.client.NumPyClient):
                 self.pretrained_model_state_dict,
             )
             optimizer, scheduler = get_optimizer_and_scheduler(
-                parameters_to_fine_tune,
-                self.modelling_specs,
-                config["last_lr"],
+                parameters_to_fine_tune=parameters_to_fine_tune,
+                scheduler_specs=self.modelling_specs.scheduler_specs,
             )
-            # TODO TODO add loss weighting
+            if (
+                self.modelling_specs.model_specs.evaluation_metric_weighting
+                == "weighted"
+            ):
+                raise NotImplementedError(
+                    f"evaluation_metric_weighting == weighted not yet supported for federated learning"
+                )
             loss_function = nn.CrossEntropyLoss().to(self.device)
             _, training_metrics = self.training_function(
                 training_data_loader=self.training_data_loader,

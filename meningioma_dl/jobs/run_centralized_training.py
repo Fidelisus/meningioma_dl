@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
 import fire
 import torch
@@ -23,15 +23,18 @@ from meningioma_dl.experiments_specs.training_specs import (
 )
 from meningioma_dl.models.resnet import create_resnet_model, freeze_resnet_layers
 from meningioma_dl.model_training.training_loop import training_loop
-from meningioma_dl.jobs.experiments_setup import setup_run, generate_run_id
-from meningioma_dl.model_training.loss import get_loss_function
+from meningioma_dl.data_loading.experiments_setup import setup_run, generate_run_id
+from meningioma_dl.model_training.loss import (
+    get_loss_function,
+    get_optimizer_and_scheduler,
+)
 
 
 def run_experiment(
     env_file_path: str,
     n_trials: int = 1,
     run_id: str = generate_run_id(),
-    device_name: str = "cpu",
+    device_name: Literal["cpu", "cuda"] = "cpu",
     validation_interval: int = 1,
     preprocessing_specs_name: str = "no_resize",
     augmentations_specs_name: str = "basic_01p",
@@ -39,10 +42,14 @@ def run_experiment(
     model_specs_name: str = "resnet_10_2_unfreezed",
     training_specs_name: str = "central_1_epochs",
     manual_seed: int = 123,
-    cv_fold: Optional[int] = None,
+    cv_fold: int = 0,
 ):
-    config = setup_run(env_file_path, manual_seed, device_name, cv_fold)
-
+    config = setup_run(
+        env_file_path=env_file_path,
+        manual_seed=manual_seed,
+        device_name=device_name,
+        cv_fold=cv_fold,
+    )
     modelling_spec = ModellingSpecs(
         PreprocessingSpecs.get_from_name(preprocessing_specs_name),
         AugmentationSpecs.get_from_name(augmentations_specs_name),
@@ -130,15 +137,10 @@ def train(
     )
     logging.info(f"Parameters to fine tune: {parameters_names_to_fine_tune}")
 
-    lr_params = [
-        {
-            "params": parameters_to_fine_tune,
-            "lr": modelling_specs.scheduler_specs.learning_rate,
-        }
-    ]
-    optimizer = torch.optim.Adam(lr_params)
-    scheduler = modelling_specs.scheduler_specs.get_scheduler(optimizer)
-
+    optimizer, scheduler = get_optimizer_and_scheduler(
+        parameters_to_fine_tune=parameters_to_fine_tune,
+        scheduler_specs=modelling_specs.scheduler_specs,
+    )
     loss_function = get_loss_function(
         labels_train=labels_train,
         labels_validation=labels_validation,
