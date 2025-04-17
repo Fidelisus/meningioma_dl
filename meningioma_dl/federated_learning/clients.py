@@ -1,8 +1,7 @@
-from dataclasses import asdict
+import logging
 from pathlib import Path
 from typing import Tuple, Dict, Callable, Optional, Any
 
-import logging
 import flwr as fl
 import torch
 from flwr.common import Scalar, Config
@@ -10,9 +9,13 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from meningioma_dl.experiments_specs.modelling_specs import ModellingSpecs
-from meningioma_dl.models.resnet import ResNet, freeze_layers, set_model_parameters
 from meningioma_dl.federated_learning.federated_training_utils import (
     get_optimizer_and_scheduler,
+)
+from meningioma_dl.models.resnet import (
+    ResNet,
+    freeze_resnet_layers,
+    set_model_parameters,
 )
 
 
@@ -64,9 +67,9 @@ class ClassicalFLClient(fl.client.NumPyClient):
         logging.info(f"[Client {self.cid}] fit, config: {config}")
         try:
             set_model_parameters(self.model, parameters)
-            _, parameters_to_fine_tune = freeze_layers(
+            _, parameters_to_fine_tune = freeze_resnet_layers(
                 self.model,
-                self.modelling_specs.model_specs.number_of_layers_to_unfreeze,
+                self.modelling_specs.model_specs.layers_to_unfreeze,
                 self.pretrained_model_state_dict,
             )
             optimizer, scheduler = get_optimizer_and_scheduler(
@@ -74,8 +77,9 @@ class ClassicalFLClient(fl.client.NumPyClient):
                 self.modelling_specs,
                 config["last_lr"],
             )
+            # TODO TODO add loss weighting
             loss_function = nn.CrossEntropyLoss().to(self.device)
-            _, _, training_metrics = self.training_function(
+            _, training_metrics = self.training_function(
                 training_data_loader=self.training_data_loader,
                 validation_data_loader=self.validation_data_loader,
                 model=self.model,

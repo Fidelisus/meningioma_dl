@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from functools import partial
 from pathlib import Path
-from typing import Type, Union, List, Dict, Callable, Tuple, Set, Optional
+from typing import Type, Union, List, Dict, Callable, Tuple, Set, Optional, Literal
 
 import numpy as np
 import torch
@@ -275,16 +275,12 @@ RESNET_MODELS_MAP: Dict[int, Callable[..., ResNet]] = {
 
 def create_resnet_model(
     model_depth: int,
-    resnet_shortcut_type: str,
+    resnet_shortcut_type: Literal["A", "B"],
     number_of_classes: int,
-    pretrained_model_path: Path,
+    pretrained_models_directory: Path,
     device: torch.device,
 ) -> Tuple[Union[ResNet, nn.DataParallel], Dict]:
-    assert model_depth in RESNET_MODELS_MAP
-    assert resnet_shortcut_type in ["A", "B"]
-
     no_cuda = False if device == torch.device("cuda") else True
-
     model = RESNET_MODELS_MAP[model_depth](
         shortcut_type=resnet_shortcut_type,
         no_cuda=no_cuda,
@@ -293,12 +289,12 @@ def create_resnet_model(
 
     if no_cuda:
         model = model.to(device)
-        # model = nn.DataParallel(model)
         initialized_model_state_dict = model.state_dict()
     else:
         gpus_ids = [d for d in range(torch.cuda.device_count())]
+        if not gpus_ids:
+            raise ValueError("No GPU devices found")
         logging.info(f"Gpu ids: {gpus_ids}")
-        assert len(gpus_ids) > 0
         if len(gpus_ids) > 1:
             model = model.cuda()
             model = nn.DataParallel(model, device_ids=gpus_ids)
@@ -310,9 +306,10 @@ def create_resnet_model(
             initialized_model_state_dict = model.state_dict()
 
     # load pretrained model
-    logging.info(f"Loading pretrained model {pretrained_model_path}")
+    logging.info(f"Loading pretrained model {pretrained_models_directory}")
     pretrain: ResNet = torch.load(
-        pretrained_model_path.joinpath(f"resnet_{model_depth}.pth"), map_location=device
+        pretrained_models_directory.joinpath(f"resnet_{model_depth}.pth"),
+        map_location=device,
     )
 
     if device == torch.device("cpu"):
@@ -331,26 +328,24 @@ def create_resnet_model(
     return model, pretrained_model_state_dict
 
 
-def freeze_layers(
+def freeze_resnet_layers(
     model: ResNet,
-    number_of_layers_to_unfreeze: Union[int, Tuple[int]],
+    layers_to_unfreeze: Union[int, Tuple[int]],
     pretrained_model_state_dict: Dict,
 ) -> Tuple[List[str], List[torch.Tensor]]:
     parameters_names_to_fine_tune = list()
     parameters_to_fine_tune = list()
     for pname, p in model.named_parameters():
         if pname in pretrained_model_state_dict:
-            if number_of_layers_to_unfreeze == 0:
+            if layers_to_unfreeze == 0:
                 p.requires_grad = False
             else:
                 # Layers are like 1->2->3->4->classifier
                 # TODO make it not that ugly
-                if isinstance(number_of_layers_to_unfreeze, int):
-                    layers_to_freeze = range(1, 4 - number_of_layers_to_unfreeze + 1)
+                if isinstance(layers_to_unfreeze, int):
+                    layers_to_freeze = range(1, 4 - layers_to_unfreeze + 1)
                 else:
-                    layers_to_freeze = list(
-                        set(range(1, 5)) - set(number_of_layers_to_unfreeze)
-                    )
+                    layers_to_freeze = list(set(range(1, 5)) - set(layers_to_unfreeze))
                 for i in layers_to_freeze:
                     if f"layer{i}" in pname or pname in [
                         "conv1.weight",
@@ -372,15 +367,13 @@ def load_model_from_file(
     trained_model_path: Union[Path, str], model_specs: ModelSpecs, device: torch.device
 ) -> ResNet:
     saved_model = torch.load(trained_model_path, map_location=device)
-    no_cuda = False if device == torch.device("cuda") else True
     model = RESNET_MODELS_MAP[model_specs.model_depth](
         shortcut_type=model_specs.resnet_shortcut_type,
-        no_cuda=no_cuda,
+        no_cuda=False if device == torch.device("cuda") else True,
         num_classes=model_specs.number_of_classes,
     ).to(device)
 
     state_dict = saved_model["state_dict"]
-    # TODO don't use hasattr
     if hasattr(state_dict, "items"):
         state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
         model.load_state_dict(state_dict)

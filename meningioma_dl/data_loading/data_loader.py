@@ -126,6 +126,7 @@ def init_dataset(
                         keys=["img"],
                         source_key="mask",
                         k_divisible=bounding_box_of_segmentation * 2,
+                        allow_smaller=True,
                     ),
                     transforms.CropForegroundd(
                         keys=["mask"],

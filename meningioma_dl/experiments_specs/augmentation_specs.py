@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import List, Sequence
+from typing import List
 
 from monai import transforms
 from typing_extensions import Self

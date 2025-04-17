@@ -14,7 +14,8 @@ from meningioma_dl.data_loading.data_loader import (
     get_data_loader,
     TransformationsMode,
 )
-from meningioma_dl.evaluate import calculate_basic_metrics, load_model_from_file
+from meningioma_dl.model_evaluation.centralized_evaluation import load_model_from_file
+from meningioma_dl.model_evaluation.metrics import calculate_basic_metrics
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import (
@@ -27,9 +28,7 @@ from meningioma_dl.federated_learning.federated_training_utils import (
     get_federated_data_loaders,
 )
 from meningioma_dl.models.resnet import ResNet
-from meningioma_dl.training_utils import (
-    get_model_predictions,
-)
+from meningioma_dl.model_training.predictions import get_model_predictions
 from meningioma_dl.utils import (
     setup_run,
 )
@@ -103,22 +102,46 @@ AVAILABLE_ENSEMBLES = {
         ("19-07-24_17-37-58_RSg3iQtVQvRCYQ35YgpDcV", 1),
     ),
     "iid_fold_0a": (
-        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6657635", i) for i in range(3)
+        (
+            "my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold0_6657635",
+            i,
+        )
+        for i in range(3)
     ),
     "iid_fold_1a": (
-        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold1_6657636", i) for i in range(3)
+        (
+            "my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold1_6657636",
+            i,
+        )
+        for i in range(3)
     ),
     "iid_fold_2a": (
-        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6657639", i) for i in range(3)
+        (
+            "my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold2_6657639",
+            i,
+        )
+        for i in range(3)
     ),
     "iid_fold_3a": (
-        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold3_6657644", i) for i in range(3)
+        (
+            "my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold3_6657644",
+            i,
+        )
+        for i in range(3)
     ),
     "iid_fold_4a": (
-        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6657613", i) for i in range(3)
+        (
+            "my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6657613",
+            i,
+        )
+        for i in range(3)
     ),
     "iid_fold_4b": (
-        ("my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6657615", i) for i in range(3)
+        (
+            "my_idea_fed_ensemble_pretrained1_federated_1r_100e_3c_no_resize_with_bias_correction_1p_001_lr_099_gamma_class_2_and_3_together_4_unfreezed_fold4_6657615",
+            i,
+        )
+        for i in range(3)
     ),
 }
 

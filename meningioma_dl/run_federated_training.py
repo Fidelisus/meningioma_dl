@@ -1,9 +1,6 @@
 import copy
 import json
 import logging
-import re
-import warnings
-
 from collections import defaultdict
 from functools import partial
 from logging import INFO
@@ -22,7 +19,6 @@ from torch.utils.data import DataLoader
 
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import TransformationsMode, get_data_loader
-from meningioma_dl.evaluate import evaluate_model, calculate_basic_metrics
 from meningioma_dl.evaluate_ensemble import evaluate_ensemble
 from meningioma_dl.experiments_specs.augmentation_specs import AugmentationSpecs
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
@@ -35,22 +31,27 @@ from meningioma_dl.experiments_specs.training_specs import (
     get_training_specs,
 )
 from meningioma_dl.federated_learning.clients import ClassicalFLClient
+from meningioma_dl.federated_learning.ensemble_fl import (
+    get_local_ensemble_weights,
+    get_global_ensemble_weights,
+    ensemble_weights_to_numpy,
+)
 from meningioma_dl.federated_learning.federated_training_utils import (
     get_data_loaders,
     visualize_federated_learning_metrics,
     create_strategy,
 )
-from meningioma_dl.federated_learning.ensemble_fl import (
-    get_local_ensemble_weights,
-    get_global_ensemble_weights,
-    ensemble_weights_to_numpy,
+from meningioma_dl.model_evaluation.centralized_evaluation import evaluate
+from meningioma_dl.model_evaluation.metrics import calculate_basic_metrics
+from meningioma_dl.model_training.predictions import get_model_predictions
+from meningioma_dl.model_training.training_loop import (
+    training_loop,
 )
 from meningioma_dl.models.resnet import (
     create_resnet_model,
     ResNet,
     load_model_from_file,
 )
-from meningioma_dl.training_utils import training_loop, get_model_predictions
 from meningioma_dl.utils import (
     setup_run,
     setup_flower_logger,
@@ -59,6 +60,7 @@ from meningioma_dl.visualizations.results_visualizations import (
     create_evaluation_report,
     deserialize_value,
 )
+
 
 class FederatedTraining:
     device: Optional[torch.device]
@@ -130,7 +132,7 @@ class FederatedTraining:
             save_images=False,
         )
         self.evaluation_function = partial(
-            evaluate_model,
+            evaluate,
             model_specs=self.modelling_specs.model_specs,
             training_specs=self.training_specs,
             device=self.device,
@@ -170,7 +172,7 @@ class FederatedTraining:
         self.model = load_model_from_file(
             trained_model_path, self.modelling_specs.model_specs, self.device
         )
-        evaluate_model(
+        evaluate(
             model=self.model,
             data_loader=validation_data_loader,
             model_specs=self.modelling_specs.model_specs,
@@ -223,7 +225,7 @@ class FederatedTraining:
         logging.info("Global model initialized succesfully")
 
         strategy = create_strategy(
-            self.fl_strategy_specs,
+            fl_strategy_specs=self.fl_strategy_specs,
             fit_metrics_aggregation_fn=self._save_fit_metrics,
             evaluate_metrics_aggregation_fn=self._visualize_federated_learning_metrics,
             saved_models_folder=self.saved_models_folder,
@@ -404,12 +406,13 @@ def main(
 
 
 if __name__ == "__main__":
-    logging.captureWarnings(True)
-    warnings.filterwarnings(
-        "always",
-        category=DeprecationWarning,
-        module=r"^{0}\.".format(re.escape(__name__)),
-    )
+    # TODO
+    # logging.captureWarnings(True)
+    # warnings.filterwarnings(
+    #     "always",
+    #     category=DeprecationWarning,
+    #     module=r"^{0}\.".format(re.escape(__name__)),
+    # )
 
     try:
         fire.Fire(main)

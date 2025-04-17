@@ -13,15 +13,12 @@ from flwr.common import (
     Parameters,
     parameters_to_ndarrays,
     ndarrays_to_parameters,
-    RecordSet,
 )
 from flwr.common import Scalar
 from flwr.common.logger import log
-from flwr.common.typing import ConfigsRecordValues
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
-
-from meningioma_dl.training_utils import _save_model
+from meningioma_dl.model_training.training_loop import save_model
 
 
 class SaveModelFedAvg(fl.server.server.FedAvg):
@@ -70,10 +67,8 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
                 f"Saving best model with the f_score of {self.best_model_f_score}. "
                 f"Saving it at {self.saved_models_folder}"
             )
-            self.trained_model_path = _save_model(
-                aggregated_ndarrays,
-                self.saved_models_folder,
-                -1,  # -1 used to override previous best model
+            self.trained_model_path = save_model(
+                aggregated_ndarrays, self.saved_models_folder
             )
         return loss_aggregated, metrics_aggregated
 
@@ -113,10 +108,10 @@ class FedEnsemble(fl.server.server.FedAvg):
         )
         for client_id, parameters in clients_parameters.items():
             aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays(parameters)
-            _save_model(
+            save_model(
                 aggregated_ndarrays,
                 self.saved_models_folder,
-                client_id,  # TODO make it more explicit
+                client_id,  # TODO TODO TODO make it more explicit
             )
 
         metrics_aggregated = {}

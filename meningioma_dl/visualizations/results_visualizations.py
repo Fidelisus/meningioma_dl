@@ -6,8 +6,8 @@ from typing import Tuple, Dict
 
 import numpy as np
 import plotly.graph_objects as go
+import sklearn
 from plotly.subplots import make_subplots
-from sklearn import metrics
 from sklearn.metrics import (
     classification_report,
     precision_recall_fscore_support,
@@ -68,10 +68,10 @@ def deserialize_value(
 
 @dataclass
 class TrainingMetrics:
-    validation_losses: Sequence[Optional[float]]
-    training_losses: Sequence[Optional[float]]
-    f_scores: Sequence[Optional[float]]
-    learning_rates: Sequence[Optional[float]]
+    validation_losses: list[float]
+    training_losses: list[float]
+    f_scores: list[float]
+    learning_rates: list[float]
 
     def as_serializable_dict(self) -> Dict[str, Any]:
         class_attributes = _serialize_to_dict(asdict(self))
@@ -132,7 +132,7 @@ def calculate_sensitivity_and_specificity(
 def create_evaluation_report(
     true: np.array,
     predictions: np.array,
-    save_path: Path,
+    visualizations_folder: Path,
     run_id: str,
     model_specs: ModelSpecs,
     training_specs: Any,
@@ -238,8 +238,8 @@ def create_evaluation_report(
         title_text=f"Run id: {run_id}",
     )
 
-    save_path.mkdir(parents=True, exist_ok=True)
-    fig.write_html(save_path.joinpath("evaluation_report.html"))
+    visualizations_folder.mkdir(parents=True, exist_ok=True)
+    fig.write_html(visualizations_folder.joinpath("evaluation_report.html"))
 
 
 def add_confusion_matrix_plot(
@@ -259,7 +259,7 @@ def add_confusion_matrix_plot(
     """
     # It needs to be flipped due to the way how go.Heatmap works
     confusion_matrix_data = np.flip(
-        metrics.confusion_matrix(true, predictions).astype(int), axis=0
+        sklearn.metrics.confusion_matrix(true, predictions).astype(int), axis=0
     )
     x_labels = [f"predicted {label}" for label in range(1, n_classes + 1)]
     y_labels = [f"true {label}" for label in range(n_classes, 0, -1)]
@@ -293,8 +293,8 @@ def plot_training_curve(
     training_losses: Sequence[float],
     f_scores: Sequence[float],
     learning_rates: Sequence[float],
-    save_path: Path,
-):
+    visualizations_folder: Path,
+) -> None:
     fig = make_subplots(
         rows=2,
         cols=1,
@@ -345,10 +345,10 @@ def plot_training_curve(
         row=2,
         col=1,
     )
-    fig.update_layout(title_text="<i><b>Learning curve</b></i>")
+    fig.update_layout(title_text="Learning curve")
 
-    save_path.mkdir(parents=True, exist_ok=True)
-    fig.write_html(save_path.joinpath("learning_curve.html"))
+    visualizations_folder.mkdir(parents=True, exist_ok=True)
+    fig.write_html(visualizations_folder.joinpath("learning_curve.html"))
 
 
 def blow_up_metrics_as_3d_matrix(

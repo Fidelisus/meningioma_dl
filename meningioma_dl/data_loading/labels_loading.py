@@ -1,27 +1,16 @@
 from pathlib import Path
-from typing import List, Tuple, Optional, Set, Dict
+from typing import List, Tuple, Optional, Dict
 
 import pandas as pd
 
-from meningioma_dl.config import Config
-
-
-def get_training_samples_df() -> pd.DataFrame:
-    return get_samples_df(Config.train_labels_file_path)
-
-
-def get_test_samples_df() -> pd.DataFrame:
-    return get_samples_df(Config.test_labels_file_path)
-
 
 def get_samples_df(labels_file: Path) -> pd.DataFrame:
-    labels = pd.read_csv(labels_file, sep="\t")
-    return labels
+    return pd.read_csv(labels_file, sep="\t")
 
 
 def get_images_with_labels(
-    data_root_directory,
-    labels_file_path,
+    data_root_directory: Path,
+    labels_file_path: Path,
     class_mapping: Optional[Dict[int, int]] = None,
 ) -> Tuple[List[str], List[str], List[int]]:
     samples_df = get_samples_df(labels_file_path)

@@ -9,13 +9,13 @@ from meningioma_dl.config import Config
 from meningioma_dl.data_loading.labels_loading import get_samples_df
 
 
-def create_test_split_file(labels_dir: str = "../data/labels"):
+def create_test_split_file(labels_dir: str = "../data/labels", test_size=0.2):
     labels_dir = Path(labels_dir)
     labels = get_samples_df(labels_dir.joinpath("labels.tsv"))
 
     _, test_dataframe = train_test_split(
         labels,
-        test_size=Config.test_size,
+        test_size=test_size,
         random_state=123,
         stratify=labels["who_grading"],
     )
@@ -23,7 +23,10 @@ def create_test_split_file(labels_dir: str = "../data/labels"):
 
 
 def create_train_validation_split_files(
-    labels_dir: str = "../data/labels", n_folds: int = 1, random_seed: int = 123
+    labels_dir: str = "../data/labels",
+    n_folds: int = 1,
+    random_seed: int = 123,
+    validation_size: float = 0.2,
 ):
     labels_dir = Path(labels_dir)
     all_labels = get_samples_df(labels_dir.joinpath("labels.tsv"))
@@ -36,7 +39,7 @@ def create_train_validation_split_files(
     if n_folds == 1:
         train_dataframe, validation_dataframe = train_test_split(
             train_validation_dataframe,
-            test_size=Config.validation_size,
+            test_size=validation_size,
             random_state=random_seed,
             stratify=train_validation_dataframe["who_grading"],
         )
@@ -67,8 +70,8 @@ def create_train_validation_split_files(
 def create_dataset_split_files(
     labels_dir: str = "../data/labels", n_folds: int = 1
 ) -> None:
-    # create_test_split_file(labels_dir)
-    create_train_validation_split_files(labels_dir)
+    create_test_split_file(labels_dir)
+    create_train_validation_split_files(labels_dir=labels_dir, n_folds=n_folds)
 
 
 if __name__ == "__main__":
