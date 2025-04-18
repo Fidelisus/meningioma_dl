@@ -1,7 +1,7 @@
 [project]
 name = "meningioma_dl"
 version = "1.0.0"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 description = "The library implements centralized and federated training of Deep Learning models for meningioma WHO grading classification."
 authors = [
   {name = "Lukasz Sobocinski", email = "lukasz.p.sobocinski@gmail.com"},

@@ -1,3 +1,3 @@
-pip install -e . > /dev/null
+pip install . > /dev/null
 
 python "$@" 
