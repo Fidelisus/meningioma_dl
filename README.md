@@ -1,26 +1,15 @@
-# How to setup the repo on the cluster
-
-# TODO update to the new deployment strategy
+# Development environment
 
 1. Create a Python 3.13 venv
 
-2. 
-
-3. Install requirements.txt . 
-The versions of the packages have to be the same as there, it's a fragile compatibility with flwr.
-
-## PLEASE NOTE
-
-Unfortunately, only nodes called `on*` work for FL, and additionally, only 2-3 jobs can be submitted per node... To set the node on which a job should be spawned, one can to either
+2. Install the project with required dependencies using:
 
 ```
---exclude cn5,cn6
+pip install -e .
 ```
 
-or 
+3. Please refer to the `jobs` module for the available jobs.
 
-```
---nodelist on1
-```
+# Running the code as a slurm job 
 
-I observed that on3 node works the slowest for me. 
+TODO
