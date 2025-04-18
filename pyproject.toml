@@ -1,28 +1,20 @@
-[tool.poetry]
+[project]
 name = "meningioma_dl"
-version = "0.1.0"
-description = ""
-authors = ["Lukasz Sobocinski"]
+version = "1.0.0"
+description = "The library implements centralized and federated training of Deep Learning models for meningioma WHO grading classification."
+authors = [
+  {name = "Lukasz Sobocinski", email = "lukasz.p.sobocinski@gmail.com"},
+]
 readme = "README.md"
-packages = [{include = "meningioma_dl"}]
+dynamic = ["dependencies", "optional-dependencies"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-torch = "^1.13.1"
-numpy = "^1.26.4"
-pandas = "^2.2.2"
-scipy = "^1.14.1"
-plotly = "^5.23.0"
-monai = "^1.3.2"
-python-dotenv = "^1.0.1"
-ray = "^2.10.0"
-fire = "^0.6.0"
-flwr = "^1.10.0"
-scikit-learn = "^1.5.1"
-matplotlib = "^3.9.2"
-shortuuid = "^1.0.13"
-nibabel = "^5.2.1"
+[tool.setuptools.packages.find]
+where = ["meningioma_dl"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["meningioma_dl/requirements.txt"]}
+optional-dependencies = {dev = { file = ["meningioma_dl/requirements_dev.txt"] }}
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

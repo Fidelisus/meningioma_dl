@@ -35,7 +35,6 @@ class SaveModelFedAvg(fl.server.server.FedAvg):
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         if len(failures) > 0:
             raise RuntimeError(f"Received failures in fit {failures}")
-        # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(
             server_round, results, failures
         )
@@ -209,7 +208,7 @@ class FedProx(SaveModelFedAvg):
         initial_parameters: Optional[Parameters] = None,
         fit_metrics_aggregation_fn: Optional[MetricsAggregationFn] = None,
         evaluate_metrics_aggregation_fn: Optional[MetricsAggregationFn] = None,
-        proximal_mu: float,
+        proximal_mu: float = 0.0,
     ) -> None:
         super().__init__(
             fraction_fit=fraction_fit,
