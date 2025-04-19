@@ -4,8 +4,8 @@ from typing import List, Dict
 
 import torch
 
-from experiments_specs.model_specs import ModelSpecs
-from models.resnet import ResNet, load_model_from_file
+from meningioma_dl.experiments_specs.model_specs import ModelSpecs
+from meningioma_dl.models.resnet import ResNet, load_model_from_file
 
 
 def load_models(trained_model_paths: List[str], model_specs: ModelSpecs):

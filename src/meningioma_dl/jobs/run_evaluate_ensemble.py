@@ -1,15 +1,10 @@
 import logging
-from typing import Optional, Literal
+from typing import Literal
 
 import fire
 import torch
 
-from data_loading.experiments_setup import generate_run_id
-from localized_federated_ensemble.evaluation import (
-    evaluate_globally_weighted_ensemble_model,
-    evaluate_locally_weighted_ensemble_model,
-)
-from localized_federated_ensemble.weights_calculation import EnsembleWeighting
+from meningioma_dl.data_loading.experiments_setup import generate_run_id
 from meningioma_dl.data_loading.experiments_setup import (
     setup_run,
 )
@@ -17,6 +12,13 @@ from meningioma_dl.experiments_specs.model_specs import ModelSpecs
 from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
 from meningioma_dl.experiments_specs.training_specs import (
     get_training_specs,
+)
+from meningioma_dl.localized_federated_ensemble.evaluation import (
+    evaluate_globally_weighted_ensemble_model,
+    evaluate_locally_weighted_ensemble_model,
+)
+from meningioma_dl.localized_federated_ensemble.weights_calculation import (
+    EnsembleWeighting,
 )
 from meningioma_dl.visualizations.results_visualizations import (
     create_evaluation_report,

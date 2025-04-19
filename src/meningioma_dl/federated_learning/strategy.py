@@ -6,7 +6,7 @@ from meningioma_dl.federated_learning.server import (
     SaveModelFedAvg,
     FedProx,
 )
-from localized_federated_ensemble.server import FedEnsemble
+from meningioma_dl.localized_federated_ensemble.server import FedEnsemble
 
 
 def create_strategy(

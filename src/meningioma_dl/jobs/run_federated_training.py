@@ -16,7 +16,7 @@ from flwr.common.logger import log
 from flwr.server import ServerConfig
 from torch.utils.data import DataLoader
 
-from localized_federated_ensemble.weights_calculation import (
+from meningioma_dl.localized_federated_ensemble.weights_calculation import (
     get_local_models_vs_clients_f_scores,
 )
 from meningioma_dl.config import Config

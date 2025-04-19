@@ -6,17 +6,22 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from data_loading.data_loader import get_data_loader, TransformationsMode
-from experiments_specs.model_specs import ModelSpecs
-from experiments_specs.preprocessing_specs import PreprocessingSpecs
-from experiments_specs.training_specs import FederatedTrainingSpecs
-from federated_learning.data_loading import get_federated_data_loaders
-from localized_federated_ensemble.data_loading import load_models, load_json
-from localized_federated_ensemble.weights_calculation import ensemble_weights_to_numpy
-from model_evaluation.metrics import calculate_basic_metrics
-from model_training.predictions import get_model_predictions
-from models.resnet import ResNet
-from visualizations.results_visualizations import (
+from meningioma_dl.data_loading.data_loader import get_data_loader, TransformationsMode
+from meningioma_dl.experiments_specs.model_specs import ModelSpecs
+from meningioma_dl.experiments_specs.preprocessing_specs import PreprocessingSpecs
+from meningioma_dl.experiments_specs.training_specs import FederatedTrainingSpecs
+from meningioma_dl.federated_learning.data_loading import get_federated_data_loaders
+from meningioma_dl.localized_federated_ensemble.data_loading import (
+    load_models,
+    load_json,
+)
+from meningioma_dl.localized_federated_ensemble.weights_calculation import (
+    ensemble_weights_to_numpy,
+)
+from meningioma_dl.model_evaluation.metrics import calculate_basic_metrics
+from meningioma_dl.model_training.predictions import get_model_predictions
+from meningioma_dl.models.resnet import ResNet
+from meningioma_dl.visualizations.results_visualizations import (
     ValidationMetrics,
     merge_validation_metrics_true_and_pred,
 )

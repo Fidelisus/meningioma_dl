@@ -8,10 +8,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from experiments_specs.model_specs import ModelSpecs
-from model_evaluation.metrics import calculate_basic_metrics
-from model_training.predictions import get_model_predictions
-from models.resnet import ResNet, load_model_from_file
+from meningioma_dl.experiments_specs.model_specs import ModelSpecs
+from meningioma_dl.model_evaluation.metrics import calculate_basic_metrics
+from meningioma_dl.model_training.predictions import get_model_predictions
+from meningioma_dl.models.resnet import ResNet, load_model_from_file
 
 
 class EnsembleWeighting(Enum):

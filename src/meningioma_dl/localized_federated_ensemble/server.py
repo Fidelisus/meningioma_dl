@@ -14,7 +14,7 @@ from flwr.common import (
 )
 from flwr.server.client_proxy import ClientProxy
 
-from model_training.training_loop import save_model
+from meningioma_dl.model_training.training_loop import save_model
 
 
 class FedEnsemble(fl.server.server.FedAvg):

@@ -10,11 +10,11 @@ readme = "README.md"
 dynamic = ["dependencies", "optional-dependencies"]
 
 [tool.setuptools.packages.find]
-where = ["meningioma_dl"]
+where = ["src"]
 
 [tool.setuptools.dynamic]
-dependencies = {file = ["meningioma_dl/requirements.txt"]}
-optional-dependencies = {dev = { file = ["meningioma_dl/requirements_dev.txt"] }}
+dependencies = {file = ["src/meningioma_dl/requirements.txt"]}
+optional-dependencies = {dev = { file = ["src/meningioma_dl/requirements_dev.txt"] }}
 
 [build-system]
 requires = ["setuptools"]
