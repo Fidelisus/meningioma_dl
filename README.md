@@ -13,8 +13,16 @@ pip install -e .
 4. To run any job, the following env variables need to be set:
 
 ```shell
-# TODO
+DATA_DIR=XXX # The directory where the MRI scans are stored.
+LABELS_DIR= # The directory where the tsv files containing labels are stored. 
+PRETRAINED_MODELS_DIR= # The directory with the pretrained models. 
+SAVED_MODELS_DIR= # The models created during the runtime will be saved there.
+VISUALIZATIONS_DIRECTORY= # The visualization created during the runtime will be saved there.
 ```
+
+Please refer to `meningioma_dl/config.py` for more details on how the directory structure is used.
+
+5. Additionally, there is a helper function to create the train-validation-test dataset split: `scripts/create_dataset_split.py`.
 
 # Running the code as a slurm job 
 
@@ -24,6 +32,7 @@ Singularity, a library similar to Docker, was used to build and ship the contain
 
 2. Execute the container. Please note that the directory with the code needs to be mounted to the container at `BASE_DIR`. Then, the library will be installed using `pip install .` in the `entrypoint.sh` script. 
 
+An example of the command:
 ```shell
 BASE_DIR="XXX"
 SCRIPT_NAME="run_centralized_training.py"
