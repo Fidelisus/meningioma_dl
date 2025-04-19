@@ -13,7 +13,7 @@ pip install -e .
 4. To run any job, the following env variables need to be set:
 
 ```shell
-DATA_DIR=XXX # The directory where the MRI scans are stored.
+DATA_DIR= # The directory where the MRI scans are stored.
 LABELS_DIR= # The directory where the tsv files containing labels are stored. 
 PRETRAINED_MODELS_DIR= # The directory with the pretrained models. 
 SAVED_MODELS_DIR= # The models created during the runtime will be saved there.
