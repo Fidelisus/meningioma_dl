@@ -4,8 +4,6 @@ from pathlib import Path
 import fire
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
-from meningioma_dl.config import Config
-
 from meningioma_dl.data_loading.labels_loading import get_samples_df
 
 

@@ -1,6 +1,6 @@
 # Development environment
 
-1. Create a Python 3.13 venv
+1. Create a Python 3.10 venv
 
 2. Install the project with required dependencies using:
 
@@ -24,7 +24,7 @@ Please refer to `meningioma_dl/config.py` for more details on how the directory 
 
 5. Additionally, there is a helper function to create the train-validation-test dataset split: `scripts/create_dataset_split.py`.
 
-# Running the code as a slurm job 
+# Running the code as a Singularity container
 
 Singularity, a library similar to Docker, was used to build and ship the containers.
 

@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from functools import partial
 from pathlib import Path
-from typing import Type, Union, List, Dict, Callable, Tuple, Set, Optional, Literal
+from typing import Type, Union, List, Dict, Callable, Tuple, Literal
 
 import numpy as np
 import torch

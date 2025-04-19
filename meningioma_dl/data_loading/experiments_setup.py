@@ -28,7 +28,7 @@ def setup_run(
     env_file_path: str,
     manual_seed: int,
     device_name: Literal["cpu", "cuda"],
-    cv_fold: int,
+    cv_fold: int = 0,
 ) -> Config:
     setup_logging()
     torch.manual_seed(manual_seed)

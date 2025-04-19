@@ -46,6 +46,7 @@ def run_standalone_evaluate(
         preprocessing_specs=PreprocessingSpecs.get_from_name(preprocessing_specs_name),
         training_specs=get_training_specs("evaluation"),
         test_data_path=labels_file,
+        run_id=run_id,
     )
 
 

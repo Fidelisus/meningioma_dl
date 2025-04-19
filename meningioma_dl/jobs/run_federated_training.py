@@ -1,7 +1,6 @@
 import copy
 import json
 import logging
-from collections import defaultdict
 from functools import partial
 from logging import INFO
 from pathlib import Path
@@ -14,12 +13,17 @@ import torch
 from flwr.client import Client
 from flwr.common import Metrics, Context
 from flwr.common.logger import log
-from flwr.server import History, ServerConfig
+from flwr.server import ServerConfig
 from torch.utils.data import DataLoader
 
+from localized_federated_ensemble.weights_calculation import (
+    get_local_models_vs_clients_f_scores,
+)
 from meningioma_dl.config import Config
 from meningioma_dl.data_loading.data_loader import TransformationsMode, get_data_loader
-from meningioma_dl.evaluate_ensemble import evaluate_ensemble
+from meningioma_dl.localized_federated_ensemble.evaluation import (
+    ensemble_evaluation_loop,
+)
 from meningioma_dl.experiments_specs.augmentation_specs import AugmentationSpecs
 from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
 from meningioma_dl.experiments_specs.model_specs import ModelSpecs
@@ -31,7 +35,7 @@ from meningioma_dl.experiments_specs.training_specs import (
     get_training_specs,
 )
 from meningioma_dl.federated_learning.clients import ClassicalFLClient
-from meningioma_dl.federated_learning.ensemble_fl import (
+from meningioma_dl.localized_federated_ensemble.weights_calculation import (
     get_local_ensemble_weights,
     get_global_ensemble_weights,
     ensemble_weights_to_numpy,
@@ -44,8 +48,6 @@ from meningioma_dl.federated_learning.visualizations import (
     visualize_federated_learning_metrics,
 )
 from meningioma_dl.model_evaluation.centralized_evaluation import evaluate
-from meningioma_dl.model_evaluation.metrics import calculate_basic_metrics
-from meningioma_dl.model_training.predictions import get_model_predictions
 from meningioma_dl.model_training.training_loop import (
     training_loop,
 )
@@ -194,43 +196,6 @@ class FederatedTraining:
         ) as f:
             json.dump(object_to_save, f)
 
-    # TODO TODO move to ensemble_fl
-    def _get_local_models_vs_clients_f_scores(
-        self, saved_models_folder: Path, device: torch.device
-    ) -> Tuple[Dict[int, ResNet], Dict[int, Dict[int, float]]]:
-        clients_models: Dict[int, ResNet] = {}
-        local_models_vs_clients_f_scores: Dict[int, Dict[int, float]] = defaultdict(
-            dict
-        )
-        for client_id in range(self.training_specs.number_of_clients):
-            client_model = load_model_from_file(
-                saved_models_folder.joinpath(f"best_model{client_id}.pth.tar"),
-                self.modelling_specs.model_specs,
-                torch.device("cpu"),
-            )
-            clients_models[client_id] = client_model
-            for client_id_to_validate_on in range(
-                self.training_specs.number_of_clients
-            ):
-                data_loader = self.validation_data_loaders[client_id_to_validate_on]
-                client_model.eval()
-                client_model = client_model.to(device)
-                with torch.no_grad():
-                    labels, predictions, images_paths = get_model_predictions(
-                        data_loader, client_model, device
-                    )
-                predictions_flat = predictions.cpu().argmax(dim=1)
-                f_score = calculate_basic_metrics(
-                    labels.cpu(),
-                    predictions_flat,
-                    self.modelling_specs.model_specs.evaluation_metric_weighting,
-                    logging.info,
-                )
-                local_models_vs_clients_f_scores[client_id][
-                    client_id_to_validate_on
-                ] = f_score
-        return clients_models, local_models_vs_clients_f_scores
-
     def _get_client_resources(self):
         client_resources = {"num_gpus": 0, "num_cpus": 4}
         if self.config.device.type == "cuda":
@@ -252,8 +217,12 @@ class FederatedTraining:
         (
             clients_models,
             local_models_vs_clients_f_scores,
-        ) = self._get_local_models_vs_clients_f_scores(
-            saved_models_folder, self.config.device
+        ) = get_local_models_vs_clients_f_scores(
+            validation_data_loaders=self.validation_data_loaders,
+            model_specs=self.modelling_specs.model_specs,
+            saved_models_folder=saved_models_folder,
+            device=self.config.device,
+            number_of_clients=self.training_specs.number_of_clients,
         )
         self._save_as_json(
             "local_models_vs_clients_f_scores.json",
@@ -271,8 +240,8 @@ class FederatedTraining:
                 f"local_ensemble_weights_{client_id}.json",
                 local_ensemble_weights[client_id],
             )
-        logging.info("Evaluating global ensemble: ")
-        _, validation_metrics = evaluate_ensemble(
+        logging.info("Evaluating global weighted ensemble: ")
+        validation_metrics = ensemble_evaluation_loop(
             data_loader=validation_data_loader,
             models=list(clients_models.values()),
             model_specs=self.modelling_specs.model_specs,

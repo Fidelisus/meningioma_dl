@@ -5,8 +5,8 @@ from meningioma_dl.experiments_specs.fl_strategy_specs import FLStrategySpecs
 from meningioma_dl.federated_learning.server import (
     SaveModelFedAvg,
     FedProx,
-    FedEnsemble,
 )
+from localized_federated_ensemble.server import FedEnsemble
 
 
 def create_strategy(
